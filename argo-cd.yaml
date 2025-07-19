@@ -12,8 +12,6 @@ spec:
     path: argo-cd.yaml
     repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
-    directory:
-      recurse: true
   syncPolicy:
     automated:
       prune: true
