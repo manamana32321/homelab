@@ -9,10 +9,15 @@ spec:
     namespace: argocd
     server: https://kubernetes.default.svc
   source:
-    path: argo-cd.yaml
+    path: argocd/
     repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
+    directory:
+      recurse: true
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
