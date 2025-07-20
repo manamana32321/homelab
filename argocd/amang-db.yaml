@@ -21,9 +21,6 @@ spec:
         repoURL: https://github.com/skku-amang/main
         targetRevision: main
         path: helm/db
-        helm:
-          valueFiles:
-            - values-{{env}}.yaml
       destination:
         server: https://kubernetes.default.svc
         namespace: amang-db-{{env}}
