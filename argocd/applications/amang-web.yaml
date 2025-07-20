@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amang-web
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: web=ghcr.io/skku-amang/amang-web
+    argocd-image-updater.argoproj.io/web.update-strategy: latest
+    argocd-image-updater.argoproj.io/web.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/web.helm.image-tag: image.tag
+spec:
+  destination:
+    namespace: amang-web
+    server: https://kubernetes.default.svc
+  source:
+    path: helm/web
+    repoURL: https://github.com/skku-amang/main
+    targetRevision: main
+    directory:
+      recurse: true
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: image.repository
+          value: ghcr.io/skku-amang/web
+        - name: image.tag
+          value: latest
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
