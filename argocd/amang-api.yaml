@@ -18,7 +18,7 @@ spec:
         - values.yaml
       parameters:
         - name: image.repository
-          value: ghcr.io/skku-amang/api
+          value: ghcr.io/skku-amang/amang-api
         - name: image.tag
           value: latest
   project: default
