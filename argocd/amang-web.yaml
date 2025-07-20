@@ -31,7 +31,7 @@ spec:
               value: ghcr.io/skku-amang/web
             - name: image.tag
               value: latest
-      project: amang
+      project: amang-{{env}}
       syncPolicy:
         automated:
           prune: true
