@@ -1,22 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
   name: amang-db
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: amang
-  source:
-    repoURL: https://github.com/skku-amang/main
-    targetRevision: main
-    path: helm/db
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: amang-db
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+  generators:
+    - list:
+        elements:
+          - env: production
+          - env: staging
+  template:
+    metadata:
+      name: amang-db-{{env}}
+      namespace: argocd
+    spec:
+      project: amang-{{env}}
+      source:
+        repoURL: https://github.com/skku-amang/main
+        targetRevision: main
+        path: helm/db
+        helm:
+          valueFiles:
+            - values-{{env}}.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: amang-db-{{env}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
