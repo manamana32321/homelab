@@ -30,4 +30,4 @@ spec:
     - namespace: amang-db-staging
       server: https://kubernetes.default.svc
   sourceRepos:
-    -
+    - https://github.com/skku-amang/main
