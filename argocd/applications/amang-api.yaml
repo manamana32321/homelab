@@ -18,8 +18,6 @@ spec:
     path: helm/api
     repoURL: https://github.com/skku-amang/main
     targetRevision: main
-    directory:
-      recurse: true
     helm:
       valueFiles:
         - values.yaml
