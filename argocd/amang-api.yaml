@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: amang-db
+  name: amang-api
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: amang-db
+    namespace: amang-api
     server: https://kubernetes.default.svc
   source:
-    path: helm/db
+    path: helm/api
     repoURL: https://github.com/skku-amang/main
     targetRevision: main
     helm:
@@ -18,7 +18,7 @@ spec:
         - values.yaml
       parameters:
         - name: image.repository
-          value: ghcr.io/skku-amang/db
+          value: ghcr.io/skku-amang/api
         - name: image.tag
           value: latest
   project: default
