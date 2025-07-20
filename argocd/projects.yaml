@@ -14,6 +14,9 @@ spec:
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -31,3 +34,6 @@ spec:
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
