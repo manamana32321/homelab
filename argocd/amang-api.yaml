@@ -1,31 +1,41 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
   name: amang-api
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  destination:
-    namespace: amang-api
-    server: https://kubernetes.default.svc
-  source:
-    path: helm/api
-    repoURL: https://github.com/skku-amang/main
-    targetRevision: main
-    helm:
-      valueFiles:
-        - values.yaml
-      parameters:
-        - name: image.repository
-          value: ghcr.io/skku-amang/amang-api
-        - name: image.tag
-          value: latest
-  project: default
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
+  generators:
+    - list:
+        elements:
+          - env: production
+          - env: staging
+  template:
+    metadata:
+      name: amang-api-{{env}}
+      namespace: argocd
+    spec:
+      destination:
+        namespace: amang-api-{{env}}
+        server: https://kubernetes.default.svc
+      source:
+        path: helm/api
+        repoURL: https://github.com/skku-amang/main
+        targetRevision: main
+        helm:
+          valueFiles:
+            - values-{{env}}.yaml
+          parameters:
+            - name: image.repository
+              value: ghcr.io/skku-amang/amang-api
+            - name: image.tag
+              value: latest
+      project: amang-{{env}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
