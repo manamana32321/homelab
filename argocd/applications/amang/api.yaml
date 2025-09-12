@@ -32,7 +32,7 @@ spec:
               value: ghcr.io/skku-amang/amang-api
             - name: image.tag
               value: latest
-      project: amang-{{env}}
+      project: amang-homepage
       syncPolicy:
         automated:
           prune: true

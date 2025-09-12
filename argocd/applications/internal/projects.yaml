@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: amang-production
+  name: amang-homepage-production
   namespace: argocd
 spec:
   description: Production project for amang
   destinations:
-    - namespace: amang-api-production
+    - namespace: amang-api
       server: https://kubernetes.default.svc
-    - namespace: amang-web-production
+    - namespace: amang-web
       server: https://kubernetes.default.svc
-    - namespace: amang-db-production
+    - namespace: amang-db
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main
@@ -21,16 +21,16 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: amang-staging
+  name: amang-homepage-staging
   namespace: argocd
 spec:
   description: Staging project for amang
   destinations:
-    - namespace: amang-api-staging
+    - namespace: amang-api
       server: https://kubernetes.default.svc
-    - namespace: amang-web-staging
+    - namespace: amang-web
       server: https://kubernetes.default.svc
-    - namespace: amang-db-staging
+    - namespace: amang-db
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main

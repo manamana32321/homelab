@@ -28,10 +28,10 @@ spec:
             - values-{{env}}.yaml
           parameters:
             - name: image.repository
-              value: ghcr.io/skku-amang/web
+              value: ghcr.io/skku-amang/amang-web
             - name: image.tag
               value: latest
-      project: amang-{{env}}
+      project: amang-homepage
       syncPolicy:
         automated:
           prune: true
