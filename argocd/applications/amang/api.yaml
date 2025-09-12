@@ -3,14 +3,15 @@ kind: ApplicationSet
 metadata:
   name: amang-api
   namespace: argocd
-  # finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   generators:
-    - list:
-        elements:
-          - env: production
-          - env: staging
+    - git:
+        repoURL: https://github.com/manamana32321/homelab
+        revision: main
+        files:
+          - path: argocd/environments.json
   template:
     metadata:
       name: amang-api-{{env}}
