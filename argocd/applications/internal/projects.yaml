@@ -1,39 +1,50 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: amang-homepage-production
+  name: default
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
-  description: Production project for amang
+  description: Default project
   destinations:
-    - namespace: amang-api
-      server: https://kubernetes.default.svc
-    - namespace: amang-web
-      server: https://kubernetes.default.svc
-    - namespace: amang-db
+    - namespace: "*"
       server: https://kubernetes.default.svc
   sourceRepos:
-    - https://github.com/skku-amang/main
+    - "*"
   clusterResourceWhitelist:
-    - group: ""
-      kind: Namespace
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  roles: []
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: amang-homepage-staging
+  name: amang-homepage
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
-  description: Staging project for amang
+  description: Homepage for amang
   destinations:
-    - namespace: amang-api
-      server: https://kubernetes.default.svc
-    - namespace: amang-web
-      server: https://kubernetes.default.svc
-    - namespace: amang-db
+    - namespace: amang-*
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main
+    - https://github.com/manamana32321/homelab
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: "*"
+    - group: apps
+      kind: "*"
+    - group: networking.k8s.io
+      kind: "*"
+    - group: extensions
+      kind: "*"
+  roles: []
