@@ -7,11 +7,10 @@ metadata:
   #   - resources-finalizer.argocd.argoproj.io
 spec:
   generators:
-    - git:
-        repoURL: https://github.com/manamana32321/homelab
-        revision: main
-        files:
-          - path: argocd/environments.json
+    - list:
+        elements:
+          - env: production
+          - env: staging
   template:
     metadata:
       name: amang-api-{{env}}
