@@ -11,7 +11,7 @@ spec:
     namespace: argocd
     server: https://kubernetes.default.svc
   source:
-    path: argocd/applications/
+    path: argocd/
     repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
     directory:
