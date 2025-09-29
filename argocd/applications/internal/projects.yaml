@@ -39,12 +39,6 @@ spec:
     - group: ""
       kind: Namespace
   namespaceResourceWhitelist:
-    - group: ""
-      kind: "*"
-    - group: apps
-      kind: "*"
-    - group: networking.k8s.io
-      kind: "*"
-    - group: extensions
+    - group: "*"
       kind: "*"
   roles: []
