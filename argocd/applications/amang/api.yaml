@@ -23,7 +23,7 @@ spec:
         namespace: api-{{env}}
         server: https://kubernetes.default.svc
       source:
-        path: infra/k8s/api
+        path: 'infra/k8s/api/overlays/{{env}}'
         repoURL: https://github.com/skku-amang/main
         targetRevision: '{{branch}}'
         directory:
