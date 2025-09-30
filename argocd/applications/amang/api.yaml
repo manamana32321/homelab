@@ -26,6 +26,7 @@ spec:
         targetRevision: '{{.branch}}'
         directory:
           recurse: false
+      project: amang-homepage
       syncPolicy:
         automated:
           prune: true
