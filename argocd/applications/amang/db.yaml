@@ -11,7 +11,9 @@ spec:
     - list:
         elements:
           - env: production
+            branch: main
           - env: staging
+            branch: main
   template:
     metadata:
       name: amang-db-{{env}}
