@@ -1,11 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: amang-db
+  name: db
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  project: amang-homepage
   generators:
     - list:
         elements:

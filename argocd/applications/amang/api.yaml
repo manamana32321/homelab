@@ -1,11 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: amang-api
+  name: api
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  project: amang-homepage
   generators:
     - list:
         elements:
@@ -13,16 +14,16 @@ spec:
           - env: staging
   template:
     metadata:
-      name: amang-api-{{env}}
+      name: api-{{env}}
       namespace: argocd
     spec:
       destination:
-        namespace: amang-api-{{env}}
+        namespace: api-{{env}}
         server: https://kubernetes.default.svc
       source:
         path: infra/k8s/api
         repoURL: https://github.com/skku-amang/main
-        targetRevision: {{.branch}}
+        targetRevision: '{{.branch}}'
         directory:
           recurse: false
       project: amang-homepage
