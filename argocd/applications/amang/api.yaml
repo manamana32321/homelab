@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       name: api-{{env}}
-      namespace: argocd
+      namespace: api
     spec:
       destination:
         namespace: api-{{env}}
