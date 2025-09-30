@@ -28,7 +28,7 @@ spec:
             valueFiles:
               - $amang/infra/k8s/db/values.yaml
         - repoURL: https://github.com/skku-amang/main
-          targetRevision: "{{.branch}}"
+          targetRevision: '{{branch}}'
           ref: amang
       destination:
         server: https://kubernetes.default.svc

@@ -25,7 +25,7 @@ spec:
       source:
         path: infra/k8s/api
         repoURL: https://github.com/skku-amang/main
-        targetRevision: "{{.branch}}"
+        targetRevision: '{{branch}}'
         directory:
           recurse: false
       project: amang-homepage
