@@ -3,8 +3,8 @@ kind: ApplicationSet
 metadata:
   name: amang-db
   namespace: argocd
-  # finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   generators:
     - list:
@@ -17,10 +17,16 @@ spec:
       namespace: argocd
     spec:
       project: amang-homepage
-      source:
-        repoURL: https://github.com/skku-amang/main
-        targetRevision: main
-        path: helm/db
+      sources:
+        - repoURL: https://charts.bitnami.com/bitnami
+          chart: postgresql
+          helm:
+            releaseName: postgresql
+            valueFiles:
+              - $amang/infra/k8s/db/values.yaml
+        - repoURL: https://github.com/skku-amang/main
+          targetRevision: '{{.branch}}'
+          ref: amang
       destination:
         server: https://kubernetes.default.svc
         namespace: amang-db-{{env}}

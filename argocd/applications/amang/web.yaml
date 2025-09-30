@@ -3,8 +3,8 @@ kind: ApplicationSet
 metadata:
   name: amang-web
   namespace: argocd
-  # finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   generators:
     - list:
@@ -22,7 +22,9 @@ spec:
       source:
         path: infra/k8s/web
         repoURL: https://github.com/skku-amang/main
-        targetRevision: main
+        targetRevision: {{.branch}}
+        directory:
+          recurse: false
       project: amang-homepage
       syncPolicy:
         automated:
