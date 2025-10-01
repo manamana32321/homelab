@@ -3,8 +3,8 @@ kind: ApplicationSet
 metadata:
   name: api
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+  # finalizers:
+  #   - resources-finalizer.argocd.argoproj.io
 spec:
   project: amang-homepage
   generators:
