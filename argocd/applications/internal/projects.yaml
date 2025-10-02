@@ -35,6 +35,7 @@ spec:
   sourceRepos:
     - https://github.com/skku-amang/main
     - https://github.com/manamana32321/homelab
+    - https://charts.bitnami.com/bitnami
   clusterResourceWhitelist:
     - group: "*"
       kind: Namespace
