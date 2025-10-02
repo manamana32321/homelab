@@ -16,13 +16,14 @@ spec:
             branch: main
   template:
     metadata:
-      name: amang-db-{{env}}
-      namespace: api
+      name: db-{{env}}
+      namespace: amang-db-{{env}}
     spec:
       project: amang-homepage
       sources:
         - repoURL: https://charts.bitnami.com/bitnami
           chart: postgresql
+          targetRevision: 16.7.27
           helm:
             releaseName: postgresql
             valueFiles:

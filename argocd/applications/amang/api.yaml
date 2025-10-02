@@ -17,10 +17,10 @@ spec:
   template:
     metadata:
       name: api-{{env}}
-      namespace: api
+      namespace: amang-api-{{env}}
     spec:
       destination:
-        namespace: api-{{env}}
+        namespace: amang-api-{{env}}
         server: https://kubernetes.default.svc
       source:
         path: 'infra/k8s/api/overlays/{{env}}'
