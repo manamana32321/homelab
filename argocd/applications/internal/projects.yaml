@@ -30,14 +30,17 @@ metadata:
 spec:
   description: Homepage for amang
   destinations:
-    - namespace: "*"
+    - namespace: "amang-*"
+      server: https://kubernetes.default.svc
+    - namespace: "*-production"
+      server: https://kubernetes.default.svc
+    - namespace: "*-staging"
       server: https://kubernetes.default.svc
   sourceRepos:
     - https://github.com/skku-amang/main
     - https://github.com/manamana32321/homelab
-    - https://charts.bitnami.com/bitnami
   clusterResourceWhitelist:
-    - group: "*"
+    - group: ""
       kind: Namespace
   namespaceResourceWhitelist:
     - group: "*"
