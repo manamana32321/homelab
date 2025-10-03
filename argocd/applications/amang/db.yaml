@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: db
+  name: amang-db
   namespace: argocd
   # finalizers:
   #   - resources-finalizer.argocd.argoproj.io
@@ -19,21 +19,16 @@ spec:
       name: db-{{env}}
       namespace: amang-db-{{env}}
     spec:
-      project: amang-homepage
-      sources:
-        - repoURL: https://charts.bitnami.com/bitnami
-          chart: postgresql
-          targetRevision: 16.7.27
-          helm:
-            releaseName: postgresql
-            valueFiles:
-              - $amang/infra/k8s/db/values.yaml
-        - repoURL: https://github.com/skku-amang/main
-          targetRevision: '{{branch}}'
-          ref: amang
       destination:
         server: https://kubernetes.default.svc
         namespace: amang-db-{{env}}
+      source:
+        path: 'infra/k8s/db/overlays/{{env}}'
+        repoURL: https://github.com/skku-amang/main
+        targetRevision: '{{branch}}'
+        directory:
+          recurse: false
+      project: amang-homepage
       syncPolicy:
         automated:
           prune: true
