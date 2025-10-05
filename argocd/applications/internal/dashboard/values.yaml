@@ -24,11 +24,11 @@ extras:
       spec:
         ingressClassName: traefik
         tls:
-          - secretName: k8s-test-tls
+          - secretName: k8s-dashboard-tls
             hosts:
-              - k8s-test.json-server.win
+              - k8s.json-server.win
         rules:
-          - host: k8s-test.json-server.win
+          - host: k8s.json-server.win
             http:
               paths:
                 - path: /
@@ -57,7 +57,7 @@ extras:
       subjects:
       - kind: ServiceAccount
         name: dashboard-admin
-        namespace: kubernetes-dashboard-test
+        namespace: kubernetes-dashboard
     
     # Admin token Secret
     - apiVersion: v1
