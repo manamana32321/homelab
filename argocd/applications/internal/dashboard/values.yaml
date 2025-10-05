@@ -1,0 +1,70 @@
+app:
+  ingress:
+    enabled: false
+
+kong:
+  enabled: true
+  proxy:
+    http:
+      enabled: true
+    tls:
+      enabled: false
+
+extras:
+  manifests:
+    # Custom Ingress for external access
+    - apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: kubernetes-dashboard-custom
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          traefik.ingress.kubernetes.io/router.tls: "true"
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+      spec:
+        ingressClassName: traefik
+        tls:
+          - secretName: k8s-test-tls
+            hosts:
+              - k8s-test.json-server.win
+        rules:
+          - host: k8s-test.json-server.win
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: kubernetes-dashboard-kong-proxy
+                      port:
+                        number: 80
+    
+    # Admin ServiceAccount
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: dashboard-admin
+    
+    # Admin ClusterRoleBinding
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: dashboard-admin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: dashboard-admin
+        namespace: kubernetes-dashboard-test
+    
+    # Admin token Secret
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: dashboard-admin-token
+        annotations:
+          kubernetes.io/service-account.name: dashboard-admin
+          kubernetes.io/service-account.token-expiration-seconds: "604800"
+      type: kubernetes.io/service-account-token
