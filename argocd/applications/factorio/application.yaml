@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: factorio
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    namespace: factorio
+    server: https://kubernetes.default.svc
+  source:
+    chart: factorio-server-charts
+    repoURL: https://sqljames.github.io/factorio-server-charts
+    targetRevision: 2.5.2
+    helm:
+      valuesObject:
+        # 서비스 설정 (NodePort)
+        service:
+          type: NodePort
+          port: 34197
+          nodePort: 31497
+
+        # 리소스 설정
+        resources:
+          requests:
+            memory: 1024Mi
+          limits:
+            memory: 2048Mi
+            cpu: 1000m
+
+        # 스토리지 설정
+        persistence:
+          dataDir:
+            Size: "2Gi"
+
+        # 팩토리오 서버 설정
+        factorioServer:
+          save_name: "default"
+
+        # 게임 비밀번호
+        serverPassword:
+          game_password: "ilovefactorio" # TODO: Seal with Kubeseal
+
+        # 서버 설정
+        server_settings:
+          name: "JSON"
+          description: "JSON Factorio Space Age Server"
+          tags:
+            - space-age
+            - private
+          autosave_slots: 20
+
+        # RCON 비활성화
+        rcon:
+          external: false
+
+        # 맵 생성 설정 (자원 크기 600%)
+        map_gen_settings:
+          autoplace_controls:
+            coal:
+              size: 6
+            stone:
+              size: 6
+            copper-ore:
+              size: 6
+            iron-ore:
+              size: 6
+            uranium-ore:
+              size: 6
+            crude-oil:
+              size: 6
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
