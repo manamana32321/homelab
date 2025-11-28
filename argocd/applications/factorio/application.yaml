@@ -14,11 +14,13 @@ spec:
     targetRevision: 2.5.2
     helm:
       valuesObject:
-        # 서비스 설정 (NodePort)
+        # HostNetwork 사용 (기본 포트 34197 사용 가능)
+        hostNetworkEnabled: true
+
+        # 서비스 설정 (ClusterIP - HostNetwork 사용 시)
         service:
-          type: NodePort
+          type: ClusterIP
           port: 34197
-          nodePort: 31497
 
         # 리소스 설정
         resources:
