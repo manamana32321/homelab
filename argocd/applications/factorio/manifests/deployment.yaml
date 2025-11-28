@@ -37,6 +37,9 @@ spec:
           volumeMounts:
             - name: fsm-data
               mountPath: /opt/fsm-data
+            - name: fsm-config
+              mountPath: /opt/fsm/conf.json
+              subPath: conf.json
             - name: factorio-saves
               mountPath: /opt/factorio/saves
             - name: factorio-mods
@@ -54,6 +57,9 @@ spec:
         - name: fsm-data
           persistentVolumeClaim:
             claimName: fsm-data
+        - name: fsm-config
+          configMap:
+            name: fsm-config
         - name: factorio-saves
           persistentVolumeClaim:
             claimName: factorio-saves
