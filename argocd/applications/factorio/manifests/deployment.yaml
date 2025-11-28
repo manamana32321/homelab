@@ -27,11 +27,13 @@ spec:
               containerPort: 34197
               protocol: UDP
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           env:
             - name: FSM_SECURE
               value: "false"
+            - name: FSM_SERVER_PORT
+              value: "8080"
           volumeMounts:
             - name: fsm-data
               mountPath: /opt/fsm-data

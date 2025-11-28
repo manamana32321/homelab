@@ -11,6 +11,8 @@ spec:
   source:
     repoURL: https://github.com/manamana32321/homelab.git
     path: argocd/applications/factorio/manifests
+    directory:
+      recurse: false
     targetRevision: HEAD
   syncPolicy:
     automated:
