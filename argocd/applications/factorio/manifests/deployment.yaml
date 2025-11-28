@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio-server-manager
+  namespace: factorio
+  labels:
+    app: factorio-server-manager
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: factorio-server-manager
+  template:
+    metadata:
+      labels:
+        app: factorio-server-manager
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: factorio-server-manager
+          image: ofsm/ofsm:latest
+          ports:
+            - name: game
+              containerPort: 34197
+              protocol: UDP
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: FSM_SECURE
+              value: "false"
+          volumeMounts:
+            - name: fsm-data
+              mountPath: /opt/fsm-data
+            - name: factorio-saves
+              mountPath: /opt/factorio/saves
+            - name: factorio-mods
+              mountPath: /opt/factorio/mods
+            - name: factorio-config
+              mountPath: /opt/factorio/config
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "500m"
+            limits:
+              memory: "2048Mi"
+              cpu: "1000m"
+      volumes:
+        - name: fsm-data
+          persistentVolumeClaim:
+            claimName: fsm-data
+        - name: factorio-saves
+          persistentVolumeClaim:
+            claimName: factorio-saves
+        - name: factorio-mods
+          persistentVolumeClaim:
+            claimName: factorio-mods
+        - name: factorio-config
+          persistentVolumeClaim:
+            claimName: factorio-config
