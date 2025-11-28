@@ -31,14 +31,21 @@ spec:
             - name: FSM_SECURE
               value: "false"
           volumeMounts:
+            - name: fsm-config
+              mountPath: /opt/fsm/conf.json
+              subPath: conf.json
+            - name: fsm-config
+              mountPath: /opt/factorio/config/server-settings.json
+              subPath: server-settings.json
+            - name: fsm-config
+              mountPath: /opt/factorio/config/map-gen-settings.json
+              subPath: map-gen-settings.json
             - name: fsm-data
               mountPath: /opt/fsm-data
             - name: factorio-saves
               mountPath: /opt/factorio/saves
             - name: factorio-mods
               mountPath: /opt/factorio/mods
-            - name: factorio-config
-              mountPath: /opt/factorio/config
           resources:
             requests:
               memory: "1024Mi"
@@ -47,6 +54,9 @@ spec:
               memory: "2048Mi"
               cpu: "1000m"
       volumes:
+        - name: fsm-config
+          configMap:
+            name: fsm-config
         - name: fsm-data
           persistentVolumeClaim:
             claimName: fsm-data
@@ -56,6 +66,3 @@ spec:
         - name: factorio-mods
           persistentVolumeClaim:
             claimName: factorio-mods
-        - name: factorio-config
-          persistentVolumeClaim:
-            claimName: factorio-config
