@@ -1,3 +1,6 @@
+# TODO: Rate limit 해제되면 replicas를 1로 변경하고 작업 재개
+# - ofsm 이미지가 매 시작마다 Factorio 다운로드 시도 → 429 Rate Limit 발생
+# - 해결방안: InitContainer로 PVC에 게임 설치 또는 factoriotools/factorio 이미지로 전환 검토
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,7 +9,7 @@ metadata:
   labels:
     app: factorio-server-manager
 spec:
-  replicas: 1
+  replicas: 0
   strategy:
     type: Recreate
   selector:
