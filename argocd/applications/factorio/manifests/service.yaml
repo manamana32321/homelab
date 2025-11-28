@@ -6,11 +6,16 @@ metadata:
   labels:
     app: factorio-server-manager
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: factorio-server-manager
   ports:
     - name: http
       port: 80
-      targetPort: 8080
+      targetPort: 80
       protocol: TCP
+    - name: game
+      port: 34197
+      targetPort: 34197
+      nodePort: 34197
+      protocol: UDP

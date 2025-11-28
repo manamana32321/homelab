@@ -17,8 +17,6 @@ spec:
       labels:
         app: factorio-server-manager
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: factorio-server-manager
           image: ofsm/ofsm:latest
@@ -27,19 +25,14 @@ spec:
               containerPort: 34197
               protocol: UDP
             - name: http
-              containerPort: 8080
+              containerPort: 80
               protocol: TCP
           env:
             - name: FSM_SECURE
               value: "false"
-            - name: FSM_SERVER_PORT
-              value: "8080"
           volumeMounts:
             - name: fsm-data
               mountPath: /opt/fsm-data
-            - name: fsm-config
-              mountPath: /opt/fsm/conf.json
-              subPath: conf.json
             - name: factorio-saves
               mountPath: /opt/factorio/saves
             - name: factorio-mods
@@ -57,9 +50,6 @@ spec:
         - name: fsm-data
           persistentVolumeClaim:
             claimName: fsm-data
-        - name: fsm-config
-          configMap:
-            name: fsm-config
         - name: factorio-saves
           persistentVolumeClaim:
             claimName: factorio-saves
