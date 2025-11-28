@@ -38,6 +38,7 @@ spec:
         # 팩토리오 서버 설정
         factorioServer:
           save_name: "default"
+          port: 34197
 
         # 게임 비밀번호
         serverPassword:
