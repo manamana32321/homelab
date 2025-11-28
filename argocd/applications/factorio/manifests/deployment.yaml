@@ -17,6 +17,57 @@ spec:
       labels:
         app: factorio-server-manager
     spec:
+      initContainers:
+        - name: inject-credentials
+          image: alpine:latest
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache jq
+              # Inject Factorio credentials into server-settings.json
+              jq --arg user "$FACTORIO_USERNAME" \
+                 --arg pass "$FACTORIO_PASSWORD" \
+                 --arg token "$FACTORIO_TOKEN" \
+                 '.username = $user | .password = $pass | .token = $token' \
+                 /config-template/server-settings.json > /config/server-settings.json
+              # Inject FSM admin credentials into conf.json
+              jq --arg user "$FSM_USERNAME" \
+                 --arg pass "$FSM_PASSWORD" \
+                 '. + {username: $user, password: $pass}' \
+                 /config-template/conf.json > /config/conf.json
+              cp /config-template/map-gen-settings.json /config/map-gen-settings.json
+          env:
+            - name: FACTORIO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-credentials
+                  key: username
+            - name: FACTORIO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-credentials
+                  key: password
+            - name: FACTORIO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-credentials
+                  key: token
+            - name: FSM_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-credentials
+                  key: fsm_username
+            - name: FSM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-credentials
+                  key: fsm_password
+          volumeMounts:
+            - name: fsm-config
+              mountPath: /config-template
+            - name: config-merged
+              mountPath: /config
       containers:
         - name: factorio-server-manager
           image: ofsm/ofsm:latest
@@ -31,13 +82,13 @@ spec:
             - name: FSM_SECURE
               value: "false"
           volumeMounts:
-            - name: fsm-config
+            - name: config-merged
               mountPath: /opt/fsm/conf.json
               subPath: conf.json
-            - name: fsm-config
+            - name: config-merged
               mountPath: /opt/factorio/config/server-settings.json
               subPath: server-settings.json
-            - name: fsm-config
+            - name: config-merged
               mountPath: /opt/factorio/config/map-gen-settings.json
               subPath: map-gen-settings.json
             - name: fsm-data
@@ -57,6 +108,8 @@ spec:
         - name: fsm-config
           configMap:
             name: fsm-config
+        - name: config-merged
+          emptyDir: {}
         - name: fsm-data
           persistentVolumeClaim:
             claimName: fsm-data
