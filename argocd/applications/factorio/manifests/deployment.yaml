@@ -35,6 +35,12 @@ spec:
             - name: fsm-config
               mountPath: /opt/fsm/conf.json
               subPath: conf.json
+            - name: fsm-config
+              mountPath: /opt/factorio/config/server-settings.json
+              subPath: server-settings.json
+            - name: fsm-config
+              mountPath: /opt/factorio/config/map-gen-settings.json
+              subPath: map-gen-settings.json
             - name: fsm-data
               mountPath: /opt/fsm-data
             - name: factorio-saves
