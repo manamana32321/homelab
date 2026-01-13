@@ -21,6 +21,7 @@ spec:
       containers:
         - name: factorio-server-manager
           image: ofsm/ofsm:latest
+          imagePullPolicy: Never
           ports:
             - name: game
               containerPort: 34197
