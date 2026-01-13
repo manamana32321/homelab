@@ -1,0 +1,25 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: amang-web
+  namespace: argocd
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: "web-*"
+      images:
+        - alias: web
+          imageName: ghcr.io/skku-amang/amang-web:latest
+---
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: amang-api
+  namespace: argocd
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: "api-*"
+      images:
+        - alias: api
+          imageName: ghcr.io/skku-amang/amang-api:latest
