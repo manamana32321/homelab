@@ -18,6 +18,9 @@ spec:
     metadata:
       name: web-{{env}}
       namespace: amang-web-{{env}}
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: web=ghcr.io/skku-amang/amang-web
+        argocd-image-updater.argoproj.io/web.update-strategy: latest
     spec:
       destination:
         namespace: amang-web-{{env}}
