@@ -15,6 +15,7 @@ spec:
     directory:
       recurse: true
       include: "*.yaml"
+      exclude: "applications/factorio/manifests/*"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
