@@ -9,11 +9,12 @@ spec:
   project: amang-homepage
   generators:
     - list:
-        elements:
-          - env: production
-            branch: main
-          - env: staging
-            branch: main
+        elements: []
+        # 비활성화됨 - Vercel에서 배포
+        # - env: production
+        #   branch: main
+        # - env: staging
+        #   branch: main
   template:
     metadata:
       name: web-{{env}}
