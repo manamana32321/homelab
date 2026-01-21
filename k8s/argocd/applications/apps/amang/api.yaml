@@ -15,6 +15,9 @@ spec:
     metadata:
       name: api-{{env}}
       namespace: amang-api-{{env}}
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: api=ghcr.io/skku-amang/amang-api
+        argocd-image-updater.argoproj.io/api.update-strategy: digest
     spec:
       destination:
         namespace: amang-api-{{env}}
