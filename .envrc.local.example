@@ -1,0 +1,10 @@
+# Cloudflare API Token (for Terraform)
+export TF_VAR_cloudflare_api_token=""
+
+# R2 Backend (S3 compatible)
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export AWS_ENDPOINT_URL_S3="https://<account_id>.r2.cloudflarestorage.com"
+
+# Default IP for A records (dynamic IP)
+export TF_VAR_default_ip=""
