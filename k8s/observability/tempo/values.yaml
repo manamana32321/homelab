@@ -1,0 +1,22 @@
+# Tempo Single Binary Mode
+# https://artifacthub.io/packages/helm/grafana/tempo
+
+tempo:
+  # OTLP gRPC receiver
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+persistence:
+  enabled: true
+  size: 10Gi

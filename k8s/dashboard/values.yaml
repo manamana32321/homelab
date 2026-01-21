@@ -1,0 +1,16 @@
+app:
+  # use manual ingress as we are using traefik
+  ingress:
+    enabled: false
+
+extras:
+  serviceMonitor:
+    enabled: true
+
+kong:
+  enabled: true
+  proxy:
+    http:
+      enabled: true
+    tls:
+      enabled: false

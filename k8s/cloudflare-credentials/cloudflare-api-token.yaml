@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cloudflare-api-token
+  namespace: cloudflare-credentials
+spec:
+  encryptedData:
+    api-token: AgB/5CUj+aQkjc26eoi5n1uXUIUsg7+d4J6Gm8RKCWQoLYgRa/66pZI8vE6HOtYVQiRC0PKLvhX9ScCub9IY5ZA65SuSecCjbUShd1yv+YkTeWviAJOsEdODQg4FAsK0kC5KUro0mU3AtF0/kvFr2IWtliefB4nulUkgzXIEJHOfCOsN/p4blTIzuugqGJ3n7C6gohZN6VkRQ9E4QJlIAPvvG0eJeNENQsm1qkHYGsCxaIiHvNts4ca2qVmTZKKYRhY+Bv6bzVwqUI9sKf1bm+X76jX4rei55sULWcPYsH4eIEZqOaQkU2j9HHLFdHsakGxl63FnHS/EZ2KKIGN+39gimUD3QiLCI+1fHnIz0zmjo5yBw+kGeb0UfZuphJ1cxLP2/mrwdStcokavsZOqxuOLl0W4Sr8gopkC/tiLydk5o2EC54IOvEXqjHJlELYR+d+8CsPpE0LfsNH6nJXml1LKK8fcyMd8B+mCLb5tE5gfhSnpHqyskNvOD5IfsRMf6bmtvSJG1cuajN/uozua+UOZB90eUrHeQ1fmk6nWI+sIegHgYuhAXvfPYQ/52VvopL4Xqiyt5XieoAaRRUdPc+SPH/o2L1i3ziekqqu1iBrmcK0noVTJkwxBBs3hgqyHnO/NAVVjT21TodUyWV8CdGBzgM3g/4CyKZ8hsrAec2NxzKbKhe+yUaQ9MFqBJKwOAUO1zPbM+Ox/m6spGMnE8lmkwf1qDlL72KWLgePmQEMUPUfN1LSVbaMf
+  template:
+    metadata:
+      name: cloudflare-api-token
+      namespace: cloudflare-credentials

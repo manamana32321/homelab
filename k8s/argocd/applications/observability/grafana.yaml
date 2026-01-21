@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: grafana
+      targetRevision: '10.5.8'
+      helm:
+        valueFiles:
+          - $lab/k8s/observability/grafana/values.yaml
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      ref: lab
+    
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      path: k8s/observability/grafana
+    
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

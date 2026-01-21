@@ -1,0 +1,193 @@
+## Argo CD configuration
+## Ref: https://github.com/argoproj/argo-cd
+
+global:
+  domain: argocd.json-server.win
+  revisionHistoryLimit: 3
+  logging:
+    format: json
+    level: info
+
+configs:
+  cm:
+    dex.config: |
+      connectors:
+        - type: github
+          id: github
+          name: GitHub
+          config:
+            clientID: $clientID
+            clientSecret: $clientSecret
+            orgs:
+            - name: YOUR_ORG
+            loadAllGroups: true
+  rbac:
+    # TODO: RBAC 정책 설정
+    # policy.csv: |
+    #   g, your-org:members, role:admin
+    policy.default: role:admin
+    scopes: "[groups]"
+  repositories:
+    homelab:
+      url: https://github.com/json-0201/homelab
+      name: homelab
+      type: git
+
+extraObjects:
+  - apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      name: github-app-secret
+      namespace: argocd
+    spec:
+      encryptedData:
+        githubAppID: AgCLqCFzAcQNNJsnLZ1AQ9mSLNHPTH3Or1s+f6Xs2uTmNqpBOB+WidfezbaqQneuazHAf9d8Ahba5gXodP1Gp3DEISDcs+yfcU3TWTCbHHo20P1iVRhOvJwqmnr7cURQYJ9aKjL17va99DE4k/TjLpOXACI+7xZFHSyDtonyWj/JTvb1t8eqhjI/0Mwp40YOUfqS9bjzXfhrgX9xiHuyt95/BwyejpqqRyNAkwZm+1UISbk8YnbvzOKnUuQxvGiYjN8GiLy8eRdeFpz4rvGUEMN7C/f/rIjjr9vyhsMtm2bNQWLlllwcajVgRkCfYzAvhvkVN5woo64PglwUJ40FQH6j5PPJA6zTS5ltxFB25rOlP4yff2z6STfApIsKtwh+FHPbycVWWFRh9WIj9Vk6ow/zosmetgqbYVdpe36C8W+2if6P3PIRDhVD5mS2ddjNQc9L6zizDoLJhk39dtPsrFh3tWBbZGb+E+vHaBhgfnzwQ3IWoXYgULnkOK1lW2zTEDQjKbrxaYoesGG4EsOVs3YucMkWLHR2toVSARkVcD7idKzzXqphhfnuSeMSz2JzdpORMfM0FYObV4v50s2A0SpQZ6gjZF4wszfzvBUpKYC0LKJ2BRU9L7JhZujzPlFfqswTzL4o82dz6DL+UcFYqTgTc5ryZSlYXcNSL+SRoeP6dkAt+IvEYlePZb8Za93n5QWck0+SEeJP
+        githubAppInstallationID: AgB1uhgozco0Ai0p+0YG/f4gQrg397Lbp67WC9FkzYovwj1C4KXHSlXEuiqR0zeFek1vQ5aVNgTYvjC2IQ83+z/RUDobGGLvSJI33FAPYVGYrV/oAvxRGL+B1hc426V7nJMNF177MN+ebUoO9L7xsz1wdf9DD2JvOMJnwl2mQT6p/ctKgdRtXLNUI0xJ664qcGLFWBHZLrYnk/sJW+u+HP+H0/xjVIROzcZTgvdm+SoC/LjyR+vKuuCiPVgYEIa7bROmglmALTTHXxn/CfdK88KVgWz9zA190reVnNkDPgi6y9bDevMLFZSe1TziqVKaYbxMGyHRIa/IHSDKaXYMr9ODq07M3PSUojkXBTcb2PT3ql5Ixf0NbIuoRUFb619qodCWz3cLBVPNe7cqEf95KtEK9pQjrvuy7ZvOtU0siMtl5r6/ElxfobVA+2LJzseOsyzjD2wBYpIDH9f5tTWR7sjLyQB2dVL0TCzSyOJDG/6wFZjLNmhQLm4fqI50YxStBwg2kqkBWdR7bIJtwiAKVRMl0z3xD9h09RXfEVC3RF0GefLLF5DJh81X3T53l0J89vRr+QvCVQxIvSsvUWD01TMSieGFDnnsn5yM7d5WjsLYYAqV8RJFd1lytJv5SHKdg2YkpwnR3gbtjkDFbtayF5rfioMQaIZFzzCaFSKnxGO+wQtF5X70zx+dmjuJ/ODInCuDgtCoDmJ/8bHxEGpznpaWWYccew==
+        githubAppPrivateKey: AgA2peFPywrlMtNODaD0/gTmyoutpq/4kSN/eDlVL6SJyD7keUyvVXt/O+jx+jXzys87vFJZ6uRbH2WeP57uzcfAOMk7exjMzsrWuVWTWjafkgmdiPVcKdbfKZdhPUPi/cIpr9VmWGrclU/cIQ1TcELpIFeafd4PeaegCUz7UYFswoHMz6ZHprRaGCy5zwBdYlrEBg6Lkd21xvZ49+mVGsnoAWhzbg8/6Tc2D60rqLRXEhFKdMlV0Dj4ClM96vC0l6ZrYulEwkoIkqzvIz5rTa/gm/NR8bZyCifc3HxldX26dtIVx0IR8t9Zz3yKDqML7LF/dSsRK1uWT0rw/cbKmaNGViNdOVXWZY7T/N6yAOTwgbSjByNIcSsMdgfFw5sZKrRQskrFhlAkXoXrCIrObYBMH1J1SSoB10lSXdokxGEVD2wClRaKZfWkjgfp7S6+Glm3/k0SfvO0JjE9fCndHWPpOEoWwGan4ErkFDHhP8H89kgXIjrmOE2lXtu+fthxxObIvuOr2DIR78IJLwrL89efZ17hggslPef+LSm93zeDP/AbW0lcUFAsnArBSJLrnan15+DvZkHE+IHdMvRz6C9Rd1ldPKjAermnErjaz41i31rCNd9CHTN3IQ8j+nBmVK55/A1ZsS0AUXyHeI5NcqW2I4X9ugMOR8vEZ4bn4D5x4cJF0X8+Env1vrY8W/0S5kvjusan+SdQSqsc+8vVPJ5v5fxdypMtzQ+aF+Tb//h+cLgLhqMOJfVtAAiqwFQHVSjA2UQpzVcVxJk5nHPTNMRyFhUE2sSAQ7xI7vi/1tSqogm0qDky8FWBgyrkszxhCVl9BFdEWePsFJrZYnaq9KSOywx9/Ou6n7OoicZRsmJbFZDO3VCA1eE7tqtdm8tc0zDj2uwz0TGMBc5C4w8yzUArTf71snOXBm7xVqrm40JcZzS4yICP6uvOBVD6LsIt8/gZatXp3WLyWgEuHugFDhvmdf9d+u1AFN4aSdbTNGaJ+ZGm1gqU46pjabkwoWRx+WN36jgajUV2QeNjsSm6vWdvpwXQJxQmhTNNdLWivWf6EHcwU7dDBbZMbpEhsEIEh+D6uJKvIwf//uRYFJjmAwZQ9YjgneIl8jR5t509E3PKWqVROi7ugWehmchz6Ay+x7gbtiK8FK3/Z4HPsMCm0AXICIth+Dyr+XMy2WtaldTQSaMzK50KtNpi7IwtyRGdJAKzq3lAUI6tdp5kg0oDnniT6/aoHkfiTKbin5KfBMbt8mKAnzWzFM+rjd7P5FbOcHXc3uXBKoqWlk9HVn4PSQwTdXcm/3KSXDpAG9UGpMVxJKtQkXQ+s+l6IEMmXO2pjCd1fmS2GGSueT2kAP7u4yG5GAduuxF57UZk6tyh93hk187mu/v0ssczZlzvOvHJsU/GnkRd+PrUAPspflgmT7NiJlkb3c/k/m6noqkOdGsXs2CMxwEw02CdLztJkehhVWjbPQqpww9pZ7WKAgE6pwQwgcd3bG2Z0zTo+OHtp/8m4kmjuq95YJG0K51EaUMURhueE/uqc+mMPSIdbodEFKg5waOXbdvVsOZB8V52JvtUFk4NZ+OMaZjadurnQaxBjE/P8EuShL9OxqUiuVX+UGLmUy0Wld4sPK9Pi0TwgftMcC6T+BySiFDhwLgQ/K9m51a0rAceepeeQ708IxqXaTzIPPF8JlVk5tF2c0yYZR6WSZUsT7rqVh6lqQmKWrWnL0Gl0yrsZHwyhoLNAuEWmL2ydQisQIOQ0lRNKIV66hxeAkcitOmYtX0Dd9zARd0RQ0JGpEzyQ9CqV7AM8bmdz2XdHvrjXhCtO2p/vixVgVzDWX8Mx1RP2R8zWy1t3M/lDPOtip4UEJI3ta/RvQ7Vgq5vcqmwzji/h+Cw4qkZkQzYSSvWj0pXaTQmdpLLhYAy7aymnhjJgrBVP0gLlMF1CrLDSFoHRvGK+9Dj8yE2dv9FC8Zi7nfPCk8OL37BHNVr8k3Rt5xjBD8Jj9QWHRLvulwuueQOk/Quz2rY1Ic02qGUn5Hzy0qAUn4YjMiLIVKH+bh9YuXiX/bAcXpHzSVUN+RQBtPoAZfFJtn4YtpRAbBRkGPVbB4R2wkiNK1rgzov2MiHPYJWwvIx1pQ9lXHlb+kp0EqzpRShL/xiOayDnAkW0d+uds5qZw2urFp8cd67ZCpSDdNxfxiZXF8gUlCXIHFMWh8Km5ETXRk3YSJq4gUvs943tR7Y+1Rbd0oA3LOUKQlkmV4zc/1MxvdaJ7OAo7MidDxYLPvCEIsV4tFRT7BeGlzq5KdR+rmzz0TVp/xxGbGUPKnrnWHHdSZarX6g3YdwNrvds8BexJqPkNU5xznGzGLsZrFNOULsD2nSNfr0YFtatSpnSQtmO/JfBGRjUrp5QqmPHew/53RRrsX+KgVuZVAyKmAPQncgByGb/cGTX/OTGm5sKnqCR1stCJtUYUh/WCLeLqC2BwvwTllI9nzu/F3XOmcEqR018RhOUTBuF8PVlRJjeid8uwrPUefV7/TZFilYxvqk4AFPF5/VQ8Pzgz+1cCWFOrDGdSIvgE/k15GXxz45gjZRMYmEHxfgbBhRa7MQQHNLg5+VlpySB64cMBoj0HKkpcHboP31UitOvWlWEdhy4TK0EMVT9P+8wqWw+CZhDLPzBevksqHC0CYwgUVIefEWSoGDjB69v6hiayBUMAySIb10y9x4vEgPU11fabCCSO52XMx3djUdJ29y7ouZdui9Xv4zGR6u6jZ+X9MO/CrUALOq9wP2+1be4ip59glDNoDVyNJnBd0DkAhT8Rmw4dxk4TTvWL+0hSxQoDfuj/+oBNrEfvyzlJYjwLCSNL/pno2I/vLG736AgnF9icEZ6eYqYCOsK89eaiYym1YTTAyrNPtnRzfYCLaobH0LksRPhV/TsNFQI8X983bRwa7Fpl46ANAabWPo
+      template:
+        metadata:
+          name: github-app-secret
+          namespace: argocd
+
+  - apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      name: github-oauth-app
+      namespace: argocd
+    spec:
+      encryptedData:
+        clientID: AgBVP30RpFlUTEqSAJ7IRwGbwYb5UpoA8/AqtLQmkQnjTPp1/LKIqiLm5GPEzV6DOleURyrWTIpIA/MSTBbT0vMkH3cZ5qPdGgbXRel7KspOjMmAkdRDsnFmS6ySEPIyMyN9XA21ESjnpDJZdfQUcFBRnUQtyRXQKGWjPh4P6jE4ILpiNfuaL0f/wy8Y2DCPQiY4O0fHFBPx1QfXdOryi+YZQY8SJ07cyJ0k9RGUNASWyMgiSSU3FM7HKAbURRMdAKaXUsyL+tQdbGu4719qReznjrPpQJ/fNEe7ioEtUGGEgK8aOhfMwS6eleU8pZLGLSaWAAtuC957MZwXGLjxHvDGQrfqJA5Z1wIDciD6HNMc6AOr9tLAS1RBNcfmKwF1p3KHo75OX5wArImyLzHq66IbUnb6N+WyT6XWn/CwAnBO6GO3m1YY11p+mAfJZPJFfeL4tWFsxLNP4WlrKNd2rFjPoVPRDnDKTK2kVosZhpT3gm6udBTTmTVL+nlBHU3z9pyrSrg26fPbS8rwxTFbo9ou8bqRgDQULDx8oDEP5h+3QNo8Nhvur4hpBYaaP3i8bpBbWoq9F/flqK3RlFGi3clrtD3+mDfXF3x1TxfWgvDlSsNaCOUYgVHO/LWdHWpC7SFAAczfzdEnrzpjDLIxs7R+Y9zUB+pNa68zqqAnYyCTa/+Bq7DLhC7qjsc6fJdYz+yzDLfyWvYzq26SGbZwS1B3F3cIMA==
+        clientSecret: AgBiTDpAoEOR6umuINcNoszbA7lOQLQ3io6HYXrGx4pRzboSsLhiOX+bReJZ8dwuTsTMFU7fakmzSJPZeKh965kHNMT0w/vEUNfX1URbluy6XuggYvaq1dwhHj0XjeIKOWvz94zn+0JP09hJxIMZBnS0aUyTTA/BnmTtu53mzTx8GdOSiaY6+co11ogw9AZx/2Voc4Ea9HSrJiQ3uqsTGmQrWZJskCSwAzJ21adeJJ2H0dFKnQW49UMXcPMSwN5pf9SBvrOi2aqvDAXSrzm+fiGKH9umj8cSoR1DGTNg5Oqu9QXjNIWuMlimEtzhb4s4L9dUlfVSrohDvNjweXpp7s6CByvLnmMvRNDNLmzLuypml9EZNtt1P0mbayLbr1EVSQAok+JuzDWBz3PovY2LYmUX1mjp5oG8oYgDYtLuIF2sQdauTp7wlc5lQjhZTuxFJ2/Fev6aBFF9QokP855d5jmpTI3Z8R7zffi9S3lopG99YneS5p5w69zSttKbvPO1twAa+ohstJb2t+S6eflFUO9vmu6JnFbdPB776WLYQrqsr93mI2ttXVqKp+bMFvGjV1JwTN5fKpECI/vquRMIwWazug9gThwh3EUJfT+81dP//YcVOn4cjbLfPBpfeA7vlzYmOBpQQ8WQQeZvKBLfMq4MaJ0I65OjTjskzN7u4DhadxMcz+eM7r1xeqCqlMt/sXPN+BEor+PbI4TfcVAjnmw4a2A1FSoav6JpabPZQFJ5XzwNpBI6cCrg
+      template:
+        metadata:
+          name: github-oauth-app
+          namespace: argocd
+
+  # App of Apps - 다른 Application들을 자동으로 배포
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: apps
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/json-0201/homelab
+        targetRevision: main
+        path: k8s/argocd/applications
+        directory:
+          recurse: true
+          exclude: "{argocd.yaml,apps.yaml}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+## Application controller
+controller:
+  name: application-controller
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+## Dex (disabled - enable when OAuth is configured)
+dex:
+  enabled: false
+  name: dex-server
+  # envFrom:
+  #   - secretRef:
+  #       name: github-oauth-app
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+## Server
+server:
+  name: server
+  replicas: 1
+
+  service:
+    servicePortHttps: 80
+    servicePortHttp: 80
+
+  ## Server metrics service configuration
+  metrics:
+    # -- Deploy metrics service
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+  # Argo CD server ingress configuration
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-dns01
+      traefik.ingress.kubernetes.io/redirect-entry-point: https
+    ingressClassName: traefik
+    hostname: argocd.json-server.win
+    tls: true
+    certificateName: argocd-server-tls
+    servicePort: 80
+
+  extraArgs:
+    - --insecure
+
+## Repo Server
+repoServer:
+  name: repo-server
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+## ApplicationSet controller
+applicationSet:
+  name: applicationset-controller
+  replicas: 1
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+## Notifications controller (disabled - enable when GitHub App is configured)
+notifications:
+  enabled: false
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+
+  # secret:
+  #   create: false
+  #   name: github-app-secret
+
+  # extraEnvFrom:
+  #   - secretRef:
+  #       name: github-app-secret
+
+  # notifiers:
+  #   service.github: |
+  #     appID: $githubAppID
+  #     installationID: $githubAppInstallationID
+  #     privateKey: $githubAppPrivateKey

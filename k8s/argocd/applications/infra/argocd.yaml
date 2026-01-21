@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: Argo CD Helm Chart from official repo
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 9.0.6
+      helm:
+        releaseName: argocd
+        valueFiles:
+          - $values/k8s/argocd/values.yaml
+    # Source 2: Values file from lab repo
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      ref: values
+
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground

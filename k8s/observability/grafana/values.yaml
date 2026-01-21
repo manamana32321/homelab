@@ -1,0 +1,144 @@
+# check default values.yaml
+# https://artifacthub.io/packages/helm/grafana/grafana?modal=values
+
+envFromSecret: grafana-github-oauth
+
+replicas: 1
+autoscaling:
+  enabled: false
+
+# 기존 PVC 권한 문제로 인해 비활성화
+initChownData:
+  enabled: false
+
+ingress:
+  enabled: true
+  path: /
+  hosts:
+    - grafana.json-server.win
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - grafana.json-server.win
+      secretName: grafana-tls
+
+limits:
+  cpu: 200m
+  memory: 256Mi
+requests:
+  cpu: 200m
+  memory: 256Mi
+
+# https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+# in the beginning of grafana migration, we allow editing dashboards without provisioning
+# however, it is highly recommended to provision data as code
+persistence:
+  type: pvc
+  enabled: true
+  size: 10Gi
+
+admin:
+  existingSecret: grafana-admin-user
+  userKey: ADMIN_USER
+  passwordKey: ADMIN_PASSWORD
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    prune: true
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.observability.svc.cluster.local:3100
+        editable: false
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
+        editable: false
+      - name: Tempo-production
+        type: tempo
+        access: proxy
+        url: http://tempo.observability.svc.cluster.local:3200
+        editable: false
+
+# help grafana to detect provisioned dashboards
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: '1'
+
+# Provisioned dashboards from https://grafana.com/grafana/dashboards/
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'grafana-dashboards'
+        orgId: 1
+        folder: 'Provisioned'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/grafana-dashboards
+
+dashboards:
+  grafana-dashboards:
+    # ArgoCD - https://grafana.com/grafana/dashboards/14584
+    argocd:
+      gnetId: 14584
+      revision: 1
+      datasource: Prometheus
+    # Node Exporter Full - https://grafana.com/grafana/dashboards/1860
+    node-exporter:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus
+    # Loki Stack - https://grafana.com/grafana/dashboards/14055
+    loki-stack:
+      gnetId: 14055
+      revision: 5
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
+        - name: DS_LOKI
+          value: Loki
+    # Kubernetes Cluster Overview - https://grafana.com/grafana/dashboards/15661
+    k8s-dashboard:
+      gnetId: 15661
+      revision: 2
+      datasource:
+        - name: DS_VICTORIAMETRICS-PROD-ALL
+          value: Prometheus
+
+downloadDashboards:
+  env: {}
+
+# Grafana's primary configuration
+# http://docs.grafana.org/installation/configuration/
+grafana.ini:
+  log:
+    mode: console
+  server:
+    domain: 'grafana.json-server.win'
+    root_url: 'https://grafana.json-server.win'
+  users:
+    default_language: 'ko-KR'
+    default_locale: ko
+  auth.github:
+    enabled: true
+    allow_sign_up: true
+    auto_login: true
+    org_attribute_path: email
+    role_attribute_path: "'Editor'"
+    role_attribute_strict: false
+    allow_assign_grafana_admin: false
+    skip_org_role_sync: false
+  # TODO: setup git sync provisioning
+  # feature_toggles:
+  #   provisioning: true
+  #   kubernetesDashboards: true ; use k8s from browser

@@ -1,0 +1,103 @@
+# OpenTelemetry Collector Helm chart values
+# https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
+
+mode: deployment
+
+replicaCount: 1
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+ports:
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    protocol: TCP
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    protocol: TCP
+  metrics:
+    enabled: true
+    containerPort: 8889
+    servicePort: 8889
+    protocol: TCP
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+  hosts:
+    - host: otel.json-server.win
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 4318
+  tls:
+    - secretName: otel-collector-tls
+      hosts:
+        - otel.json-server.win
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+          cors:
+            allowed_origins:
+              - "https://json-server.win"
+            allowed_headers:
+              - "*"
+            max_age: 7200
+
+  processors:
+    batch:
+      timeout: 10s
+      send_batch_size: 512
+
+  exporters:
+    otlphttp/logs:
+      endpoint: http://loki.observability.svc.cluster.local:3100/otlp
+      tls:
+        insecure: true
+      headers:
+        X-Scope-OrgID: "1"
+
+    prometheus:
+      endpoint: "0.0.0.0:8889"
+      resource_to_telemetry_conversion:
+        enabled: true
+
+    otlp/trace:
+      endpoint: "tempo.observability.svc.cluster.local:4317"
+      tls:
+        insecure: true
+
+  service:
+    telemetry:
+      metrics:
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: "0.0.0.0"
+                  port: 8888
+    pipelines:
+      logs:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [otlphttp/logs]
+      metrics:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [prometheus]
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [otlp/trace]

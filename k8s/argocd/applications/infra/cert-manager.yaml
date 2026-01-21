@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: cert-manager Helm chart
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.19.2
+      helm:
+        releaseName: cert-manager
+        valueFiles:
+          - $lab/k8s/cert-manager/values.yaml
+    # Source 2: Lab repo reference for values
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      ref: lab
+    # Source 3: ClusterIssuer and SealedSecret
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      path: k8s/cert-manager
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

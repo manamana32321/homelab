@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-collector
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+      chart: opentelemetry-collector
+      targetRevision: 0.143.0
+      helm:
+        releaseName: otel-collector
+        valueFiles:
+          - $lab/k8s/observability/otel-collector/values.yaml
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      ref: lab
+    - repoURL: https://github.com/skkuding/lab
+      targetRevision: main
+      path: k8s/observability/otel-collector
+      directory:
+        include: "{service-monitor.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

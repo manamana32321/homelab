@@ -76,6 +76,30 @@ resource "cloudflare_record" "k8s" {
   proxied = true
 }
 
+resource "cloudflare_record" "prometheus" {
+  zone_id = cloudflare_zone.main.id
+  name    = "prometheus"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+}
+
+resource "cloudflare_record" "grafana" {
+  zone_id = cloudflare_zone.main.id
+  name    = "grafana"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+}
+
+resource "cloudflare_record" "otel" {
+  zone_id = cloudflare_zone.main.id
+  name    = "otel"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id

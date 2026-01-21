@@ -1,0 +1,11 @@
+# External Secrets Operator Helm chart values
+# https://external-secrets.io/latest/introduction/getting-started/
+
+installCRDs: true
+
+replicaCount: 1
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus
