@@ -1,0 +1,14 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: amang-api
+  namespace: argocd
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: "api-*"
+      images:
+        - alias: api
+          imageName: ghcr.io/skku-amang/amang-api:latest
+          commonUpdateSettings:
+            updateStrategy: digest
