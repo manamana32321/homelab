@@ -1,12 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: amang-api
+  name: amang-db
   namespace: argocd
-  # finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
 spec:
-  project: amang-homepage
   generators:
     - list:
         elements:
@@ -16,19 +13,19 @@ spec:
             branch: main
   template:
     metadata:
-      name: api-{{env}}
-      namespace: amang-api-{{env}}
+      name: db-{{env}}
+      namespace: amang-db-{{env}}
     spec:
       destination:
-        namespace: amang-api-{{env}}
         server: https://kubernetes.default.svc
+        namespace: amang-db-{{env}}
       source:
-        path: 'infra/k8s/api/overlays/{{env}}'
+        path: 'infra/k8s/db/overlays/{{env}}'
         repoURL: https://github.com/skku-amang/main
         targetRevision: '{{branch}}'
         directory:
           recurse: false
-      project: amang-homepage
+      project: default
       syncPolicy:
         automated:
           prune: true

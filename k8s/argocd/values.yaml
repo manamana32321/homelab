@@ -29,7 +29,7 @@ configs:
     scopes: "[groups]"
   repositories:
     homelab:
-      url: https://github.com/json-0201/homelab
+      url: https://github.com/manamana32321/homelab
       name: homelab
       type: git
 
@@ -74,7 +74,7 @@ extraObjects:
     spec:
       project: default
       source:
-        repoURL: https://github.com/json-0201/homelab
+        repoURL: https://github.com/manamana32321/homelab
         targetRevision: main
         path: k8s/argocd/applications
         directory:

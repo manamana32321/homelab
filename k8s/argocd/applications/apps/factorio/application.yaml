@@ -1,22 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: factorio
   namespace: argocd
 spec:
   project: default
   destination:
-    namespace: argocd
+    namespace: factorio
     server: https://kubernetes.default.svc
   source:
-    path: argocd/
-    repoURL: https://github.com/manamana32321/homelab
-    targetRevision: main
+    repoURL: https://github.com/manamana32321/homelab.git
+    path: k8s/factorio
     directory:
-      recurse: true
-      include: "*.yaml"
-      exclude: "applications/factorio/manifests/*"
+      recurse: false
+    targetRevision: HEAD
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
