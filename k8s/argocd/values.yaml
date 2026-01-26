@@ -119,8 +119,7 @@ server:
   replicas: 1
 
   service:
-    servicePortHttps: 80
-    servicePortHttp: 80
+    type: ClusterIP
 
   ## Server metrics service configuration
   metrics:
