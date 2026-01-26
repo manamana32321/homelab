@@ -16,7 +16,7 @@ spec:
         releaseName: cert-manager
         valueFiles:
           - $homelab/k8s/cert-manager/values.yaml
-    # Source 2: Lab repo reference for values
+    # Source 2: Homelab repo reference for values
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       ref: homelab
