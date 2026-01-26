@@ -21,6 +21,7 @@ persistence:
 
 factorioServer:
   save_name: "default"
+  port: 34197
 
 serverPassword:
   passwordSecret: factorio-server-password
