@@ -38,7 +38,7 @@ rcon:
   external: true
   type: NodePort
   passwordSecret: factorio-rcon-password
-  port: 27015
+  port: 30100
 
 map_gen_settings:
   autoplace_controls:
