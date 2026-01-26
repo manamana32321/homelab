@@ -20,9 +20,6 @@ configs:
           config:
             clientID: $clientID
             clientSecret: $clientSecret
-            orgs:
-            - name: YOUR_ORG
-            loadAllGroups: true
   rbac:
     # TODO: RBAC 정책 설정
     # policy.csv: |
@@ -101,13 +98,13 @@ controller:
       additionalLabels:
         release: prometheus
 
-## Dex (disabled - enable when OAuth is configured)
+## Dex
 dex:
-  enabled: false
+  enabled: true
   name: dex-server
-  # envFrom:
-  #   - secretRef:
-  #       name: github-oauth-app
+  envFrom:
+    - secretRef:
+        name: github-oauth-app
   metrics:
     enabled: true
     serviceMonitor:
