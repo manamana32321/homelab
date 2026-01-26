@@ -10,7 +10,7 @@ spec:
     server: https://kubernetes.default.svc
   sources:
     # Git manifests (secrets, pvc, ofsm)
-    - repoURL: https://github.com/jasonljit/homelab.git
+    - repoURL: https://github.com/manamana32321/homelab.git
       targetRevision: main
       path: k8s/argocd/applications/factorio
       directory:
