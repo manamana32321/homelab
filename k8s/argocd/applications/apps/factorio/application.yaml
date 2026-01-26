@@ -3,21 +3,33 @@ kind: Application
 metadata:
   name: factorio
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
+  sources:
+    # SealedSecret
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/factorio
+      directory:
+        include: "sealed-secret.yaml"
+    # Helm chart
+    - repoURL: https://sqljames.github.io/factorio-server-charts
+      chart: factorio-server-charts
+      targetRevision: "2.5.2"
+      helm:
+        valueFiles:
+          - $homelab/k8s/factorio/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
   destination:
-    namespace: factorio
     server: https://kubernetes.default.svc
-  source:
-    repoURL: https://github.com/manamana32321/homelab.git
-    path: k8s/factorio
-    directory:
-      recurse: false
-    targetRevision: HEAD
+    namespace: factorio
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - PrunePropagationPolicy=foreground

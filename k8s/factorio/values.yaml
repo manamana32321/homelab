@@ -1,0 +1,53 @@
+# hostNetwork 비활성화 (NodePort 사용)
+hostNetworkEnabled: false
+
+image:
+  tag: "2.0.72"
+
+service:
+  type: NodePort
+  port: 34197
+  nodePort: 31497
+
+resources:
+  requests:
+    memory: 1024Mi
+  limits:
+    memory: 2048Mi
+    cpu: 1000m
+
+persistence:
+  dataDir:
+    Size: "4Gi"
+
+factorioServer:
+  save_name: "default"
+
+serverPassword:
+  passwordSecret: factorio-server-password
+
+server_settings:
+  name: "JSON"
+  description: "JSON Factorio Space Age Server"
+  tags:
+    - space-age
+    - private
+  autosave_slots: 20
+
+rcon:
+  external: false
+
+map_gen_settings:
+  autoplace_controls:
+    coal:
+      size: 6
+    stone:
+      size: 6
+    copper-ore:
+      size: 6
+    iron-ore:
+      size: 6
+    uranium-ore:
+      size: 6
+    crude-oil:
+      size: 6
