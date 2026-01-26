@@ -36,6 +36,7 @@ server_settings:
 
 rcon:
   external: true
+  type: NodePort
   passwordSecret: factorio-rcon-password
   port: 27015
 
