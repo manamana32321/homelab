@@ -6,7 +6,7 @@ image:
 
 service:
   type: NodePort
-  port: 31497
+  port: 30197
 
 resources:
   requests:
