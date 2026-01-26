@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofsm-config
+  namespace: factorio
+data:
+  conf.json: |
+    {
+      "server_port": "80",
+      "secure": false,
+      "autostart": false,
+      "sq_lite_database_file": "/opt/fsm-data/sqlite.db",
+      "log_file": "/opt/fsm-data/factorio-server-manager.log",
+      "rcon_port": 27015,
+      "factorio_dir": "/opt/factorio"
+    }
