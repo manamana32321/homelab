@@ -24,8 +24,10 @@ spec:
   destination:
     namespace: argocd
     server: https://kubernetes.default.svc
-  syncPolicy:
-    automated: false
-    syncOptions:
-      - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
+  # syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: true
+  #   syncOptions:
+  #     - CreateNamespace=true
+  #     - PrunePropagationPolicy=foreground
