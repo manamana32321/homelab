@@ -5,7 +5,7 @@ image:
   tag: "2.0.73"
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 34197
 
 resources:
