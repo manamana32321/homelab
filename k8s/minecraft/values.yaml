@@ -1,3 +1,6 @@
+# 임시 비활성화 (메모리 부족)
+replicaCount: 0
+
 image:
   repository: itzg/minecraft-server
   tag: latest
