@@ -9,6 +9,8 @@ global:
     level: info
 
 configs:
+  params:
+    server.insecure: "true"
   cm:
     dex.config: |
       connectors:
