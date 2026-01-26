@@ -35,7 +35,9 @@ server_settings:
   autosave_slots: 20
 
 rcon:
-  external: false
+  external: true
+  passwordSecret: factorio-rcon-password
+  port: 27015
 
 map_gen_settings:
   autoplace_controls:

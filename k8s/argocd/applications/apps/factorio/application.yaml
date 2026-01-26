@@ -8,12 +8,12 @@ metadata:
 spec:
   project: default
   sources:
-    # SealedSecret
+    # SealedSecrets
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       path: k8s/factorio
       directory:
-        include: "sealed-secret.yaml"
+        include: "*-secret.yaml"
     # Helm chart
     - repoURL: https://sqljames.github.io/factorio-server-charts
       chart: factorio-server-charts
