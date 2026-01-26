@@ -1,25 +1,27 @@
 # Factorio Admin Dashboard 설계
 
 ## 개요
+
 Factorio 서버를 웹에서 관리할 수 있는 커스텀 대시보드 개발
 
 ## 레포지토리
+
 - **위치**: `manamana32321/factorio-admin` (별도 레포지토리)
 - **인증**: BetterAuth (자체 프로바이더)
 
 ## 사용자 요구사항
 
-| 기능 | 기술적 가능성 | 구현 방법 |
-|------|-------------|----------|
-| 플레이어 컨트롤 (리스트, 밴, 킥, 승격, 귓속말) | ✅ 완전 지원 | rconAPI REST 엔드포인트 |
-| 맵 세이브 파일 CRUD | ✅ 가능 | PVC 접근 + RCON /save |
-| 맵 생성 옵션 선택 | ⚠️ 제한적 | values.yaml 수정 → Pod 재시작 |
-| 맵 미리보기/스크린샷 | ❌ 불가 | 헤드리스 서버는 그래픽 미로드 |
-| 세이브 백업 (자동/수동) | ✅ 가능 | CronJob + PVC 접근 |
-| 게임 로그 보기 | ⚠️ 폴링 필요 | RCON 연결 시 히스토리 + 주기적 폴링 |
-| 실시간 대시보드 (전력/생산/공해) | ⚠️ Lua 필요 | Lua 명령 실행 후 파싱 |
-| 콘솔 입력/출력 | ✅ 완전 지원 | rconAPI /console/command |
-| 실시간 맵 보기 | ❌ 불가 | 헤드리스 서버 제약 (모드도 불가) |
+| 기능                                           | 기술적 가능성 | 구현 방법                           |
+| ---------------------------------------------- | ------------- | ----------------------------------- |
+| 플레이어 컨트롤 (리스트, 밴, 킥, 승격, 귓속말) | ✅ 완전 지원  | rconAPI REST 엔드포인트             |
+| 맵 세이브 파일 CRUD                            | ✅ 가능       | PVC 접근 + RCON /save               |
+| 맵 생성 옵션 선택                              | ⚠️ 제한적     | values.yaml 수정 → Pod 재시작       |
+| 맵 미리보기/스크린샷                           | ❌ 불가       | 헤드리스 서버는 그래픽 미로드       |
+| 세이브 백업 (자동/수동)                        | ✅ 가능       | CronJob + PVC 접근                  |
+| 게임 로그 보기                                 | ⚠️ 폴링 필요  | RCON 연결 시 히스토리 + 주기적 폴링 |
+| 실시간 대시보드 (전력/생산/공해)               | ⚠️ Lua 필요   | Lua 명령 실행 후 파싱               |
+| 콘솔 입력/출력                                 | ✅ 완전 지원  | rconAPI /console/command            |
+| 실시간 맵 보기                                 | ❌ 불가       | 헤드리스 서버 제약 (모드도 불가)    |
 
 ## 아키텍처
 
@@ -219,27 +221,27 @@ export async function getPlayers() {
 
 export async function kickPlayer(name: string, reason?: string) {
   await fetch(`${RCON_API}/api/v2/factorio/players/${name}/kick`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ reason }),
   });
 }
 
 export async function banPlayer(name: string, reason?: string) {
   await fetch(`${RCON_API}/api/v2/factorio/players/${name}/ban`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ reason }),
   });
 }
 
 export async function promotePlayer(name: string) {
   await fetch(`${RCON_API}/api/v2/factorio/players/${name}/promote`, {
-    method: 'POST',
+    method: "POST",
   });
 }
 
 export async function whisperPlayer(name: string, message: string) {
   await fetch(`${RCON_API}/api/v2/factorio/players/${name}/whisper`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ message }),
   });
 }
@@ -254,7 +256,7 @@ export async function POST(req: Request) {
 
   const res = await fetch(
     `${RCON_API}/api/v2/factorio/console/command/${encodeURIComponent(command)}`,
-    { method: 'POST' }
+    { method: "POST" },
   );
 
   return Response.json(await res.json());
@@ -265,18 +267,20 @@ export async function POST(req: Request) {
 
 ```typescript
 // src/app/api/saves/route.ts
-import { readdir, readFile, unlink, copyFile } from 'fs/promises';
-import path from 'path';
+import { readdir, readFile, unlink, copyFile } from "fs/promises";
+import path from "path";
 
-const SAVES_DIR = '/factorio/saves';
+const SAVES_DIR = "/factorio/saves";
 
 export async function GET() {
   const files = await readdir(SAVES_DIR);
   const saves = await Promise.all(
-    files.filter(f => f.endsWith('.zip')).map(async f => {
-      const stat = await stat(path.join(SAVES_DIR, f));
-      return { name: f, size: stat.size, modified: stat.mtime };
-    })
+    files
+      .filter((f) => f.endsWith(".zip"))
+      .map(async (f) => {
+        const stat = await stat(path.join(SAVES_DIR, f));
+        return { name: f, size: stat.size, modified: stat.mtime };
+      }),
   );
   return Response.json(saves);
 }
@@ -292,16 +296,16 @@ export async function DELETE(req: Request) {
 
 ```typescript
 // src/app/api/backups/route.ts
-const BACKUPS_DIR = '/factorio/backups';
+const BACKUPS_DIR = "/factorio/backups";
 
 export async function POST(req: Request) {
   const { saveName } = await req.json();
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupName = `${saveName}_${timestamp}.zip`;
 
   await copyFile(
     path.join(SAVES_DIR, `${saveName}.zip`),
-    path.join(BACKUPS_DIR, backupName)
+    path.join(BACKUPS_DIR, backupName),
   );
 
   return Response.json({ backup: backupName });
@@ -342,22 +346,26 @@ export async function getPowerStats() {
 ## 구현 단계
 
 ### Phase 1: 기본 인프라 (1일)
+
 1. rconAPI 활성화 (values.yaml 수정)
 2. NextJS 프로젝트 초기화
 3. Docker 이미지 빌드 및 푸시
 4. ArgoCD Application 생성
 
 ### Phase 2: 핵심 기능 (2일)
+
 1. 플레이어 관리 UI
 2. RCON 콘솔 UI
 3. 세이브 파일 목록/삭제
 
 ### Phase 3: 백업 시스템 (1일)
+
 1. 수동 백업 기능
 2. 자동 백업 CronJob
 3. 백업 복원 기능
 
 ### Phase 4: 고급 기능 (2일)
+
 1. 게임 통계 대시보드 (Lua 연동)
 2. 게임 로그 뷰어 (폴링)
 3. UI 개선
@@ -365,11 +373,13 @@ export async function getPowerStats() {
 ## 검증 방법
 
 1. rconAPI 연결 테스트
+
    ```bash
    curl http://factorio-factorio-server-charts-rcon-api:8080/api/v2/factorio/version
    ```
 
 2. 웹 UI 접속
+
    ```
    https://factorio-admin.json-server.win
    ```
