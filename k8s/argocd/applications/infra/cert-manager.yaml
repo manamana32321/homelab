@@ -15,13 +15,13 @@ spec:
       helm:
         releaseName: cert-manager
         valueFiles:
-          - $lab/k8s/cert-manager/values.yaml
+          - $homelab/k8s/cert-manager/values.yaml
     # Source 2: Lab repo reference for values
-    - repoURL: https://github.com/skkuding/lab
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      ref: lab
+      ref: homelab
     # Source 3: ClusterIssuer and SealedSecret
-    - repoURL: https://github.com/skkuding/lab
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       path: k8s/cert-manager
   destination:

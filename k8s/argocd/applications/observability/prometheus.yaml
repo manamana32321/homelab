@@ -13,10 +13,10 @@ spec:
       targetRevision: 80.14.4
       helm:
         valueFiles:
-          - $lab/k8s/observability/prometheus/values.yaml
-    - repoURL: https://github.com/skkuding/lab
+          - $homelab/k8s/observability/prometheus/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      ref: lab
+      ref: homelab
   destination:
     server: https://kubernetes.default.svc
     namespace: observability

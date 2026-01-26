@@ -13,12 +13,12 @@ spec:
       targetRevision: '10.5.8'
       helm:
         valueFiles:
-          - $lab/k8s/observability/grafana/values.yaml
-    - repoURL: https://github.com/skkuding/lab
+          - $homelab/k8s/observability/grafana/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      ref: lab
+      ref: homelab
     
-    - repoURL: https://github.com/skkuding/lab
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       path: k8s/observability/grafana
     

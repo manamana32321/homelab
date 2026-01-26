@@ -3,5 +3,3 @@ kind: Kustomization
 
 resources:
   - cluster-issuer-dns01.yaml
-  - skkuding-aws-credentials-reflected.yaml
-  - proseed-aws-credentials-reflected.yaml

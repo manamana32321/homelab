@@ -14,10 +14,10 @@ spec:
       helm:
         releaseName: reflector
         valueFiles:
-          - $lab/k8s/reflector/values.yaml
-    - repoURL: https://github.com/skkuding/lab
+          - $homelab/k8s/reflector/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      ref: lab
+      ref: homelab
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system

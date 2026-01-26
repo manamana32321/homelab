@@ -14,11 +14,11 @@ spec:
       helm:
         releaseName: otel-collector
         valueFiles:
-          - $lab/k8s/observability/otel-collector/values.yaml
-    - repoURL: https://github.com/skkuding/lab
+          - $homelab/k8s/observability/otel-collector/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      ref: lab
-    - repoURL: https://github.com/skkuding/lab
+      ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       path: k8s/observability/otel-collector
       directory:
