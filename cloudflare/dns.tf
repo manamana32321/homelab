@@ -68,6 +68,15 @@ resource "cloudflare_record" "factorio" {
   proxied = false
 }
 
+resource "cloudflare_record" "factorio_rcon" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio-rcon"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Factorio RCON (TCP 30100)"
+}
+
 resource "cloudflare_record" "minecraft" {
   zone_id = cloudflare_zone.main.id
   name    = "mc"
