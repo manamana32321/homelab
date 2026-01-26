@@ -114,6 +114,21 @@ dashboards:
       datasource:
         - name: DS_VICTORIAMETRICS-PROD-ALL
           value: Prometheus
+    # Kubernetes / Views / Global - https://grafana.com/grafana/dashboards/15520
+    k8s-views-global:
+      gnetId: 15520
+      revision: 2
+      datasource: Prometheus
+    # Kubernetes / Views / Nodes - https://grafana.com/grafana/dashboards/15759
+    k8s-views-nodes:
+      gnetId: 15759
+      revision: 6
+      datasource: Prometheus
+    # Kubernetes / Views / Pods - https://grafana.com/grafana/dashboards/15760
+    k8s-views-pods:
+      gnetId: 15760
+      revision: 28
+      datasource: Prometheus
 
 downloadDashboards:
   env: {}
