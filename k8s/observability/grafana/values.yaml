@@ -112,7 +112,7 @@ dashboards:
       gnetId: 15661
       revision: 2
       datasource:
-        - name: DS_VICTORIAMETRICS-PROD-ALL
+        - name: DS__VICTORIAMETRICS-PROD-ALL
           value: Prometheus
     # Kubernetes / Views / Global - https://grafana.com/grafana/dashboards/15520
     k8s-views-global:
