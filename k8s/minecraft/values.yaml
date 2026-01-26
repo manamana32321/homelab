@@ -1,0 +1,42 @@
+image:
+  repository: itzg/minecraft-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: "500m"
+  limits:
+    memory: 2Gi
+    cpu: "1000m"
+
+persistence:
+  dataDir:
+    enabled: true
+    size: 5Gi
+
+serviceType: NodePort
+nodePort: 30565
+
+minecraftServer:
+  eula: "TRUE"
+  type: "PAPER"
+  version: "1.21.4"
+  memory: "1G"
+  difficulty: "normal"
+  gameMode: "survival"
+  maxPlayers: 20
+  pvp: true
+  motd: "JSON Homelab Minecraft Server"
+  onlineMode: true
+
+strategyType: Recreate
+
+livenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 60
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 15

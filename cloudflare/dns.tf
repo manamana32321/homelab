@@ -68,6 +68,14 @@ resource "cloudflare_record" "factorio" {
   proxied = false
 }
 
+resource "cloudflare_record" "minecraft" {
+  zone_id = cloudflare_zone.main.id
+  name    = "mc"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+}
+
 resource "cloudflare_record" "k8s" {
   zone_id = cloudflare_zone.main.id
   name    = "k8s"
