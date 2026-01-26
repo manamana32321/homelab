@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ofsm
+  namespace: factorio
+  labels:
+    app: ofsm
+spec:
+  type: ClusterIP
+  selector:
+    app: ofsm
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP

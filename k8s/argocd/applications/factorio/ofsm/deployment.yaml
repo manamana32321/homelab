@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ofsm
+  namespace: factorio
+  labels:
+    app: ofsm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ofsm
+  template:
+    metadata:
+      labels:
+        app: ofsm
+    spec:
+      # Factorio 서버와 같은 노드에 스케줄링 (공유 PVC 접근)
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: factorio-server-charts
+              topologyKey: kubernetes.io/hostname
+      containers:
+        # OFSM 웹 UI
+        - name: ofsm
+          image: ofsm/ofsm:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: FSM_SECURE
+              value: "false"
+            - name: FSM_AUTOSTART
+              value: "false"
+            - name: RCON_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-rcon-password
+                  key: rconpw
+          volumeMounts:
+            - name: ofsm-config
+              mountPath: /opt/fsm/conf.json
+              subPath: conf.json
+            - name: fsm-data
+              mountPath: /opt/fsm-data
+            - name: factorio-data
+              mountPath: /factorio
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+        # RCON 프록시 (localhost:27015 → factorio-rcon:27015)
+        - name: rcon-proxy
+          image: alpine/socat:latest
+          args:
+            - tcp-listen:27015,fork,reuseaddr
+            - tcp-connect:factorio-rcon:27015
+          resources:
+            requests:
+              memory: 16Mi
+              cpu: 10m
+            limits:
+              memory: 32Mi
+              cpu: 50m
+      volumes:
+        - name: ofsm-config
+          configMap:
+            name: ofsm-config
+        - name: fsm-data
+          emptyDir: {}
+        - name: factorio-data
+          persistentVolumeClaim:
+            claimName: factorio-data
