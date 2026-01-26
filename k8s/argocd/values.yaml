@@ -135,19 +135,12 @@ server:
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-dns01
+      traefik.ingress.kubernetes.io/redirect-entry-point: https
     ingressClassName: traefik
     hostname: argocd.json-server.win
     tls: true
-    extraRules:
-      - http:
-          paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: argocd-server
-                  port:
-                    name: http
+    certificateName: argocd-server-tls
+    servicePort: 80
 
   extraArgs:
     - --insecure
