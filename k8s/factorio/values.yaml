@@ -1,5 +1,5 @@
-# hostNetwork 비활성화 (NodePort 사용)
-hostNetworkEnabled: false
+# hostNetwork 활성화 (LAN 게임 검색용)
+hostNetworkEnabled: true
 
 image:
   tag: "2.0.72"
