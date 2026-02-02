@@ -26,8 +26,6 @@ spec:
         path: "infra/k8s/api/overlays/{{env}}"
         repoURL: https://github.com/skku-amang/main
         targetRevision: "{{branch}}"
-        directory:
-          recurse: false
       project: default
       syncPolicy:
         automated:
