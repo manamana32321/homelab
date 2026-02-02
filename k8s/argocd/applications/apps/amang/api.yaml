@@ -15,14 +15,17 @@ spec:
     metadata:
       name: api-{{env}}
       namespace: amang-api-{{env}}
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: api=ghcr.io/skku-amang/amang-api
+        argocd-image-updater.argoproj.io/api.update-strategy: latest
     spec:
       destination:
         namespace: amang-api-{{env}}
         server: https://kubernetes.default.svc
       source:
-        path: 'infra/k8s/api/overlays/{{env}}'
+        path: "infra/k8s/api/overlays/{{env}}"
         repoURL: https://github.com/skku-amang/main
-        targetRevision: '{{branch}}'
+        targetRevision: "{{branch}}"
         directory:
           recurse: false
       project: default
