@@ -11,6 +11,9 @@ spec:
             branch: main
           - env: staging
             branch: main
+  ignoreApplicationDifferences:
+    - jsonPointers:
+        - /spec/source/kustomize
   template:
     metadata:
       name: api-{{env}}
