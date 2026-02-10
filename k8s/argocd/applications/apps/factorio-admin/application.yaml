@@ -6,7 +6,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/manamana32321/factorio-admin
+    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/manamana32321/factorio-admin:latest
     argocd-image-updater.argoproj.io/app.update-strategy: digest
     argocd-image-updater.argoproj.io/app.force-update: "true"
     argocd-image-updater.argoproj.io/write-back-method: argocd
