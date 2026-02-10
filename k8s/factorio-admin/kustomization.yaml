@@ -4,3 +4,4 @@ resources:
   - deployment.yaml
   - postgres.yaml
   - sealed-secret.yaml
+  - rbac.yaml

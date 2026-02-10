@@ -22,6 +22,7 @@ spec:
                 matchLabels:
                   app: factorio-factorio-server-charts
               topologyKey: kubernetes.io/hostname
+      serviceAccountName: factorio-admin
       securityContext:
         supplementalGroups: [845]
       containers:
@@ -33,6 +34,8 @@ spec:
             - name: factorio-data
               mountPath: /factorio
           env:
+            - name: NODE_EXTRA_CA_CERTS
+              value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
             - name: FACTORIO_SAVES_PATH
               value: "/factorio/saves"
             - name: BETTER_AUTH_URL
@@ -71,6 +74,8 @@ spec:
                 secretKeyRef:
                   name: factorio-admin-secrets
                   key: rcon-password
+            - name: FACTORIO_POD_LABEL
+              value: "app=factorio-factorio-server-charts"
             - name: S3_ENDPOINT
               value: "http://factorio-backup-minio:9000"
             - name: S3_BUCKET

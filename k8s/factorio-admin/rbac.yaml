@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: factorio-admin
+  namespace: factorio
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: factorio-admin
+  namespace: factorio
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: factorio-admin
+  namespace: factorio
+subjects:
+  - kind: ServiceAccount
+    name: factorio-admin
+    namespace: factorio
+roleRef:
+  kind: Role
+  name: factorio-admin
+  apiGroup: rbac.authorization.k8s.io
