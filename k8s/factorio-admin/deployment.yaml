@@ -23,6 +23,11 @@ spec:
           env:
             - name: BETTER_AUTH_URL
               value: "https://factorio-admin.json-server.win"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: postgres-password
             - name: DATABASE_URL
               value: "postgresql://factorio:$(POSTGRES_PASSWORD)@factorio-admin-postgres:5432/factorio_admin"
             - name: RCON_HOST
@@ -52,11 +57,6 @@ spec:
                 secretKeyRef:
                   name: factorio-admin-secrets
                   key: rcon-password
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: factorio-admin-secrets
-                  key: postgres-password
           resources:
             requests:
               memory: 128Mi
