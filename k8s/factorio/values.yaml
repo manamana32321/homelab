@@ -23,15 +23,15 @@ factorioServer:
   save_name: "default"
   port: 34197
 
-serverPassword:
-  passwordSecret: factorio-server-password
-
 server_settings:
   name: "JSON"
   description: "JSON Factorio Space Age Server"
   tags:
     - space-age
-    - private
+  visibility:
+    public: true
+    lan: true
+  require_user_verification: false
   autosave_slots: 20
 
 rcon:
