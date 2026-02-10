@@ -31,7 +31,7 @@ server_settings:
   visibility:
     public: true
     lan: true
-  require_user_verification: false
+  require_user_verification: true
   autosave_slots: 20
 
 rcon:
