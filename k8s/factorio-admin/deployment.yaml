@@ -22,6 +22,8 @@ spec:
                 matchLabels:
                   app: factorio-factorio-server-charts
               topologyKey: kubernetes.io/hostname
+      securityContext:
+        supplementalGroups: [845]
       containers:
         - name: factorio-admin
           image: ghcr.io/manamana32321/factorio-admin:latest
