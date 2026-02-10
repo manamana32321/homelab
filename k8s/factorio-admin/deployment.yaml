@@ -15,12 +15,25 @@ spec:
       labels:
         app: factorio-admin
     spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: factorio-factorio-server-charts
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: factorio-admin
           image: ghcr.io/manamana32321/factorio-admin:latest
           ports:
             - containerPort: 3000
+          volumeMounts:
+            - name: factorio-data
+              mountPath: /factorio
+              readOnly: true
           env:
+            - name: FACTORIO_SAVES_PATH
+              value: "/factorio/saves"
             - name: BETTER_AUTH_URL
               value: "https://factorio-admin.json-server.win"
             - name: POSTGRES_PASSWORD
@@ -64,6 +77,10 @@ spec:
             limits:
               memory: 256Mi
               cpu: 500m
+      volumes:
+        - name: factorio-data
+          persistentVolumeClaim:
+            claimName: factorio-factorio-server-charts-datadir
 ---
 apiVersion: v1
 kind: Service
