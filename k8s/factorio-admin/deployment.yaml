@@ -83,7 +83,7 @@ metadata:
   name: factorio-admin
   namespace: factorio
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
 spec:
   tls:
     - hosts:
