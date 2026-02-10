@@ -25,7 +25,7 @@ factorioServer:
 
 server_settings:
   name: "JSON"
-  description: "JSON Factorio Space Age Server"
+  description: "JSON Factorio Space Age Server\n접속: json-server.win:34197"
   tags:
     - space-age
   visibility:
