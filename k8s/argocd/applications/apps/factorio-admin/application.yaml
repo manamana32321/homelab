@@ -16,8 +16,6 @@ spec:
     repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
     path: k8s/factorio-admin
-    directory:
-      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: factorio
