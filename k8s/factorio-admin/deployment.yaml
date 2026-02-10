@@ -30,7 +30,6 @@ spec:
           volumeMounts:
             - name: factorio-data
               mountPath: /factorio
-              readOnly: true
           env:
             - name: FACTORIO_SAVES_PATH
               value: "/factorio/saves"
@@ -70,6 +69,20 @@ spec:
                 secretKeyRef:
                   name: factorio-admin-secrets
                   key: rcon-password
+            - name: S3_ENDPOINT
+              value: "http://factorio-backup-minio:9000"
+            - name: S3_BUCKET
+              value: "factorio-backups"
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: rootUser
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: rootPassword
           resources:
             requests:
               memory: 128Mi

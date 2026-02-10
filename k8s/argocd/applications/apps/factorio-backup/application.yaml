@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: factorio-backup
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # CronJob + SealedSecret
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/factorio-backup
+    # MinIO Helm chart
+    - repoURL: https://charts.min.io/
+      chart: minio
+      targetRevision: "5.4.0"
+      helm:
+        valueFiles:
+          - $homelab/k8s/factorio-backup/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: factorio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
