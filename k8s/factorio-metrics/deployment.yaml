@@ -32,7 +32,7 @@ spec:
                   name: factorio-admin-secrets
                   key: rcon-password
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317"
+              value: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "factorio-metrics"
             - name: COLLECT_INTERVAL
