@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio-metrics
+  namespace: factorio
+  labels:
+    app: factorio-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio-metrics
+  template:
+    metadata:
+      labels:
+        app: factorio-metrics
+    spec:
+      serviceAccountName: factorio-metrics
+      containers:
+        - name: factorio-metrics
+          image: ghcr.io/manamana32321/factorio-metrics:latest
+          env:
+            - name: RCON_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: RCON_PORT
+              value: "27015"
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: rcon-password
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "factorio-metrics"
+            - name: COLLECT_INTERVAL
+              value: "15s"
+            - name: FACTORIO_POD_LABEL
+              value: "app=factorio-factorio-server-charts"
+            - name: FACTORIO_NAMESPACE
+              value: "factorio"
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 10m
+            limits:
+              memory: 64Mi
+              cpu: 100m

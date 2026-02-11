@@ -90,6 +90,8 @@ spec:
                 secretKeyRef:
                   name: minio-credentials
                   key: rootPassword
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090"
           resources:
             requests:
               memory: 128Mi
