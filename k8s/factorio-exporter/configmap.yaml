@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: factorio-exporter-config
+  namespace: factorio
+data:
+  config.yaml: |
+    rcon:
+      host: localhost
+      port: "27015"
+
+    factorio:
+      namespace: factorio
+      pod_label: app=factorio-factorio-server-charts
+
+    otel:
+      endpoint: http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317
+      service_name: factorio-exporter
+
+    metrics:
+      enabled: true
+      interval: 15s
+
+    events:
+      enabled: true
+      poll_interval: 2s
+      types:
+        - research_started
+        - research_cancelled
+        - player_died
+        - player_respawned
+        - player_changed_surface
+        - player_promoted
+        - player_demoted
+        - rocket_launch_ordered
+        - space_platform_changed_state
+        - entity_died
+        - surface_created
+        - chart_tag_added
+
+    discord:
+      enabled: true
+      events:
+        - chat
+        - join
+        - leave
+        - research
+        - research_started
+        - research_cancelled
+        - player_died
+        - player_respawned
+        - player_changed_surface
+        - rocket
+        - rocket_launch_ordered
+        - space_platform_changed_state
+        - spawner_destroyed
+        - surface_created
+        - tag_added
+
+    loki:
+      enabled: true
+      events: all
