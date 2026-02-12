@@ -34,6 +34,9 @@ server_settings:
   require_user_verification: true
   autosave_slots: 20
 
+admin_list:
+  - YumeMana
+
 rcon:
   external: true
   type: NodePort
