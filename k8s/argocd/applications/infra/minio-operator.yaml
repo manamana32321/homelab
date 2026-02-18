@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://operator.min.io
+      chart: operator
+      targetRevision: 7.1.1
+      helm:
+        releaseName: minio-operator
+        valueFiles:
+          - $homelab/k8s/minio-operator/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

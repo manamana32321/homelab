@@ -117,6 +117,33 @@ resource "cloudflare_record" "otel" {
   proxied = true
 }
 
+resource "cloudflare_record" "s3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "MinIO S3 API (production)"
+}
+
+resource "cloudflare_record" "s3_staging" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3-staging"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "MinIO S3 API (staging)"
+}
+
+resource "cloudflare_record" "claw" {
+  zone_id = cloudflare_zone.main.id
+  name    = "claw"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "OpenClaw AI Agent"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id
