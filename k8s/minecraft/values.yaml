@@ -1,5 +1,4 @@
-# 임시 비활성화 (메모리 부족)
-replicaCount: 0
+replicaCount: 1
 
 image:
   repository: itzg/minecraft-server

@@ -13,10 +13,11 @@ service:
 
 resources:
   requests:
-    memory: 1024Mi
-  limits:
     memory: 2048Mi
-    cpu: 1000m
+    cpu: 500m
+  limits:
+    memory: 4096Mi
+    cpu: 2000m
 
 persistence:
   dataDir:
