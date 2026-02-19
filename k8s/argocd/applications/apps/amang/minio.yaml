@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: amang-minio
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: production
+          - env: staging
+  template:
+    metadata:
+      name: amang-minio-{{env}}
+      namespace: argocd
+    spec:
+      destination:
+        namespace: amang-api-{{env}}
+        server: https://kubernetes.default.svc
+      source:
+        path: "k8s/minio-tenants/overlays/{{env}}"
+        repoURL: https://github.com/manamana32321/homelab
+        targetRevision: main
+      project: default
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
