@@ -135,6 +135,33 @@ resource "cloudflare_record" "s3_staging" {
   comment = "MinIO S3 API (staging)"
 }
 
+resource "cloudflare_record" "minio_console" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "MinIO Console (production)"
+}
+
+resource "cloudflare_record" "minio_console_staging" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio-staging"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "MinIO Console (staging)"
+}
+
+resource "cloudflare_record" "factorio_minio_console" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio-minio"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Factorio MinIO Console"
+}
+
 resource "cloudflare_record" "claw" {
   zone_id = cloudflare_zone.main.id
   name    = "claw"
