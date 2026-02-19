@@ -4,4 +4,5 @@ namespace: amang-api-production
 resources:
   - ../../base
   - sealed-secret.yaml
+  - sealed-secret-s3-credentials.yaml
   - ingress.yaml
