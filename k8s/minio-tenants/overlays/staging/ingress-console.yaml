@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: minio-console
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
 spec:
   ingressClassName: traefik
   tls:
