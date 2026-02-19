@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - minio-staging.json-server.win
+      secretName: minio-console-tls
+  rules:
+    - host: minio-staging.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-console
+                port:
+                  number: 9090
