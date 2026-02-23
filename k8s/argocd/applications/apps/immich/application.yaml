@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: Immich Helm chart (OCI registry)
+    - repoURL: ghcr.io/immich-app/immich-charts
+      chart: immich
+      targetRevision: "0.10.3"
+      helm:
+        valueFiles:
+          - $homelab/k8s/immich/values.yaml
+    # Source 2: Homelab repo reference for values
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    # Source 3: Raw manifests (PostgreSQL, PV/PVC, SealedSecret)
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/immich/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

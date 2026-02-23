@@ -137,6 +137,15 @@ resource "cloudflare_record" "claw" {
   comment = "OpenClaw AI Agent"
 }
 
+resource "cloudflare_record" "photos" {
+  zone_id = cloudflare_zone.main.id
+  name    = "photos"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Immich photo management"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id

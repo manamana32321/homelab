@@ -1,0 +1,49 @@
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          DB_HOSTNAME: postgres-svc
+          DB_PORT: "5432"
+          DB_DATABASE_NAME: immich
+          DB_USERNAME: immich
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: POSTGRES_PASSWORD
+
+immich:
+  persistence:
+    library:
+      existingClaim: immich-library
+
+valkey:
+  enabled: true
+
+server:
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-dns01
+        traefik.ingress.kubernetes.io/redirect-entry-point: https
+      hosts:
+        - host: photos.json-server.win
+          paths:
+            - path: /
+              service:
+                identifier: main
+      tls:
+        - secretName: immich-tls
+          hosts:
+            - photos.json-server.win
+
+machine-learning:
+  enabled: true
+  persistence:
+    cache:
+      enabled: true
+      size: 10Gi
+      type: emptyDir
+      accessMode: ReadWriteMany
