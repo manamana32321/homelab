@@ -65,7 +65,8 @@ resource "cloudflare_record" "k8s" {
   name    = "k8s"
   type    = "A"
   content = var.default_ip
-  proxied = true
+  proxied = false
+  comment = "Headlamp - proxy off to avoid Cloudflare challenge on API calls"
 }
 
 resource "cloudflare_record" "prometheus" {
