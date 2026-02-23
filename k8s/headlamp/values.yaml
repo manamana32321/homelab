@@ -1,0 +1,32 @@
+config:
+  inClusterContextName: "homelab"
+
+clusterRoleBinding:
+  create: true
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+  hosts:
+    - host: k8s.json-server.win
+      paths:
+        - path: /
+          type: Prefix
+  tls:
+    - hosts:
+        - k8s.json-server.win
+      secretName: headlamp-tls
+
+extraManifests:
+  - |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: headlamp-token
+      namespace: headlamp
+      annotations:
+        kubernetes.io/service-account.name: headlamp
+    type: kubernetes.io/service-account-token
