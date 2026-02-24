@@ -70,6 +70,7 @@ ingress:
   ingressClassName: traefik
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/service.serversscheme: https
   hosts:
     - host: frigate.json-server.win
       paths:
