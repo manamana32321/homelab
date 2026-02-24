@@ -80,16 +80,8 @@ resources:
 
 probes:
   liveness:
-    enabled: true
-    initialDelaySeconds: 120
-    failureThreshold: 5
-    timeoutSeconds: 10
+    enabled: false
   readiness:
-    enabled: true
-    initialDelaySeconds: 120
-    failureThreshold: 5
-    timeoutSeconds: 10
+    enabled: false
   startup:
-    enabled: true
-    failureThreshold: 60
-    periodSeconds: 10
+    enabled: false
