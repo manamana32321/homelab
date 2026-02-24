@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: immich-media-backup
+  labels:
+    app: immich
+    job-type: media-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 1
+      activeDeadlineSeconds: 21600
+      template:
+        metadata:
+          labels:
+            app: immich
+            job-type: media-backup
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: json-server-1
+          containers:
+            - name: media-backup
+              image: rclone/rclone:1.68
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+
+                  # rclone config
+                  mkdir -p /root/.config/rclone
+                  cat > /root/.config/rclone/rclone.conf <<CONF
+                  [s3]
+                  type = s3
+                  provider = AWS
+                  access_key_id = ${AWS_ACCESS_KEY_ID}
+                  secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+                  region = ap-northeast-2
+                  storage_class = GLACIER_IR
+                  CONF
+
+                  # Sync library to S3
+                  rclone sync /library s3:immich-backup-json-server/media/ \
+                    --transfers 4 \
+                    --checkers 8 \
+                    --s3-upload-cutoff 100M \
+                    --s3-chunk-size 50M \
+                    --log-level INFO \
+                    --stats 60s
+
+                  echo "Media backup sync complete"
+              envFrom:
+                - secretRef:
+                    name: immich-backup-credentials
+              volumeMounts:
+                - name: library
+                  mountPath: /library
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+          volumes:
+            - name: library
+              persistentVolumeClaim:
+                claimName: immich-library

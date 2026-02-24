@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: immich-db-backup
+  labels:
+    app: immich
+    job-type: db-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: immich
+            job-type: db-backup
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: db-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  apk add --no-cache postgresql16-client rclone
+
+                  # rclone config
+                  mkdir -p /root/.config/rclone
+                  cat > /root/.config/rclone/rclone.conf <<CONF
+                  [s3]
+                  type = s3
+                  provider = AWS
+                  access_key_id = ${AWS_ACCESS_KEY_ID}
+                  secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+                  region = ap-northeast-2
+                  CONF
+
+                  # pg_dump
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  DUMP_FILE="/tmp/immich-db-${TIMESTAMP}.sql.gz"
+                  PGPASSWORD="${DB_PASSWORD}" pg_dump \
+                    -h postgres-svc -p 5432 -U immich -d immich \
+                    --no-owner --no-privileges \
+                    | gzip > "${DUMP_FILE}"
+
+                  # Upload to S3
+                  rclone copy "${DUMP_FILE}" s3:immich-backup-json-server/db/
+
+                  echo "DB backup uploaded: db/${DUMP_FILE##*/}"
+              envFrom:
+                - secretRef:
+                    name: immich-backup-credentials
+              env:
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
