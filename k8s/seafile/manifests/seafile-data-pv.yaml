@@ -21,3 +21,17 @@ spec:
               operator: In
               values:
                 - json-server-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: seafile-data
+  namespace: seafile
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: hostpath-hdd
+  resources:
+    requests:
+      storage: 100Gi
+  volumeName: seafile-data

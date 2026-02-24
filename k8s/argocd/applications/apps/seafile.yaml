@@ -7,22 +7,10 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  sources:
-    # Source 1: Seafile CE Helm chart
-    - repoURL: https://haiwen.github.io/seafile-helm-chart/repo
-      chart: ce
-      targetRevision: "13.0.2"
-      helm:
-        valueFiles:
-          - $homelab/k8s/seafile/values.yaml
-    # Source 2: Homelab repo reference for values
-    - repoURL: https://github.com/manamana32321/homelab
-      targetRevision: main
-      ref: homelab
-    # Source 3: Raw manifests (MariaDB, Redis, Ingress, PV, SealedSecret)
-    - repoURL: https://github.com/manamana32321/homelab
-      targetRevision: main
-      path: k8s/seafile/manifests
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/seafile/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: seafile
