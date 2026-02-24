@@ -1,0 +1,23 @@
+seafile:
+  initMode: true
+
+  configs:
+    image: seafileltd/seafile-mc:13.0-latest
+    seafileDataVolume:
+      storage: 100Gi
+      storageClassName: hostpath-hdd
+
+  env:
+    TIME_ZONE: "Asia/Seoul"
+    SEAFILE_SERVER_HOSTNAME: "files.json-server.win"
+    SEAFILE_SERVER_PROTOCOL: "https"
+
+    # Database
+    SEAFILE_MYSQL_DB_HOST: "mariadb-svc"
+    SEAFILE_MYSQL_DB_USER: "seafile"
+
+    # Cache
+    REDIS_HOST: "redis-svc"
+
+    # Initialization (only used on first deploy with initMode: true)
+    INIT_SEAFILE_ADMIN_EMAIL: "manamana32321@gmail.com"
