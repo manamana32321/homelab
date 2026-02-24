@@ -4,11 +4,11 @@ metadata:
   name: immich-library
 spec:
   capacity:
-    storage: 580Gi
+    storage: 1200Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/immich/library
+    path: /mnt/data/immich-library
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -29,5 +29,5 @@ spec:
   storageClassName: ""
   resources:
     requests:
-      storage: 580Gi
+      storage: 1200Gi
   volumeName: immich-library
