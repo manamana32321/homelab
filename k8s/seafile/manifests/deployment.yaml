@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seafile
+  namespace: seafile
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: seafile
+  template:
+    metadata:
+      labels:
+        app: seafile
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: set-ownership
+          image: busybox
+          command: ['sh', '-c', 'chown -R root:root /shared']
+          volumeMounts:
+            - name: seafile-data
+              mountPath: /shared
+        - name: apply-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              SETTINGS=/shared/seafile/conf/seahub_settings.py
+              EXTRA=/extra-config/extra_settings.py
+              if [ -f "$SETTINGS" ]; then
+                sed -i '/^# --- managed by k8s ---$/,/^# --- end managed ---$/d' "$SETTINGS"
+                printf '\n# --- managed by k8s ---\n' >> "$SETTINGS"
+                cat "$EXTRA" >> "$SETTINGS"
+                printf '# --- end managed ---\n' >> "$SETTINGS"
+              fi
+          volumeMounts:
+            - name: seafile-data
+              mountPath: /shared
+            - name: seahub-custom-config
+              mountPath: /extra-config
+      containers:
+        - name: seafile
+          image: seafileltd/seafile-mc:13.0-latest
+          env:
+            - name: SEAF_SERVER_STORAGE_TYPE
+              value: "disk"
+            - name: SEAFILE_AI_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seafile-secret
+                  key: JWT_PRIVATE_KEY
+          envFrom:
+            - configMapRef:
+                name: seafile-env
+            - secretRef:
+                name: seafile-secret
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: seafile-data
+              mountPath: /shared
+      volumes:
+        - name: seafile-data
+          persistentVolumeClaim:
+            claimName: seafile-data
+        - name: seahub-custom-config
+          configMap:
+            name: seahub-custom-config
+      restartPolicy: Always
