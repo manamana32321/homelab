@@ -41,6 +41,7 @@ spec:
                   secret_access_key = ${AWS_SECRET_ACCESS_KEY}
                   region = ap-northeast-2
                   location_constraint = ap-northeast-2
+                  no_check_bucket = true
                   CONF
 
                   # pg_dump
