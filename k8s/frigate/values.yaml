@@ -13,7 +13,11 @@ config: |
     enabled: false
 
   mqtt:
-    enabled: false
+    enabled: true
+    host: mosquitto.mosquitto.svc.cluster.local
+    port: 1883
+    topic_prefix: frigate
+    client_id: frigate
 
   model:
     path: /config/model_cache/tensorrt/yolov7-320.trt

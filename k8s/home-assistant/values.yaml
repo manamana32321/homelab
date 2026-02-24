@@ -1,0 +1,45 @@
+controller:
+  type: StatefulSet
+
+image:
+  tag: "2026.2.3"
+
+hostNetwork: false
+
+nodeSelector:
+  kubernetes.io/hostname: json-server-1
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+  hosts:
+    - host: ha.json-server.win
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: home-assistant-tls
+      hosts:
+        - ha.json-server.win
+
+configuration:
+  enabled: true
+  trusted_proxies:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
