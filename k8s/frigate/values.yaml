@@ -13,8 +13,9 @@ config: |
     enabled: false
 
   detectors:
-    onnx:
-      type: onnx
+    tensorrt:
+      type: tensorrt
+      device: 0
 
   cameras:
     webcam:
