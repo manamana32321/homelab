@@ -165,6 +165,15 @@ resource "cloudflare_record" "photos" {
   comment = "Immich photo management"
 }
 
+resource "cloudflare_record" "files" {
+  zone_id = cloudflare_zone.main.id
+  name    = "files"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Seafile file sync"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id
