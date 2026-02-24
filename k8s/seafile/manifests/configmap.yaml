@@ -38,3 +38,5 @@ data:
   extra_settings.py: |
     SERVICE_URL = "https://files.json-server.win"
     FILE_SERVER_ROOT = "https://files.json-server.win/seafhttp"
+    CLIENT_SSO_VIA_LOCAL_BROWSER = True
+    CSRF_TRUSTED_ORIGINS = ["https://files.json-server.win"]
