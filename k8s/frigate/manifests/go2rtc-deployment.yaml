@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go2rtc
+  namespace: frigate
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: go2rtc
+  template:
+    metadata:
+      labels:
+        app: go2rtc
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: raspi-1
+      containers:
+        - name: go2rtc
+          image: alexxit/go2rtc:latest
+          ports:
+            - name: api
+              containerPort: 1984
+            - name: rtsp
+              containerPort: 8554
+          volumeMounts:
+            - name: config
+              mountPath: /config/go2rtc.yaml
+              subPath: go2rtc.yaml
+            - name: webcam
+              mountPath: /dev/video0
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: config
+          configMap:
+            name: go2rtc-config
+        - name: webcam
+          hostPath:
+            path: /dev/video0
+            type: CharDevice

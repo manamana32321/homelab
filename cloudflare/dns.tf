@@ -138,6 +138,15 @@ resource "cloudflare_record" "claw" {
   comment = "OpenClaw AI Agent"
 }
 
+resource "cloudflare_record" "frigate" {
+  zone_id = cloudflare_zone.main.id
+  name    = "frigate"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Frigate NVR"
+}
+
 resource "cloudflare_record" "photos" {
   zone_id = cloudflare_zone.main.id
   name    = "photos"

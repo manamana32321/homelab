@@ -1,0 +1,87 @@
+nodeSelector:
+  kubernetes.io/hostname: json-server-1
+
+config: |
+  mqtt:
+    enabled: false
+
+  detectors:
+    cpu:
+      type: cpu
+
+  cameras:
+    webcam:
+      enabled: true
+      ffmpeg:
+        inputs:
+          - path: rtsp://go2rtc.frigate.svc.cluster.local:8554/webcam
+            roles:
+              - detect
+      detect:
+        width: 640
+        height: 480
+        fps: 5
+      objects:
+        track:
+          - person
+      record:
+        enabled: false
+      snapshots:
+        enabled: true
+        retain:
+          default: 7
+
+shmSize: 256Mi
+
+tmpfs:
+  enabled: true
+  sizeLimit: 256Mi
+
+persistence:
+  config:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+  media:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+  hosts:
+    - host: frigate.json-server.win
+      paths:
+        - path: /
+          portName: http-auth
+  tls:
+    - secretName: frigate-tls
+      hosts:
+        - frigate.json-server.win
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "4"
+    memory: 2Gi
+
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    timeoutSeconds: 10
+  readiness:
+    enabled: true
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    timeoutSeconds: 10
+  startup:
+    enabled: true
+    failureThreshold: 30
+    periodSeconds: 10
