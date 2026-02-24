@@ -6,9 +6,6 @@ image:
 
 hostNetwork: false
 
-nodeSelector:
-  kubernetes.io/hostname: json-server-1
-
 persistence:
   enabled: true
   size: 5Gi
