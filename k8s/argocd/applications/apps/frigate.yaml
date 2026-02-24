@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: frigate
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
@@ -28,7 +26,7 @@ spec:
     namespace: frigate
   syncPolicy:
     automated:
-      prune: true
+      prune: false
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

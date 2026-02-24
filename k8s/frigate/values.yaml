@@ -63,10 +63,12 @@ persistence:
     enabled: true
     size: 1Gi
     accessMode: ReadWriteOnce
+    skipuninstall: true
   media:
     enabled: true
     size: 10Gi
     accessMode: ReadWriteOnce
+    skipuninstall: true
 
 ingress:
   enabled: true
@@ -94,8 +96,16 @@ resources:
 
 probes:
   liveness:
-    enabled: false
+    enabled: true
+    initialDelaySeconds: 30
+    failureThreshold: 5
+    timeoutSeconds: 10
   readiness:
-    enabled: false
+    enabled: true
+    initialDelaySeconds: 30
+    failureThreshold: 5
+    timeoutSeconds: 10
   startup:
-    enabled: false
+    enabled: true
+    failureThreshold: 30
+    periodSeconds: 10
