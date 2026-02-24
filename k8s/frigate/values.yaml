@@ -38,6 +38,7 @@ config: |
           - path: rtsp://go2rtc.frigate.svc.cluster.local:8554/webcam
             roles:
               - detect
+              - record
       detect:
         width: 640
         height: 480
@@ -46,7 +47,12 @@ config: |
         track:
           - person
       record:
-        enabled: false
+        enabled: true
+        retain:
+          days: 3
+        events:
+          retain:
+            default: 14
       snapshots:
         enabled: true
         retain:
