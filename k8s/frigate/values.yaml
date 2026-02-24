@@ -24,6 +24,9 @@ config: |
       type: tensorrt
       device: 0
 
+  ffmpeg:
+    hwaccel_args: []
+
   cameras:
     webcam:
       enabled: true
