@@ -1,13 +1,20 @@
+image:
+  tag: 0.14.1-tensorrt
+
 nodeSelector:
   kubernetes.io/hostname: json-server-1
+
+gpu:
+  nvidia:
+    enabled: true
 
 config: |
   mqtt:
     enabled: false
 
   detectors:
-    cpu:
-      type: cpu
+    onnx:
+      type: onnx
 
   cameras:
     webcam:
@@ -69,19 +76,20 @@ resources:
   limits:
     cpu: "4"
     memory: 2Gi
+    nvidia.com/gpu: "1"
 
 probes:
   liveness:
     enabled: true
-    initialDelaySeconds: 60
+    initialDelaySeconds: 120
     failureThreshold: 5
     timeoutSeconds: 10
   readiness:
     enabled: true
-    initialDelaySeconds: 60
+    initialDelaySeconds: 120
     failureThreshold: 5
     timeoutSeconds: 10
   startup:
     enabled: true
-    failureThreshold: 30
+    failureThreshold: 60
     periodSeconds: 10
