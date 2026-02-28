@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openclaw
+  namespace: openclaw
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: claw.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw
+                port:
+                  number: 18789
+  tls:
+    - secretName: openclaw-tls
+      hosts:
+        - claw.json-server.win

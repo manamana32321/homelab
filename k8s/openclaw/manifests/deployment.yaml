@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openclaw
+  namespace: openclaw
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: json-server-1
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+        - name: install-browser
+          image: ghcr.io/openclaw/openclaw:latest
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -d "/home/node/.cache/ms-playwright/chromium-"* ] 2>/dev/null; then
+                echo "Installing Chromium via Playwright..."
+                npx playwright install chromium
+              else
+                echo "Chromium already installed, skipping."
+              fi
+          env:
+            - name: PLAYWRIGHT_BROWSERS_PATH
+              value: /home/node/.cache/ms-playwright
+          volumeMounts:
+            - name: openclaw-home
+              mountPath: /home/node
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+      containers:
+        - name: openclaw
+          image: ghcr.io/openclaw/openclaw:latest
+          command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
+          envFrom:
+            - configMapRef:
+                name: openclaw-env
+            - secretRef:
+                name: openclaw-secret
+          ports:
+            - name: gateway
+              containerPort: 18789
+            - name: bridge
+              containerPort: 18790
+          volumeMounts:
+            - name: openclaw-home
+              mountPath: /home/node
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+      volumes:
+        - name: openclaw-home
+          persistentVolumeClaim:
+            claimName: openclaw-home

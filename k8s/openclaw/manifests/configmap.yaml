@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-env
+  namespace: openclaw
+data:
+  NODE_ENV: production
+  PLAYWRIGHT_BROWSERS_PATH: /home/node/.cache/ms-playwright
