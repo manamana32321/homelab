@@ -76,9 +76,7 @@ persistence:
     skipuninstall: true
   media:
     enabled: true
-    size: 20Gi
-    accessMode: ReadWriteOnce
-    skipuninstall: true
+    existingClaim: frigate-media-hdd
 
 ingress:
   enabled: true
