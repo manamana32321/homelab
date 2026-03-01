@@ -1,0 +1,22 @@
+# ARC Runner Scale Set — morton 레포 전용 러너
+# GitHub App 인증 → SealedSecret으로 관리 (github-app-secret)
+githubConfigUrl: "https://github.com/mortonCareer/morton"
+githubConfigSecret: github-app-secret
+
+# scale-from-zero: 워크플로우 대기 중일 때만 Pod 생성
+minRunners: 0
+maxRunners: 2
+
+template:
+  spec:
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["/home/runner/run.sh"]
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi

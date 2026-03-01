@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: actions-runner-morton
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: Runner Scale Set Helm chart
+    - repoURL: oci://ghcr.io/actions/actions-runner-controller-charts
+      chart: gha-runner-scale-set
+      targetRevision: 0.11.0
+      helm:
+        releaseName: morton-runner
+        valueFiles:
+          - $homelab/k8s/actions-runner/runner-values.yaml
+    # Source 2: Homelab repo reference for values
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    # Source 3: SealedSecret 등 추가 매니페스트
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/actions-runner
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: actions-runner
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
