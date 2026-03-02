@@ -26,7 +26,13 @@ data:
       },
       "channels": {
         "telegram": {
-          "groupPolicy": "open"
+          "enabled": false
+        },
+        "discord": {
+          "enabled": false
+        },
+        "slack": {
+          "enabled": false
         }
       }
     }
