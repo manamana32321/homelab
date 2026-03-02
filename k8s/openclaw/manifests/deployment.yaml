@@ -24,13 +24,16 @@ spec:
       initContainers:
         - name: install-browser
           image: ghcr.io/openclaw/openclaw:latest
+          securityContext:
+            runAsUser: 0
           command:
             - sh
             - -c
             - |
-              if [ ! -d "/home/node/.cache/ms-playwright/chromium-"* ] 2>/dev/null; then
+              if ! ls /home/node/.cache/ms-playwright/chromium-* >/dev/null 2>&1; then
                 echo "Installing Chromium via Playwright..."
                 npx playwright install chromium
+                chown -R 1000:1000 /home/node/.cache
               else
                 echo "Chromium already installed, skipping."
               fi
