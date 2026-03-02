@@ -24,12 +24,35 @@ spec:
       initContainers:
         - name: setup-config
           image: busybox
+          env:
+            - name: ANTHROPIC_SETUP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secret
+                  key: ANTHROPIC_SETUP_TOKEN
           command:
             - sh
             - -c
             - |
               mkdir -p /home/node/.openclaw
               cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+              mkdir -p /home/node/.openclaw/agents/main/agent
+              cat > /home/node/.openclaw/agents/main/agent/auth-profiles.json <<EOF
+              {
+                "version": 1,
+                "profiles": {
+                  "anthropic:default": {
+                    "type": "token",
+                    "provider": "anthropic",
+                    "token": "${ANTHROPIC_SETUP_TOKEN}"
+                  }
+                },
+                "order": {
+                  "anthropic": ["anthropic:default"]
+                }
+              }
+              EOF
+              chmod 600 /home/node/.openclaw/agents/main/agent/auth-profiles.json
               chown -R 1000:1000 /home/node/.openclaw
           volumeMounts:
             - name: openclaw-home
