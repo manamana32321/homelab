@@ -1,0 +1,11 @@
+# ARC (Actions Runner Controller) — 컨트롤러 설정
+# https://github.com/actions/actions-runner-controller
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
