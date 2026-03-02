@@ -70,10 +70,10 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              memory: 1Gi
             limits:
               cpu: "2"
-              memory: 1Gi
+              memory: 2Gi
       volumes:
         - name: openclaw-home
           persistentVolumeClaim:

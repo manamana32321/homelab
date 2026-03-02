@@ -5,4 +5,5 @@ metadata:
   namespace: openclaw
 data:
   NODE_ENV: production
+  NODE_OPTIONS: --max-old-space-size=1536
   PLAYWRIGHT_BROWSERS_PATH: /home/node/.cache/ms-playwright
