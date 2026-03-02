@@ -22,6 +22,20 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       initContainers:
+        - name: setup-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /home/node/.openclaw
+              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+              chown -R 1000:1000 /home/node/.openclaw
+          volumeMounts:
+            - name: openclaw-home
+              mountPath: /home/node
+            - name: openclaw-config
+              mountPath: /config
         - name: install-browser
           image: ghcr.io/openclaw/openclaw:latest
           securityContext:
@@ -67,9 +81,6 @@ spec:
           volumeMounts:
             - name: openclaw-home
               mountPath: /home/node
-            - name: openclaw-config
-              mountPath: /app/openclaw.json
-              subPath: openclaw.json
           resources:
             requests:
               cpu: 100m
