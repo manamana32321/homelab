@@ -11,7 +11,7 @@ spec:
     # Source 1: Runner Scale Set Helm chart
     - repoURL: oci://ghcr.io/actions/actions-runner-controller-charts
       chart: gha-runner-scale-set
-      targetRevision: 0.11.0
+      targetRevision: 0.13.1
       helm:
         releaseName: morton-runner
         valueFiles:
@@ -23,7 +23,7 @@ spec:
     # Source 3: SealedSecret 등 추가 매니페스트
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
-      path: k8s/actions-runner
+      path: k8s/actions-runner/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: actions-runner
