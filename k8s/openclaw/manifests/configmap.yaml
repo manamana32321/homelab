@@ -32,7 +32,7 @@ data:
           "enabled": false
         },
         "slack": {
-          "enabled": false
+          "enabled": true
         }
       }
     }
