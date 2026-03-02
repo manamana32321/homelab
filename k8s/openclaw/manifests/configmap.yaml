@@ -7,3 +7,26 @@ data:
   NODE_ENV: production
   NODE_OPTIONS: --max-old-space-size=1536
   PLAYWRIGHT_BROWSERS_PATH: /home/node/.cache/ms-playwright
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: openclaw
+data:
+  openclaw.json: |
+    {
+      "gateway": {
+        "controlUi": {
+          "allowedOrigins": ["https://claw.json-server.win"]
+        }
+      },
+      "browser": {
+        "enabled": true
+      },
+      "channels": {
+        "telegram": {
+          "groupPolicy": "open"
+        }
+      }
+    }

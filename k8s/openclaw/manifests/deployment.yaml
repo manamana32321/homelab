@@ -67,6 +67,9 @@ spec:
           volumeMounts:
             - name: openclaw-home
               mountPath: /home/node
+            - name: openclaw-config
+              mountPath: /app/openclaw.json
+              subPath: openclaw.json
           resources:
             requests:
               cpu: 100m
@@ -78,3 +81,6 @@ spec:
         - name: openclaw-home
           persistentVolumeClaim:
             claimName: openclaw-home
+        - name: openclaw-config
+          configMap:
+            name: openclaw-config
