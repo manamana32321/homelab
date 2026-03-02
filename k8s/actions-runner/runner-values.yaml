@@ -3,6 +3,10 @@
 githubConfigUrl: "https://github.com/mortonCareer/morton"
 githubConfigSecret: github-app-secret
 
+controllerServiceAccount:
+  name: arc-controller-gha-rs-controller
+  namespace: actions-runner
+
 # scale-from-zero: 워크플로우 대기 중일 때만 Pod 생성
 minRunners: 0
 maxRunners: 2
