@@ -32,7 +32,7 @@ spec:
             - |
               if ! ls /home/node/.cache/ms-playwright/chromium-* >/dev/null 2>&1; then
                 echo "Installing Chromium via Playwright..."
-                npx playwright install chromium
+                npx playwright-core install --with-deps chromium
                 chown -R 1000:1000 /home/node/.cache
               else
                 echo "Chromium already installed, skipping."
