@@ -26,7 +26,8 @@ data:
       },
       "channels": {
         "telegram": {
-          "enabled": true
+          "enabled": true,
+          "groupPolicy": "open"
         },
         "discord": {
           "enabled": false
