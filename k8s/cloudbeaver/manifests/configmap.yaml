@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudbeaver-datasources
+  namespace: cloudbeaver
+data:
+  initial-data-sources.conf: |
+    {
+      "folders": {},
+      "connections": {
+        "amang-production": {
+          "provider": "postgresql",
+          "driver": "postgres-jdbc",
+          "name": "AMANG Production",
+          "url": "jdbc:postgresql://postgres-svc.amang-db-production.svc.cluster.local:5432/amang_db",
+          "configuration": {
+            "type": "url"
+          }
+        },
+        "amang-staging": {
+          "provider": "postgresql",
+          "driver": "postgres-jdbc",
+          "name": "AMANG Staging",
+          "url": "jdbc:postgresql://postgres-svc.amang-db-staging.svc.cluster.local:5432/amang_db",
+          "configuration": {
+            "type": "url"
+          }
+        },
+        "immich-db": {
+          "provider": "postgresql",
+          "driver": "postgres-jdbc",
+          "name": "Immich",
+          "url": "jdbc:postgresql://postgres-svc.immich.svc.cluster.local:5432/immich",
+          "configuration": {
+            "type": "url"
+          }
+        },
+        "seafile-db": {
+          "provider": "mysql",
+          "driver": "mariaDB",
+          "name": "Seafile (MariaDB)",
+          "url": "jdbc:mariadb://mariadb-svc.seafile.svc.cluster.local:3306/",
+          "configuration": {
+            "type": "url"
+          }
+        }
+      }
+    }

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudbeaver
+  namespace: cloudbeaver
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cloudbeaver
+  template:
+    metadata:
+      labels:
+        app: cloudbeaver
+    spec:
+      containers:
+        - name: cloudbeaver
+          image: dbeaver/cloudbeaver:latest
+          ports:
+            - name: http
+              containerPort: 8978
+          volumeMounts:
+            - name: datasources
+              mountPath: /opt/cloudbeaver/conf/initial-data-sources.conf
+              subPath: initial-data-sources.conf
+            - name: workspace
+              mountPath: /opt/cloudbeaver/workspace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: datasources
+          configMap:
+            name: cloudbeaver-datasources
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: cloudbeaver-workspace
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cloudbeaver-workspace
+  namespace: cloudbeaver
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
