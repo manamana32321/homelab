@@ -46,6 +46,8 @@ spec:
                   # .gitignore (always overwrite to keep in sync)
                   cat > .gitignore <<'IGNORE'
                   *.lock
+                  *.bak
+                  *.bak.*
                   node_modules/
                   workspace*/
                   IGNORE
