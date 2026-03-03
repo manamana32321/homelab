@@ -30,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: openclaw-secret
                   key: ANTHROPIC_SETUP_TOKEN
+            - name: TELEGRAM_BOT_TOKEN_JARVIS
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secret
+                  key: TELEGRAM_BOT_TOKEN_JARVIS
           command:
             - sh
             - -c
@@ -38,6 +43,8 @@ spec:
               if [ ! -f /home/node/.openclaw/openclaw.json ]; then
                 echo "First run: copying initial config from ConfigMap"
                 cp /config/openclaw.json /home/node/.openclaw/openclaw.json
+                sed -i "s|\${TELEGRAM_BOT_TOKEN_JARVIS}|${TELEGRAM_BOT_TOKEN_JARVIS}|g" /home/node/.openclaw/openclaw.json
+                echo "Injected secrets into config"
               else
                 echo "Config already exists on PVC, preserving runtime changes"
               fi

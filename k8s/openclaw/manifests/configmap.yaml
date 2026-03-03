@@ -27,13 +27,28 @@ data:
       "channels": {
         "telegram": {
           "enabled": true,
-          "groupPolicy": "open"
+          "groupPolicy": "open",
+          "groups": {
+            "-1003715312880": {
+              "requireMention": false
+            }
+          },
+          "accounts": {
+            "default": {},
+            "jarvis": {
+              "botToken": "${TELEGRAM_BOT_TOKEN_JARVIS}",
+              "dmPolicy": "allowlist",
+              "allowFrom": ["8126749721"]
+            }
+          }
         },
         "discord": {
           "enabled": false
         },
         "slack": {
-          "enabled": true
+          "enabled": true,
+          "groupPolicy": "open",
+          "requireMention": false
         }
       },
       "messages": {
@@ -61,5 +76,32 @@ data:
             ]
           }
         }
-      }
+      },
+      "agents": {
+        "list": [
+          {
+            "id": "main",
+            "name": "래미",
+            "default": true,
+            "groupChat": {
+              "mentionPatterns": ["@Morton_Claw_bot", "래미", "래미야"]
+            }
+          },
+          {
+            "id": "jarvis",
+            "name": "자비스",
+            "workspace": "~/.openclaw/workspace-jarvis",
+            "model": "anthropic/claude-opus-4-6"
+          }
+        ]
+      },
+      "bindings": [
+        {
+          "agentId": "jarvis",
+          "match": {
+            "channel": "telegram",
+            "accountId": "jarvis"
+          }
+        }
+      ]
     }
