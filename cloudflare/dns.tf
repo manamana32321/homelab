@@ -50,6 +50,16 @@ resource "cloudflare_record" "auth" {
   type    = "A"
   content = var.default_ip
   proxied = true
+  comment = "Authentik SSO"
+}
+
+resource "cloudflare_record" "db" {
+  zone_id = cloudflare_zone.main.id
+  name    = "db"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "CloudBeaver DB admin"
 }
 
 resource "cloudflare_record" "minecraft" {
