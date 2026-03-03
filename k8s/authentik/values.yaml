@@ -32,10 +32,10 @@ worker:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       cpu: "1"
-      memory: 512Mi
+      memory: 1Gi
 
 postgresql:
   enabled: true
@@ -58,21 +58,3 @@ postgresql:
       limits:
         cpu: "1"
         memory: 512Mi
-
-redis:
-  enabled: true
-  architecture: standalone
-  auth:
-    enabled: false
-  master:
-    persistence:
-      enabled: true
-      size: 1Gi
-      storageClass: local-path
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-      limits:
-        cpu: 250m
-        memory: 128Mi
