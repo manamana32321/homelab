@@ -24,9 +24,6 @@ spec:
           restartPolicy: Never
           nodeSelector:
             kubernetes.io/hostname: json-server-1
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
           containers:
             - name: git-backup
               image: alpine:3.21
@@ -44,6 +41,7 @@ spec:
                   ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
 
                   cd /home/node/.openclaw
+                  git config --global --add safe.directory /home/node/.openclaw
 
                   # .gitignore (first run)
                   if [ ! -f .gitignore ]; then
