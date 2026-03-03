@@ -21,6 +21,47 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+      initContainers:
+        - name: setup-gogcli
+          image: alpine:3.21
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              BINARY_PATH=/home/node/.local/bin/gog
+              if [ ! -f "$BINARY_PATH" ]; then
+                echo "Downloading gogcli v0.11.0..."
+                mkdir -p /home/node/.local/bin
+                wget -qO- https://github.com/steipete/gogcli/releases/download/v0.11.0/gogcli_0.11.0_linux_amd64.tar.gz | tar xz -C /tmp
+                mv /tmp/gog "$BINARY_PATH"
+                chmod +x "$BINARY_PATH"
+                echo "gogcli installed."
+              else
+                echo "gogcli already installed."
+              fi
+              # Register client_secret.json if available and not yet configured
+              if [ -f /secrets/gog/client_secret.json ] && [ ! -f /home/node/.config/gogcli/config.json ]; then
+                echo "Registering Google OAuth credentials..."
+                export HOME=/home/node
+                export PATH="/home/node/.local/bin:$PATH"
+                gog auth credentials /secrets/gog/client_secret.json
+                echo "Credentials registered."
+              fi
+          env:
+            - name: GOG_KEYRING_BACKEND
+              value: file
+            - name: GOG_KEYRING_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gog-secret
+                  key: GOG_KEYRING_PASSWORD
+                  optional: true
+          volumeMounts:
+            - name: openclaw-home
+              mountPath: /home/node
+            - name: gog-client-secret
+              mountPath: /secrets/gog
+              readOnly: true
       containers:
         - name: openclaw
           image: ghcr.io/openclaw/openclaw:latest
@@ -30,6 +71,17 @@ spec:
                 name: openclaw-env
             - secretRef:
                 name: openclaw-secret
+          env:
+            - name: PATH
+              value: /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: GOG_KEYRING_BACKEND
+              value: file
+            - name: GOG_KEYRING_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gog-secret
+                  key: GOG_KEYRING_PASSWORD
+                  optional: true
           ports:
             - name: gateway
               containerPort: 18789
@@ -45,43 +97,11 @@ spec:
             limits:
               cpu: "2"
               memory: 2Gi
-        - name: gcal-mcp
-          image: ghcr.io/manamana32321/gcal-mcp:latest
-          env:
-            - name: GOOGLE_SA_KEY_FILE
-              value: /secrets/gcal/sa-key.json
-            - name: GOOGLE_CALENDAR_ID
-              value: manamana32321@gmail.com
-          ports:
-            - name: gcal-mcp
-              containerPort: 3000
-          volumeMounts:
-            - name: gcal-sa-key
-              mountPath: /secrets/gcal
-              readOnly: true
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 3
-            periodSeconds: 10
       volumes:
         - name: openclaw-home
           persistentVolumeClaim:
             claimName: openclaw-home
-        - name: gcal-sa-key
+        - name: gog-client-secret
           secret:
-            secretName: gcal-sa-key
+            secretName: gog-client-secret
+            optional: true
