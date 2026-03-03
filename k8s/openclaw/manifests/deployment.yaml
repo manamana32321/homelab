@@ -66,7 +66,7 @@ spec:
               EOF
               chmod 600 /home/node/.openclaw/agents/main/agent/auth-profiles.json
               find /home/node/.openclaw -name "*.lock" -delete 2>/dev/null || true
-              chown -R 1000:1000 /home/node/.openclaw
+              chown -R 1000:1000 /home/node/.openclaw 2>/dev/null || true
           volumeMounts:
             - name: openclaw-home
               mountPath: /home/node
