@@ -43,13 +43,12 @@ spec:
                   cd /home/node/.openclaw
                   git config --global --add safe.directory /home/node/.openclaw
 
-                  # .gitignore (first run)
-                  if [ ! -f .gitignore ]; then
-                    cat > .gitignore <<'IGNORE'
+                  # .gitignore (always overwrite to keep in sync)
+                  cat > .gitignore <<'IGNORE'
                   *.lock
                   node_modules/
+                  workspace*/
                   IGNORE
-                  fi
 
                   # git init (idempotent)
                   git config --global user.email "openclaw-backup@json-server.win"
