@@ -97,6 +97,19 @@ data:
       },
       "bindings": [
         {
+          "agentId": "main",
+          "match": {
+            "channel": "telegram",
+            "accountId": "default"
+          }
+        },
+        {
+          "agentId": "main",
+          "match": {
+            "channel": "slack"
+          }
+        },
+        {
           "agentId": "jarvis",
           "match": {
             "channel": "telegram",
