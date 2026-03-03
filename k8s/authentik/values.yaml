@@ -29,6 +29,15 @@ server:
 
 worker:
   replicas: 1
+  startupProbe:
+    exec:
+      command:
+        - ak
+        - healthcheck
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 30
   resources:
     requests:
       cpu: 100m
