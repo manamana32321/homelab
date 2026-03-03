@@ -21,85 +21,6 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-      initContainers:
-        - name: setup-config
-          image: busybox
-          env:
-            - name: ANTHROPIC_SETUP_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secret
-                  key: ANTHROPIC_SETUP_TOKEN
-            - name: TELEGRAM_BOT_TOKEN_JARVIS
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secret
-                  key: TELEGRAM_BOT_TOKEN_JARVIS
-          command:
-            - sh
-            - -c
-            - |
-              mkdir -p /home/node/.openclaw
-              if [ ! -f /home/node/.openclaw/openclaw.json ]; then
-                echo "First run: copying initial config from ConfigMap"
-                cp /config/openclaw.json /home/node/.openclaw/openclaw.json
-                sed -i "s|\${TELEGRAM_BOT_TOKEN_JARVIS}|${TELEGRAM_BOT_TOKEN_JARVIS}|g" /home/node/.openclaw/openclaw.json
-                echo "Injected secrets into config"
-              else
-                echo "Config already exists on PVC, preserving runtime changes"
-              fi
-              mkdir -p /home/node/.openclaw/agents/main/agent
-              cat > /home/node/.openclaw/agents/main/agent/auth-profiles.json <<EOF
-              {
-                "version": 1,
-                "profiles": {
-                  "anthropic:default": {
-                    "type": "token",
-                    "provider": "anthropic",
-                    "token": "${ANTHROPIC_SETUP_TOKEN}"
-                  }
-                },
-                "order": {
-                  "anthropic": ["anthropic:default"]
-                }
-              }
-              EOF
-              chmod 600 /home/node/.openclaw/agents/main/agent/auth-profiles.json
-              find /home/node/.openclaw -name "*.lock" -delete 2>/dev/null || true
-              chown -R 1000:1000 /home/node/.openclaw 2>/dev/null || true
-          volumeMounts:
-            - name: openclaw-home
-              mountPath: /home/node
-            - name: openclaw-config
-              mountPath: /config
-        - name: install-browser
-          image: ghcr.io/openclaw/openclaw:latest
-          securityContext:
-            runAsUser: 0
-          command:
-            - sh
-            - -c
-            - |
-              if ! ls /home/node/.cache/ms-playwright/chromium-* >/dev/null 2>&1; then
-                echo "Installing Chromium via Playwright..."
-                npx playwright-core install --with-deps chromium
-                chown -R 1000:1000 /home/node/.cache
-              else
-                echo "Chromium already installed, skipping."
-              fi
-          env:
-            - name: PLAYWRIGHT_BROWSERS_PATH
-              value: /home/node/.cache/ms-playwright
-          volumeMounts:
-            - name: openclaw-home
-              mountPath: /home/node
-          resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
-            limits:
-              cpu: "2"
-              memory: 1Gi
       containers:
         - name: openclaw
           image: ghcr.io/openclaw/openclaw:latest
@@ -161,9 +82,6 @@ spec:
         - name: openclaw-home
           persistentVolumeClaim:
             claimName: openclaw-home
-        - name: openclaw-config
-          configMap:
-            name: openclaw-config
         - name: gcal-sa-key
           secret:
             secretName: gcal-sa-key
