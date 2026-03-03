@@ -47,6 +47,8 @@ spec:
                 echo "Injected secrets into config"
               else
                 echo "Config already exists on PVC, preserving runtime changes"
+                # Remove unknown keys that cause OpenClaw to reject config
+                sed -i '/"mcpServers"/,/^      }/d' /home/node/.openclaw/openclaw.json 2>/dev/null || true
               fi
               mkdir -p /home/node/.openclaw/agents/main/agent
               cat > /home/node/.openclaw/agents/main/agent/auth-profiles.json <<EOF
