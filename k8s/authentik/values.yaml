@@ -67,3 +67,7 @@ postgresql:
       limits:
         cpu: "1"
         memory: 512Mi
+
+blueprints:
+  configMaps:
+    - blueprint-cloudbeaver
