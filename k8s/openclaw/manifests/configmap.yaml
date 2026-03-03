@@ -91,7 +91,10 @@ data:
             "id": "jarvis",
             "name": "자비스",
             "workspace": "~/.openclaw/workspace-jarvis",
-            "model": "anthropic/claude-opus-4-6"
+            "model": "anthropic/claude-opus-4-6",
+            "groupChat": {
+              "mentionPatterns": ["자비스", "자비스야"]
+            }
           }
         ]
       },
