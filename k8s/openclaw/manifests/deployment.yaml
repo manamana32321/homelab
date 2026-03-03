@@ -35,12 +35,8 @@ spec:
             - -c
             - |
               mkdir -p /home/node/.openclaw
-              if [ ! -f /home/node/.openclaw/openclaw.json ]; then
-                echo "First run: copying initial config from ConfigMap"
-                cp /config/openclaw.json /home/node/.openclaw/openclaw.json
-              else
-                echo "Config already exists on PVC, preserving runtime changes"
-              fi
+              echo "Syncing config from ConfigMap (source of truth)"
+              cp /config/openclaw.json /home/node/.openclaw/openclaw.json
               mkdir -p /home/node/.openclaw/agents/main/agent
               cat > /home/node/.openclaw/agents/main/agent/auth-profiles.json <<EOF
               {

@@ -35,5 +35,31 @@ data:
         "slack": {
           "enabled": true
         }
+      },
+      "messages": {
+        "tts": {
+          "auto": "inbound",
+          "provider": "openai",
+          "openai": {
+            "model": "gpt-4o-mini-tts",
+            "voice": "alloy"
+          },
+          "maxTextLength": 4000,
+          "timeoutMs": 30000
+        }
+      },
+      "tools": {
+        "media": {
+          "audio": {
+            "enabled": true,
+            "maxBytes": 20971520,
+            "models": [
+              {
+                "provider": "openai",
+                "model": "gpt-4o-mini-transcribe"
+              }
+            ]
+          }
+        }
       }
     }
