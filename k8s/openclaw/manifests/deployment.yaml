@@ -124,6 +124,39 @@ spec:
             limits:
               cpu: "2"
               memory: 2Gi
+        - name: gcal-mcp
+          image: ghcr.io/manamana32321/gcal-mcp:latest
+          env:
+            - name: GOOGLE_SA_KEY_FILE
+              value: /secrets/gcal/sa-key.json
+            - name: GOOGLE_CALENDAR_ID
+              value: manamana32321@gmail.com
+          ports:
+            - name: gcal-mcp
+              containerPort: 3000
+          volumeMounts:
+            - name: gcal-sa-key
+              mountPath: /secrets/gcal
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 10
       volumes:
         - name: openclaw-home
           persistentVolumeClaim:
@@ -131,3 +164,6 @@ spec:
         - name: openclaw-config
           configMap:
             name: openclaw-config
+        - name: gcal-sa-key
+          secret:
+            secretName: gcal-sa-key
