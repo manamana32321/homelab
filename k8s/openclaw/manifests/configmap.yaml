@@ -90,6 +90,15 @@ data:
             "groupChat": {
               "mentionPatterns": ["자비스", "자비스야"]
             }
+          },
+          {
+            "id": "study",
+            "name": "OpenCampus",
+            "workspace": "~/.openclaw/workspace-study",
+            "model": "anthropic/claude-opus-4-6",
+            "groupChat": {
+              "mentionPatterns": ["opencampus", "학업"]
+            }
           }
         ]
       },
@@ -112,6 +121,13 @@ data:
           "match": {
             "channel": "telegram",
             "accountId": "jarvis"
+          }
+        },
+        {
+          "agentId": "study",
+          "match": {
+            "channel": "telegram",
+            "accountId": "study"
           }
         }
       ]
