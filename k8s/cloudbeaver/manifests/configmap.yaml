@@ -46,22 +46,3 @@ data:
         }
       }
     }
-  initial-data.conf: |
-    {
-      "adminName": "cbadmin",
-      "adminPassword": "cbadmin",
-      "teams": [
-        {
-          "subjectId": "admin",
-          "teamName": "Admin",
-          "description": "Administrative access",
-          "permissions": ["admin"]
-        },
-        {
-          "subjectId": "user",
-          "teamName": "User",
-          "description": "Standard user",
-          "permissions": []
-        }
-      ]
-    }
