@@ -22,32 +22,6 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       initContainers:
-        - name: setup-workspace-study
-          image: python:3.13-slim
-          command: ["sh", "-c"]
-          args:
-            - |
-              set -e
-              WORKSPACE=/home/node/.openclaw/workspace-study
-              MARKER="$WORKSPACE/.installed"
-              apt-get update -qq && apt-get install -y -qq git ffmpeg > /dev/null 2>&1
-              if [ ! -d "$WORKSPACE/.git" ]; then
-                echo "Cloning opencampus repo..."
-                git clone https://github.com/manamana32321/opencampus.git "$WORKSPACE"
-              else
-                echo "Updating opencampus repo..."
-                cd "$WORKSPACE" && git pull --ff-only || true
-              fi
-              if [ ! -f "$MARKER" ] || [ "$WORKSPACE/requirements.txt" -nt "$MARKER" ]; then
-                echo "Installing Python dependencies..."
-                pip install --target="$WORKSPACE/.pylibs" -r "$WORKSPACE/requirements.txt" -q
-                touch "$MARKER"
-              fi
-              chown -R 1000:1000 "$WORKSPACE"
-              echo "Workspace ready."
-          volumeMounts:
-            - name: openclaw-home
-              mountPath: /home/node
         - name: setup-gogcli
           image: alpine:3.21
           command: ["sh", "-c"]
