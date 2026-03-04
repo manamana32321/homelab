@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cloudbeaver-datasources
+  name: cloudbeaver-config
   namespace: cloudbeaver
 data:
   initial-data-sources.conf: |
@@ -45,4 +45,23 @@ data:
           }
         }
       }
+    }
+  initial-data.conf: |
+    {
+      "adminName": "cbadmin",
+      "adminPassword": "cbadmin",
+      "teams": [
+        {
+          "subjectId": "admin",
+          "teamName": "Admin",
+          "description": "Administrative access",
+          "permissions": ["admin"]
+        },
+        {
+          "subjectId": "user",
+          "teamName": "User",
+          "description": "Standard user",
+          "permissions": []
+        }
+      ]
     }
