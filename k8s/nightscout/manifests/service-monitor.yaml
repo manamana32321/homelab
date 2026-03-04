@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: nightscout-exporter
+  namespace: nightscout
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: nightscout-exporter
+  namespaceSelector:
+    matchNames:
+      - nightscout
+  endpoints:
+    - port: metrics
+      interval: 60s
