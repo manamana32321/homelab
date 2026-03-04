@@ -93,11 +93,11 @@ data:
           },
           {
             "id": "study",
-            "name": "OpenCampus",
+            "name": "오픈캠퍼스",
             "workspace": "~/.openclaw/workspace-study",
             "model": "anthropic/claude-opus-4-6",
             "groupChat": {
-              "mentionPatterns": ["opencampus", "학업"]
+              "mentionPatterns": ["@opencampus_json_bot", "오픈캠퍼스"]
             }
           }
         ]
