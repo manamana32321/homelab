@@ -32,6 +32,8 @@ spec:
               value: "cbadmin"
             - name: CLOUDBEAVER_APP_ANONYMOUS_ACCESS_ENABLED
               value: "true"
+            - name: CLOUDBEAVER_APP_GRANT_CONNECTIONS_ACCESS_TO_ANONYMOUS_TEAM
+              value: "true"
           volumeMounts:
             - name: config
               mountPath: /opt/cloudbeaver/conf/initial-data-sources.conf
