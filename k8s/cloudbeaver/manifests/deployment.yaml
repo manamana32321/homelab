@@ -21,8 +21,15 @@ spec:
           ports:
             - name: http
               containerPort: 8978
+          env:
+            - name: CB_SERVER_NAME
+              value: "Homelab DB Admin"
+            - name: CB_SERVER_URL
+              value: "https://db.json-server.win"
+            - name: CLOUDBEAVER_APP_ANONYMOUS_ACCESS_ENABLED
+              value: "true"
           volumeMounts:
-            - name: datasources
+            - name: config
               mountPath: /opt/cloudbeaver/conf/initial-data-sources.conf
               subPath: initial-data-sources.conf
             - name: workspace
@@ -35,9 +42,9 @@ spec:
               cpu: "1"
               memory: 1Gi
       volumes:
-        - name: datasources
+        - name: config
           configMap:
-            name: cloudbeaver-datasources
+            name: cloudbeaver-config
         - name: workspace
           persistentVolumeClaim:
             claimName: cloudbeaver-workspace

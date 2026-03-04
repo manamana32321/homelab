@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cloudbeaver-datasources
+  name: cloudbeaver-config
   namespace: cloudbeaver
 data:
   initial-data-sources.conf: |
