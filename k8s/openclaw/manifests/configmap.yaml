@@ -39,6 +39,14 @@ data:
               "botToken": "${TELEGRAM_BOT_TOKEN_JARVIS}",
               "dmPolicy": "allowlist",
               "allowFrom": ["8126749721"]
+            },
+            "study": {
+              "botToken": "${TELEGRAM_BOT_TOKEN_STUDY}",
+              "dmPolicy": "allowlist",
+              "allowFrom": ["8126749721"],
+              "groupPolicy": "allowlist",
+              "groupAllowFrom": ["8126749721"],
+              "streaming": "partial"
             }
           }
         },
@@ -95,6 +103,15 @@ data:
             "groupChat": {
               "mentionPatterns": ["자비스", "자비스야"]
             }
+          },
+          {
+            "id": "study",
+            "name": "OpenCampus",
+            "workspace": "~/.openclaw/workspace-study",
+            "model": "anthropic/claude-opus-4-6",
+            "groupChat": {
+              "mentionPatterns": ["opencampus", "학업"]
+            }
           }
         ]
       },
@@ -117,6 +134,13 @@ data:
           "match": {
             "channel": "telegram",
             "accountId": "jarvis"
+          }
+        },
+        {
+          "agentId": "study",
+          "match": {
+            "channel": "telegram",
+            "accountId": "study"
           }
         }
       ]
