@@ -39,6 +39,14 @@ data:
               "botToken": "${TELEGRAM_BOT_TOKEN_JARVIS}",
               "dmPolicy": "allowlist",
               "allowFrom": ["8126749721"]
+            },
+            "study": {
+              "botToken": "${TELEGRAM_BOT_TOKEN_STUDY}",
+              "dmPolicy": "allowlist",
+              "allowFrom": ["8126749721"],
+              "groupPolicy": "allowlist",
+              "groupAllowFrom": ["8126749721"],
+              "streaming": "partial"
             }
           }
         },
@@ -54,27 +62,14 @@ data:
       "messages": {
         "tts": {
           "auto": "inbound",
-          "provider": "openai",
-          "openai": {
-            "model": "gpt-4o-mini-tts",
-            "voice": "alloy"
+          "provider": "edge",
+          "edge": {
+            "voice": "ko-KR-SunHiNeural",
+            "lang": "ko-KR",
+            "outputFormat": "audio-24khz-48kbitrate-mono-mp3"
           },
           "maxTextLength": 4000,
           "timeoutMs": 30000
-        }
-      },
-      "tools": {
-        "media": {
-          "audio": {
-            "enabled": true,
-            "maxBytes": 20971520,
-            "models": [
-              {
-                "provider": "openai",
-                "model": "gpt-4o-mini-transcribe"
-              }
-            ]
-          }
         }
       },
       "agents": {
