@@ -26,6 +26,10 @@ spec:
               value: "Homelab DB Admin"
             - name: CB_SERVER_URL
               value: "https://db.json-server.win"
+            - name: CB_ADMIN_NAME
+              value: "cbadmin"
+            - name: CB_ADMIN_PASSWORD
+              value: "cbadmin"
             - name: CLOUDBEAVER_APP_ANONYMOUS_ACCESS_ENABLED
               value: "true"
           volumeMounts:
