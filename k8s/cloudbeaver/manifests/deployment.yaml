@@ -15,6 +15,110 @@ spec:
       labels:
         app: cloudbeaver
     spec:
+      initContainers:
+        - name: config-gen
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - |
+              cat > /config/initial-data-sources.conf << EOF
+              {
+                "folders": {},
+                "connections": {
+                  "amang-production": {
+                    "provider": "postgresql",
+                    "driver": "postgres-jdbc",
+                    "name": "AMANG Production",
+                    "url": "jdbc:postgresql://postgres-svc.amang-db-production.svc.cluster.local:5432/${AMANG_DB}",
+                    "configuration": {
+                      "type": "url",
+                      "auth": "native",
+                      "userName": "${AMANG_USER}",
+                      "userPassword": "${AMANG_PASSWORD}"
+                    },
+                    "saveCredentials": true
+                  },
+                  "amang-staging": {
+                    "provider": "postgresql",
+                    "driver": "postgres-jdbc",
+                    "name": "AMANG Staging",
+                    "url": "jdbc:postgresql://postgres-svc.amang-db-staging.svc.cluster.local:5432/${AMANG_DB}",
+                    "configuration": {
+                      "type": "url",
+                      "auth": "native",
+                      "userName": "${AMANG_USER}",
+                      "userPassword": "${AMANG_PASSWORD}"
+                    },
+                    "saveCredentials": true
+                  },
+                  "immich-db": {
+                    "provider": "postgresql",
+                    "driver": "postgres-jdbc",
+                    "name": "Immich",
+                    "url": "jdbc:postgresql://postgres-svc.immich.svc.cluster.local:5432/${IMMICH_DB}",
+                    "configuration": {
+                      "type": "url",
+                      "auth": "native",
+                      "userName": "${IMMICH_USER}",
+                      "userPassword": "${IMMICH_PASSWORD}"
+                    },
+                    "saveCredentials": true
+                  },
+                  "seafile-db": {
+                    "provider": "mysql",
+                    "driver": "mariaDB",
+                    "name": "Seafile (MariaDB)",
+                    "url": "jdbc:mariadb://mariadb-svc.seafile.svc.cluster.local:3306/",
+                    "configuration": {
+                      "type": "url",
+                      "auth": "native",
+                      "userName": "root",
+                      "userPassword": "${SEAFILE_ROOT_PASSWORD}"
+                    },
+                    "saveCredentials": true
+                  }
+                }
+              }
+              EOF
+          env:
+            - name: AMANG_DB
+              valueFrom:
+                secretKeyRef:
+                  name: amang-db-credentials
+                  key: POSTGRES_DB
+            - name: AMANG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: amang-db-credentials
+                  key: POSTGRES_USER
+            - name: AMANG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: amang-db-credentials
+                  key: POSTGRES_PASSWORD
+            - name: IMMICH_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_DB
+            - name: IMMICH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: IMMICH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: SEAFILE_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: seafile-secret
+                  key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: generated-config
+              mountPath: /config
       containers:
         - name: cloudbeaver
           image: dbeaver/cloudbeaver:latest
@@ -35,7 +139,7 @@ spec:
             - name: CLOUDBEAVER_APP_GRANT_CONNECTIONS_ACCESS_TO_ANONYMOUS_TEAM
               value: "true"
           volumeMounts:
-            - name: config
+            - name: generated-config
               mountPath: /opt/cloudbeaver/conf/initial-data-sources.conf
               subPath: initial-data-sources.conf
             - name: workspace
@@ -48,9 +152,8 @@ spec:
               cpu: "1"
               memory: 1Gi
       volumes:
-        - name: config
-          configMap:
-            name: cloudbeaver-config
+        - name: generated-config
+          emptyDir: {}
         - name: workspace
           persistentVolumeClaim:
             claimName: cloudbeaver-workspace
