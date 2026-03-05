@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blueprint-github-source
+  namespace: authentik
+data:
+  github-source.yaml: |
+    version: 1
+    metadata:
+      name: "GitHub OAuth Source"
+    entries:
+      - model: authentik_sources_oauth.oauthsource
+        state: present
+        identifiers:
+          slug: github
+        attrs:
+          name: GitHub
+          slug: github
+          enabled: true
+          provider_type: github
+          consumer_key: !Env GITHUB_CONSUMER_KEY
+          consumer_secret: !Env GITHUB_CONSUMER_SECRET
+          additional_scopes: "read:org"
+          authentication_flow: !Find [authentik_flows.flow, [slug, default-source-authentication]]
+          enrollment_flow: !Find [authentik_flows.flow, [slug, default-source-enrollment]]

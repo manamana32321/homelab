@@ -71,3 +71,4 @@ postgresql:
 blueprints:
   configMaps:
     - blueprint-cloudbeaver
+    - blueprint-github-source
