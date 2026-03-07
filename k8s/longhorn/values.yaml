@@ -1,0 +1,30 @@
+defaultSettings:
+  # server1 SSD: 100GB, server2 SSD: 100GB 할당
+  defaultDataPath: /var/lib/longhorn
+  replicaAutoBalance: best-effort
+  # 복제본 수 (server1 + server2 = 2노드)
+  defaultReplicaCount: 2
+  # 스토리지 예약 (각 노드 OS/K8s용)
+  storageReservedPercentageForDefaultDisk: 0
+  # raspi-1은 Longhorn 스토리지에서 제외
+  taintToleration: ""
+
+# ingress는 argocd auth proxy 뒤에 두거나 비활성화
+longhornUI:
+  replicas: 1
+
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  host: longhorn.json-server.win
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: authentik-ak-outpost-authentik-embedded-outpost@kubernetescrd
+
+# raspi-1을 Longhorn 스토리지 노드에서 제외
+longhornManager:
+  tolerations: []
+  nodeSelector: {}
+
+longhornDriver:
+  tolerations: []
+  nodeSelector: {}
