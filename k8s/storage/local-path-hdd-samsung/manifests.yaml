@@ -70,7 +70,8 @@ spec:
       containers:
         - name: local-path-provisioner
           image: rancher/local-path-provisioner:v0.0.31
-          args:
+          command:
+            - local-path-provisioner
             - --debug
             - start
             - --config
