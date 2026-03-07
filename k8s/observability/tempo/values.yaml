@@ -21,3 +21,5 @@ persistence:
   enabled: true
   size: 10Gi
   storageClassName: local-path-hdd-samsung
+nodeSelector:
+  kubernetes.io/hostname: json-server-1

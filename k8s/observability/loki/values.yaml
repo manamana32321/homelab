@@ -69,3 +69,10 @@ minio:
   persistence:
     size: 50Gi
     storageClass: local-path-hdd-samsung
+  nodeSelector:
+    kubernetes.io/hostname: json-server-1
+
+singleBinary:
+  nodeSelector:
+    kubernetes.io/hostname: json-server-1
+

@@ -1,3 +1,6 @@
+prometheus-node-exporter:
+  dnsPolicy: Default
+
 grafana:
   enabled: false
 

@@ -143,3 +143,6 @@ grafana.ini:
   # feature_toggles:
   #   provisioning: true
   #   kubernetesDashboards: true ; use k8s from browser
+
+nodeSelector:
+  kubernetes.io/hostname: json-server-1
