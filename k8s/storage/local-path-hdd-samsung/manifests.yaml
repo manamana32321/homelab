@@ -1,0 +1,95 @@
+# Samsung HDD 전용 local-path StorageClass
+# json-server-1의 /mnt/hdd-samsung/k8s-pvc/ 에 프로비저닝
+# 텔레메트리 데이터(Loki, Tempo, Grafana) 전용
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path-hdd-samsung
+provisioner: cluster.local/hdd-samsung-local-path
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
+# Samsung HDD 전용 local-path-provisioner (별도 인스턴스)
+# K3s 기본 provisioner와 분리하여 경로/StorageClass 독립
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hdd-samsung-local-path-config
+  namespace: kube-system
+data:
+  config.json: |
+    {
+      "nodePathMap": [
+        {
+          "node": "json-server-1",
+          "paths": ["/mnt/hdd-samsung-640g/k8s-pvc"]
+        }
+      ]
+    }
+  setup: |
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
+  helperPod.yaml: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: helper-pod
+    spec:
+      priorityClassName: system-node-critical
+      tolerations:
+        - key: node.kubernetes.io/disk-pressure
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: helper-pod
+          image: busybox
+          imagePullPolicy: IfNotPresent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hdd-samsung-local-path-provisioner
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hdd-samsung-local-path-provisioner
+  template:
+    metadata:
+      labels:
+        app: hdd-samsung-local-path-provisioner
+    spec:
+      serviceAccountName: local-path-provisioner-service-account
+      containers:
+        - name: local-path-provisioner
+          image: rancher/local-path-provisioner:v0.0.31
+          args:
+            - --debug
+            - start
+            - --config
+            - /etc/config/config.json
+            - --provisioner-name
+            - cluster.local/hdd-samsung-local-path
+            - --configmap-name
+            - hdd-samsung-local-path-config
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: hdd-samsung-local-path-config
+      nodeSelector:
+        kubernetes.io/hostname: json-server-1

@@ -38,6 +38,7 @@ persistence:
   type: pvc
   enabled: true
   size: 10Gi
+  storageClassName: local-path-hdd-samsung
 
 admin:
   existingSecret: grafana-admin-user

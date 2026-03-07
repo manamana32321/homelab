@@ -9,7 +9,7 @@ spec:
     - ReadWriteOnce
   storageClassName: hostpath-hdd
   hostPath:
-    path: /mnt/data/seafile-data
+    path: /mnt/hdd-seagate-1t/seafile-data
   claimRef:
     name: seafile-data
     namespace: seafile

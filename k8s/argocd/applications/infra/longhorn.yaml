@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: v1.8.1
+      helm:
+        releaseName: longhorn
+        valueFiles:
+          - $homelab/k8s/storage/longhorn/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/storage/longhorn/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

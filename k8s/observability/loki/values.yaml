@@ -68,3 +68,4 @@ minio:
       memory: 256Mi
   persistence:
     size: 50Gi
+    storageClass: local-path-hdd-samsung

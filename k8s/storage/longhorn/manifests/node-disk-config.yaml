@@ -1,0 +1,45 @@
+# Longhorn Node 디스크 설정
+# Phase 6에서 apply: kubectl apply -f node-disk-config.yaml
+#
+# server1 SSD: 100GB 할당 (/var/lib/longhorn)
+# server2 SSD: 100GB 할당 (/var/lib/longhorn)
+# raspi-1: Longhorn 스토리지 제외 (scheduling disabled)
+---
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: json-server-1
+  namespace: longhorn-system
+spec:
+  allowScheduling: true
+  disks:
+    default-disk:
+      allowScheduling: true
+      evictionRequested: false
+      path: /var/lib/longhorn
+      storageReserved: 135000000000  # ~135GB 예약 (전체 235GB - 100GB Longhorn)
+      tags: []
+---
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: json-server-2
+  namespace: longhorn-system
+spec:
+  allowScheduling: true
+  disks:
+    default-disk:
+      allowScheduling: true
+      evictionRequested: false
+      path: /var/lib/longhorn
+      storageReserved: 19200000000   # ~19GB 예약 (전체 119GB - 100GB Longhorn)
+      tags: []
+---
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: raspi-1
+  namespace: longhorn-system
+spec:
+  allowScheduling: false  # raspi-1은 스토리지 노드 제외
+  disks: {}
