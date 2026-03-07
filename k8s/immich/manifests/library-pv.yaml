@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/data/immich-library
+    path: /mnt/hdd-seagate-1t/immich-library
   nodeAffinity:
     required:
       nodeSelectorTerms:

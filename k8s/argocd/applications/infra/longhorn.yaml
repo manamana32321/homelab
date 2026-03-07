@@ -14,7 +14,7 @@ spec:
       helm:
         releaseName: longhorn
         valueFiles:
-          - $homelab/k8s/longhorn/values.yaml
+          - $homelab/k8s/storage/longhorn/values.yaml
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       ref: homelab

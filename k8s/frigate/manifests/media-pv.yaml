@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/data/frigate-media
+    path: /mnt/hdd-seagate-1t/frigate-media
   nodeAffinity:
     required:
       nodeSelectorTerms:
