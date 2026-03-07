@@ -59,7 +59,7 @@ postgresql:
     persistence:
       enabled: true
       size: 5Gi
-      storageClass: local-path
+      storageClass: longhorn-ssd
     resources:
       requests:
         cpu: 100m

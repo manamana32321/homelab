@@ -18,6 +18,9 @@ spec:
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/storage/longhorn/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
