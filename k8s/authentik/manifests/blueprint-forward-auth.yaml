@@ -63,6 +63,8 @@ data:
         attrs:
           name: "authentik Embedded Outpost"
           type: proxy
+          config:
+            authentik_host: https://auth.json-server.win
           providers:
             - !Find [authentik_providers_proxy.proxyprovider, [name, cloudbeaver-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
