@@ -148,6 +148,15 @@ resource "cloudflare_record" "claw" {
   comment = "OpenClaw AI Agent"
 }
 
+resource "cloudflare_record" "longhorn" {
+  zone_id = cloudflare_zone.main.id
+  name    = "longhorn"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Longhorn storage UI"
+}
+
 resource "cloudflare_record" "frigate" {
   zone_id = cloudflare_zone.main.id
   name    = "frigate"
