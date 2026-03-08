@@ -13,6 +13,7 @@ receivers:
     telegram_configs:
       - bot_token: "${TELEGRAM_BOT_TOKEN}"
         chat_id: ${TELEGRAM_CHAT_ID}
+        message_thread_id: ${TELEGRAM_MESSAGE_THREAD_ID}
         api_url: https://api.telegram.org
         parse_mode: HTML
         message: |-
