@@ -5,6 +5,59 @@ grafana:
   enabled: false
 
 prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      # Coral Dev Board Blackbox Exporter (외부 관점 모니터링)
+      - job_name: coral-blackbox-http
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+        static_configs:
+          - targets:
+              - https://argocd.json-server.win
+              - https://grafana.json-server.win
+              - https://prometheus.json-server.win
+              - https://photos.json-server.win
+              - https://files.json-server.win
+              - https://ha.json-server.win
+              - https://claw.json-server.win
+              - https://k8s.json-server.win
+              - https://auth.json-server.win
+              - https://db.json-server.win
+              - https://frigate.json-server.win
+              - https://longhorn.json-server.win
+              - https://otel.json-server.win
+              - https://amang-api.json-server.win
+              - https://minio.json-server.win
+              - https://amang-api-staging.json-server.win
+              - https://minio-staging.json-server.win
+            labels:
+              source: coral
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: 192.168.0.35:9115
+      - job_name: coral-blackbox-s3
+        metrics_path: /probe
+        params:
+          module: [http_any_response]
+        static_configs:
+          - targets:
+              - https://s3.json-server.win
+              - https://s3-staging.json-server.win
+            labels:
+              source: coral
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: 192.168.0.35:9115
+
   ingress:
     enabled: true
     hosts:
