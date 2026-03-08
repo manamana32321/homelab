@@ -155,22 +155,22 @@ resource "cloudflare_record" "s3_staging" {
   comment = "MinIO S3 API (staging)"
 }
 
-resource "cloudflare_record" "minio_console" {
+resource "cloudflare_record" "amang_minio_console" {
   zone_id = cloudflare_zone.main.id
-  name    = "minio"
+  name    = "amang-minio-console"
   type    = "A"
   content = var.default_ip
   proxied = true
-  comment = "MinIO Console (production)"
+  comment = "AMANG MinIO Console (production)"
 }
 
-resource "cloudflare_record" "minio_console_staging" {
+resource "cloudflare_record" "amang_minio_console_staging" {
   zone_id = cloudflare_zone.main.id
-  name    = "minio-staging"
+  name    = "amang-minio-console-staging"
   type    = "A"
   content = var.default_ip
   proxied = true
-  comment = "MinIO Console (staging)"
+  comment = "AMANG MinIO Console (staging)"
 }
 
 resource "cloudflare_record" "claw" {

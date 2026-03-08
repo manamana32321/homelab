@@ -5,6 +5,7 @@ metadata:
   namespace: factorio
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:

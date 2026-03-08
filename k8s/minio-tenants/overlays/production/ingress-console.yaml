@@ -4,14 +4,15 @@ metadata:
   name: minio-console
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - minio.json-server.win
+        - amang-minio-console.json-server.win
       secretName: minio-console-tls
   rules:
-    - host: minio.json-server.win
+    - host: amang-minio-console.json-server.win
       http:
         paths:
           - path: /

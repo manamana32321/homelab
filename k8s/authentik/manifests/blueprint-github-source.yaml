@@ -9,6 +9,22 @@ data:
     metadata:
       name: "GitHub OAuth Source"
     entries:
+      # GitHub username → authentik Admins 자동 매핑
+      - model: authentik_sources_oauth.oauthsourcepropertymapping
+        state: present
+        identifiers:
+          name: github-admin-group-mapping
+        attrs:
+          name: github-admin-group-mapping
+          expression: |
+            ADMIN_GITHUB_USERNAMES = ["manamana32321"]
+
+            github_login = info.get("login", "")
+
+            if github_login in ADMIN_GITHUB_USERNAMES:
+                return ["authentik Admins"]
+            return []
+
       - model: authentik_sources_oauth.oauthsource
         state: present
         identifiers:
@@ -23,6 +39,8 @@ data:
           additional_scopes: "read:org"
           authentication_flow: !Find [authentik_flows.flow, [slug, default-source-authentication]]
           enrollment_flow: !Find [authentik_flows.flow, [slug, default-source-enrollment]]
+          group_property_mappings:
+            - !Find [authentik_sources_oauth.oauthsourcepropertymapping, [name, github-admin-group-mapping]]
 
       # 로그인 페이지에 GitHub 버튼 표시
       - model: authentik_stages_identification.identificationstage

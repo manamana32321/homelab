@@ -122,6 +122,258 @@ data:
           failure_result: false
           negate: false
 
+      # Factorio Admin
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: factorio-admin-provider
+        attrs:
+          name: factorio-admin-provider
+          mode: forward_single
+          external_host: https://factorio-admin.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: factorio-admin
+        attrs:
+          name: Factorio Admin
+          slug: factorio-admin
+          meta_launch_url: https://factorio-admin.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, factorio-admin-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, factorio-admin]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # Factorio MinIO Console
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: factorio-minio-provider
+        attrs:
+          name: factorio-minio-provider
+          mode: forward_single
+          external_host: https://factorio-minio.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: factorio-minio
+        attrs:
+          name: Factorio MinIO
+          slug: factorio-minio
+          meta_launch_url: https://factorio-minio.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, factorio-minio-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, factorio-minio]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # Frigate
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: frigate-provider
+        attrs:
+          name: frigate-provider
+          mode: forward_single
+          external_host: https://frigate.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: frigate
+        attrs:
+          name: Frigate
+          slug: frigate
+          meta_launch_url: https://frigate.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, frigate-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, frigate]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # Headlamp (K8s Dashboard)
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: headlamp-provider
+        attrs:
+          name: headlamp-provider
+          mode: forward_single
+          external_host: https://k8s.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: headlamp
+        attrs:
+          name: Headlamp
+          slug: headlamp
+          meta_launch_url: https://k8s.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, headlamp-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, headlamp]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # Prometheus
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: prometheus-provider
+        attrs:
+          name: prometheus-provider
+          mode: forward_single
+          external_host: https://prometheus.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: prometheus
+        attrs:
+          name: Prometheus
+          slug: prometheus
+          meta_launch_url: https://prometheus.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, prometheus-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, prometheus]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # AMANG MinIO Console (Production)
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: amang-minio-console-provider
+        attrs:
+          name: amang-minio-console-provider
+          mode: forward_single
+          external_host: https://amang-minio-console.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: amang-minio-console
+        attrs:
+          name: AMANG MinIO Console
+          slug: amang-minio-console
+          meta_launch_url: https://amang-minio-console.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, amang-minio-console-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, amang-minio-console]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
+      # AMANG MinIO Console (Staging)
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: amang-minio-console-staging-provider
+        attrs:
+          name: amang-minio-console-staging-provider
+          mode: forward_single
+          external_host: https://amang-minio-console-staging.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: amang-minio-console-staging
+        attrs:
+          name: AMANG MinIO Console (Staging)
+          slug: amang-minio-console-staging
+          meta_launch_url: https://amang-minio-console-staging.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, amang-minio-console-staging-provider]]
+          policy_engine_mode: any
+
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, amang-minio-console-staging]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
       # Embedded Outpost (모든 forward auth provider를 포함)
       - model: authentik_outposts.outpost
         state: present
@@ -135,3 +387,10 @@ data:
           providers:
             - !Find [authentik_providers_proxy.proxyprovider, [name, cloudbeaver-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, factorio-admin-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, factorio-minio-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, frigate-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, headlamp-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, prometheus-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, amang-minio-console-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, amang-minio-console-staging-provider]]

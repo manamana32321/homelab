@@ -85,9 +85,9 @@ prometheus:
               - https://auth.json-server.win
               - https://frigate.json-server.win
               - https://amang-api.json-server.win
-              - https://minio.json-server.win
+              - https://amang-minio-console.json-server.win
               - https://amang-api-staging.json-server.win
-              - https://minio-staging.json-server.win
+              - https://amang-minio-console-staging.json-server.win
             labels:
               source: coral
         relabel_configs:
@@ -127,6 +127,7 @@ prometheus:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-dns01
       traefik.ingress.kubernetes.io/redirect-entry-point: https
+      traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
     ingressClassName: traefik
     tls:
       - hosts:
