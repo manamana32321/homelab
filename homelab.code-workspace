@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "name": "홈랩 · main",
+      "path": ".",
+    },
+    {
+      "name": "홈랩 · storage-longhorn",
+      "path": "../storage-longhorn",
+    },
+    {
+      "name": "AMANG · main",
+      "path": "../../amang/main",
+    },
+    {
+      "name": "AMANG · authentik-github-org-policy",
+      "path": "../../amang-worktrees/authentik-github-org-policy",
+    },
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder:홈랩 · main}",
+    "yaml.schemas": {
+      "kubernetes": "k8s/**/*.yaml"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "redhat.vscode-yaml",
+      "ms-kubernetes-tools.vscode-kubernetes-tools"
+    ]
+  }
+}
