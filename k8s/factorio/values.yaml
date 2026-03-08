@@ -2,7 +2,7 @@
 hostNetworkEnabled: true
 
 nodeSelector:
-  kubernetes.io/hostname: json-server-1
+  kubernetes.io/hostname: json-server-2
 
 image:
   tag: "2.0.73"
@@ -22,6 +22,7 @@ resources:
 persistence:
   dataDir:
     Size: "4Gi"
+  storageClassName: "longhorn-ssd"
 
 factorioServer:
   save_name: "default"
