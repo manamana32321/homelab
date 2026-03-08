@@ -116,6 +116,15 @@ serviceMonitor:
     - name: minio-s3-api
       url: https://s3.json-server.win
       module: http_any_response
+    - name: amang-api-staging
+      url: https://amang-api-staging.json-server.win
+      module: http_2xx
+    - name: minio-console-staging
+      url: https://minio-staging.json-server.win
+      module: http_2xx
+    - name: minio-s3-api-staging
+      url: https://s3-staging.json-server.win
+      module: http_any_response
 
     # --- 내부 서비스 헬스체크 ---
     - name: loki
