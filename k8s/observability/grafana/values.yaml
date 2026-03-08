@@ -115,6 +115,21 @@ dashboards:
       datasource:
         - name: DS__VICTORIAMETRICS-PROD-ALL
           value: Prometheus
+    # Blackbox Exporter - https://grafana.com/grafana/dashboards/7587
+    blackbox-exporter:
+      gnetId: 7587
+      revision: 3
+      datasource: Prometheus
+    # Blackbox Exporter (HTTP prober) - https://grafana.com/grafana/dashboards/13659
+    blackbox-http-prober:
+      gnetId: 13659
+      revision: 1
+      datasource: Prometheus
+    # Blackbox Exporter - https://grafana.com/grafana/dashboards/14928
+    blackbox-overview:
+      gnetId: 14928
+      revision: 3
+      datasource: Prometheus
 
 downloadDashboards:
   env: {}
