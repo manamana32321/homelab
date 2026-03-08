@@ -80,4 +80,6 @@ minio:
 singleBinary:
   nodeSelector:
     kubernetes.io/hostname: json-server-1
+  persistence:
+    storageClass: longhorn-ssd
 
