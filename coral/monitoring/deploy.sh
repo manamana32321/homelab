@@ -9,10 +9,12 @@ if [ ! -f .env ]; then
   echo "Error: .env file not found. Copy .env.example to .env and fill in values."
   exit 1
 fi
+set -a
 source .env
+set +a
 
 # alertmanager.yml 템플릿에서 실제 값 치환
-envsubst < alertmanager.yml > alertmanager-rendered.yml
+envsubst '${TELEGRAM_BOT_TOKEN} ${TELEGRAM_CHAT_ID} ${TELEGRAM_MESSAGE_THREAD_ID}' < alertmanager.yml > alertmanager-rendered.yml
 
 docker compose up -d
 
