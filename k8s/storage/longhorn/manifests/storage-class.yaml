@@ -1,13 +1,12 @@
 # Longhorn StorageClass
-# longhorn-ssd: server1+server2 SSD 풀, replication=2
-# local-path는 default에서 해제 필요 (Phase 6 시 수동으로)
+# longhorn-ssd: server1+server2 SSD 풀, replication=2, default SC
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: longhorn-ssd
   annotations:
-    storageclass.kubernetes.io/is-default-class: "false"
+    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain
