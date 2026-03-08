@@ -6,6 +6,17 @@ grafana:
 
 prometheus:
   prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path-hdd-samsung
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    nodeSelector:
+      kubernetes.io/hostname: json-server-1
     additionalScrapeConfigs:
       # Coral Dev Board Blackbox Exporter (외부 관점 모니터링)
       - job_name: coral-blackbox-http

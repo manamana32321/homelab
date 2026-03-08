@@ -9,6 +9,9 @@ tempo:
         grpc:
           endpoint: "0.0.0.0:4317"
 
+  compactor:
+    compaction:
+      block_retention: 720h    # 30d
   storage:
     trace:
       backend: local

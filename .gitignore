@@ -1,3 +1,4 @@
 .envrc.local
 .terraform/
 **/node_modules/
+.turbo/
