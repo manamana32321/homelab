@@ -97,7 +97,7 @@ serviceMonitor:
       module: http_2xx
     - name: cloudbeaver
       url: https://db.json-server.win
-      module: http_2xx
+      module: http_any_response
     - name: frigate
       url: https://frigate.json-server.win
       module: http_2xx
@@ -106,7 +106,7 @@ serviceMonitor:
       module: http_2xx
     - name: otel-collector
       url: https://otel.json-server.win
-      module: http_2xx
+      module: http_any_response
     - name: amang-api
       url: https://amang-api.json-server.win
       module: http_2xx
