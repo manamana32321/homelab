@@ -1,0 +1,101 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homelab-alerts
+  namespace: observability
+  labels:
+    release: prometheus
+spec:
+  groups:
+    # Blackbox Exporter 알림
+    - name: blackbox
+      rules:
+        - alert: EndpointDown
+          expr: probe_success == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.instance }} is down"
+            description: "{{ $labels.instance }} has been unreachable for 2 minutes."
+
+        - alert: TLSCertExpiringSoon
+          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS cert expiring soon: {{ $labels.instance }}"
+            description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
+
+        - alert: SlowResponse
+          expr: probe_duration_seconds > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Slow response: {{ $labels.instance }}"
+            description: "{{ $labels.instance }} response time is {{ $value | humanize }}s (>5s for 5 minutes)."
+
+    # K8s 클러스터 알림
+    - name: kubernetes
+      rules:
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total[15m]) * 60 * 5 > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod crash looping: {{ $labels.namespace }}/{{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is restarting frequently."
+
+        - alert: PodNotReady
+          expr: kube_pod_status_ready{condition="true"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod not ready: {{ $labels.namespace }}/{{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} has been not ready for 5 minutes."
+
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node not ready: {{ $labels.node }}"
+            description: "Node {{ $labels.node }} has been not ready for 2 minutes."
+
+    # 스토리지 알림
+    - name: storage
+      rules:
+        - alert: PVCAlmostFull
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC almost full: {{ $labels.persistentvolumeclaim }}"
+            description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
+
+        - alert: NodeDiskAlmostFull
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
+            description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+
+    # 리소스 알림
+    - name: resources
+      rules:
+        - alert: HighMemoryUsage
+          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage: {{ $labels.instance }}"
+            description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."

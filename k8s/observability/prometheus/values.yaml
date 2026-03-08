@@ -4,6 +4,46 @@ prometheus-node-exporter:
 grafana:
   enabled: false
 
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector:
+      kubernetes.io/hostname: json-server-1
+    secrets:
+      - alertmanager-telegram
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: telegram
+      group_by: [alertname, namespace]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        # kube-prometheus-stack 기본 watchdog alert 무시
+        - match:
+            alertname: Watchdog
+          receiver: "null"
+        - match:
+            alertname: InfoInhibitor
+          receiver: "null"
+    receivers:
+      - name: "null"
+      - name: telegram
+        telegram_configs:
+          - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
+            chat_id: -1003865568684
+            message_thread_id: 206
+            api_url: https://api.telegram.org
+            parse_mode: HTML
+            message: |-
+              {{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} <b>[K8s] {{ .Status | toUpper }}</b>
+              {{ range .Alerts }}
+              <b>{{ .Labels.alertname }}</b> ({{ .Labels.severity }})
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
 prometheus:
   prometheusSpec:
     retention: 30d
