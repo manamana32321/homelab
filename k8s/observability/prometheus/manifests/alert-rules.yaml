@@ -7,67 +7,37 @@ metadata:
     release: prometheus
 spec:
   groups:
-    # Blackbox Exporter 알림
+    # Blackbox Exporter 알림 (kube-prometheus-stack 기본에 없음)
     - name: blackbox
       rules:
         - alert: EndpointDown
-          expr: probe_success == 0
+          expr: probe_success{source!="coral"} == 0
           for: 2m
           labels:
             severity: critical
           annotations:
             summary: "{{ $labels.instance }} is down"
-            description: "{{ $labels.instance }} has been unreachable for 2 minutes."
+            description: "{{ $labels.instance }} has been unreachable for 2 minutes (source: {{ $labels.job }})."
 
         - alert: TLSCertExpiringSoon
-          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+          expr: (probe_ssl_earliest_cert_expiry{source!="coral"} - time()) / 86400 < 14
           for: 1h
           labels:
             severity: warning
           annotations:
-            summary: "TLS cert expiring soon: {{ $labels.instance }}"
+            summary: "TLS cert expiring: {{ $labels.instance }}"
             description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
 
         - alert: SlowResponse
-          expr: probe_duration_seconds > 5
+          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 5
           for: 5m
           labels:
             severity: warning
           annotations:
             summary: "Slow response: {{ $labels.instance }}"
-            description: "{{ $labels.instance }} response time is {{ $value | humanize }}s (>5s for 5 minutes)."
+            description: "{{ $labels.instance }} avg response time is {{ $value | humanize }}s over last 5 minutes."
 
-    # K8s 클러스터 알림
-    - name: kubernetes
-      rules:
-        - alert: PodCrashLooping
-          expr: rate(kube_pod_container_status_restarts_total[15m]) * 60 * 5 > 0
-          for: 5m
-          labels:
-            severity: critical
-          annotations:
-            summary: "Pod crash looping: {{ $labels.namespace }}/{{ $labels.pod }}"
-            description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is restarting frequently."
-
-        - alert: PodNotReady
-          expr: kube_pod_status_ready{condition="true"} == 0
-          for: 5m
-          labels:
-            severity: warning
-          annotations:
-            summary: "Pod not ready: {{ $labels.namespace }}/{{ $labels.pod }}"
-            description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} has been not ready for 5 minutes."
-
-        - alert: NodeNotReady
-          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
-          for: 2m
-          labels:
-            severity: critical
-          annotations:
-            summary: "Node not ready: {{ $labels.node }}"
-            description: "Node {{ $labels.node }} has been not ready for 2 minutes."
-
-    # 스토리지 알림
+    # 스토리지 알림 (kube-prometheus-stack 기본에 PVC/디스크 임계치 rule 없음)
     - name: storage
       rules:
         - alert: PVCAlmostFull
@@ -88,7 +58,7 @@ spec:
             summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
             description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
 
-    # 리소스 알림
+    # 리소스 알림 (kube-prometheus-stack 기본 NodeMemory rule은 예측 기반이라 직관적이지 않음)
     - name: resources
       rules:
         - alert: HighMemoryUsage
@@ -97,5 +67,5 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "High memory usage: {{ $labels.instance }}"
+            summary: "High memory: {{ $labels.instance }}"
             description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
