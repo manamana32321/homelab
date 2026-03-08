@@ -23,3 +23,12 @@ data:
           additional_scopes: "read:org"
           authentication_flow: !Find [authentik_flows.flow, [slug, default-source-authentication]]
           enrollment_flow: !Find [authentik_flows.flow, [slug, default-source-enrollment]]
+
+      # 로그인 페이지에 GitHub 버튼 표시
+      - model: authentik_stages_identification.identificationstage
+        state: present
+        identifiers:
+          name: default-authentication-identification
+        attrs:
+          sources:
+            - !Find [authentik_sources_oauth.oauthsource, [slug, github]]
