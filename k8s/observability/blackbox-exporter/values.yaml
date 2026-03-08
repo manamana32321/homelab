@@ -1,0 +1,138 @@
+## kube-prometheus-stack ServiceMonitor selector 매칭
+releaseLabel: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: ip4
+        fail_if_not_ssl: true
+    http_2xx_no_tls:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: ip4
+    http_any_response:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        valid_status_codes: [200, 301, 302, 400, 401, 403, 404]  # 응답 자체가 오면 서비스 정상
+        follow_redirects: false
+        preferred_ip_protocol: ip4
+        fail_if_not_ssl: true
+    tcp_connect:
+      prober: tcp
+      timeout: 5s
+    icmp_ping:
+      prober: icmp
+      timeout: 5s
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+    add: ["NET_RAW"]
+
+serviceMonitor:
+  selfMonitor:
+    enabled: true
+    labels:
+      release: prometheus
+
+  enabled: true
+  defaults:
+    labels:
+      release: prometheus
+    interval: 60s
+    scrapeTimeout: 30s
+    module: http_2xx
+
+  targets:
+    # --- 외부 Ingress 엔드포인트 (HTTPS + TLS 인증서 모니터링) ---
+    - name: argocd
+      url: https://argocd.json-server.win
+      module: http_2xx
+    - name: grafana
+      url: https://grafana.json-server.win
+      module: http_2xx
+    - name: prometheus
+      url: https://prometheus.json-server.win
+      module: http_2xx
+    - name: immich
+      url: https://photos.json-server.win
+      module: http_2xx
+    - name: seafile
+      url: https://files.json-server.win
+      module: http_2xx
+    - name: home-assistant
+      url: https://ha.json-server.win
+      module: http_2xx
+    - name: openclaw
+      url: https://claw.json-server.win
+      module: http_2xx
+    - name: k8s-dashboard
+      url: https://k8s.json-server.win
+      module: http_2xx
+    - name: authentik
+      url: https://auth.json-server.win
+      module: http_2xx
+    - name: cloudbeaver
+      url: https://db.json-server.win
+      module: http_2xx
+    - name: frigate
+      url: https://frigate.json-server.win
+      module: http_2xx
+    - name: longhorn
+      url: https://longhorn.json-server.win
+      module: http_2xx
+    - name: otel-collector
+      url: https://otel.json-server.win
+      module: http_2xx
+    - name: amang-api
+      url: https://amang-api.json-server.win
+      module: http_2xx
+    - name: minio-console
+      url: https://minio.json-server.win
+      module: http_2xx
+    - name: minio-s3-api
+      url: https://s3.json-server.win
+      module: http_any_response
+    - name: amang-api-staging
+      url: https://amang-api-staging.json-server.win
+      module: http_2xx
+    - name: minio-console-staging
+      url: https://minio-staging.json-server.win
+      module: http_2xx
+    - name: minio-s3-api-staging
+      url: https://s3-staging.json-server.win
+      module: http_any_response
+
+    # --- 내부 서비스 헬스체크 ---
+    - name: loki
+      url: http://loki.observability.svc.cluster.local:3100/ready
+      module: http_2xx_no_tls
+    - name: tempo
+      url: http://tempo.observability.svc.cluster.local:3200/ready
+      module: http_2xx_no_tls
+    - name: mosquitto
+      url: mosquitto.mosquitto.svc.cluster.local:1883
+      module: tcp_connect

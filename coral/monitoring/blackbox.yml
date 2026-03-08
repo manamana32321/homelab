@@ -1,0 +1,18 @@
+modules:
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      follow_redirects: true
+      preferred_ip_protocol: ip4
+      fail_if_not_ssl: true
+  http_any_response:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 301, 302, 400, 401, 403, 404]
+      follow_redirects: false
+      preferred_ip_protocol: ip4
+      fail_if_not_ssl: true
