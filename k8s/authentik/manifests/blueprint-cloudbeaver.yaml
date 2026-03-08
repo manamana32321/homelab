@@ -85,6 +85,30 @@ data:
           failure_result: false
           negate: false
 
+      # Longhorn
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: longhorn-provider
+        attrs:
+          name: longhorn-provider
+          mode: forward_single
+          external_host: https://longhorn.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: longhorn
+        attrs:
+          name: Longhorn
+          slug: longhorn
+          meta_launch_url: https://longhorn.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
+          policy_engine_mode: any
+
+      # Embedded Outpost (모든 forward auth provider를 포함)
       - model: authentik_outposts.outpost
         state: present
         identifiers:
@@ -92,5 +116,8 @@ data:
         attrs:
           name: "authentik Embedded Outpost"
           type: proxy
+          config:
+            authentik_host: https://auth.json-server.win
           providers:
             - !Find [authentik_providers_proxy.proxyprovider, [name, cloudbeaver-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
