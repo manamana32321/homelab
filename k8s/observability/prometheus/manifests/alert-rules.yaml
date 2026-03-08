@@ -1,0 +1,71 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homelab-alerts
+  namespace: observability
+  labels:
+    release: prometheus
+spec:
+  groups:
+    # Blackbox Exporter 알림 (kube-prometheus-stack 기본에 없음)
+    - name: blackbox
+      rules:
+        - alert: EndpointDown
+          expr: probe_success{source!="coral"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.instance }} is down"
+            description: "{{ $labels.instance }} has been unreachable for 2 minutes (source: {{ $labels.job }})."
+
+        - alert: TLSCertExpiringSoon
+          expr: (probe_ssl_earliest_cert_expiry{source!="coral"} - time()) / 86400 < 14
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS cert expiring: {{ $labels.instance }}"
+            description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
+
+        - alert: SlowResponse
+          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Slow response: {{ $labels.instance }}"
+            description: "{{ $labels.instance }} avg response time is {{ $value | humanize }}s over last 5 minutes."
+
+    # 스토리지 알림 (kube-prometheus-stack 기본에 PVC/디스크 임계치 rule 없음)
+    - name: storage
+      rules:
+        - alert: PVCAlmostFull
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC almost full: {{ $labels.persistentvolumeclaim }}"
+            description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
+
+        - alert: NodeDiskAlmostFull
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
+            description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+
+    # 리소스 알림 (kube-prometheus-stack 기본 NodeMemory rule은 예측 기반이라 직관적이지 않음)
+    - name: resources
+      rules:
+        - alert: HighMemoryUsage
+          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory: {{ $labels.instance }}"
+            description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
