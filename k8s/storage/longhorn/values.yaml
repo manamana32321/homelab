@@ -18,7 +18,10 @@ ingress:
   ingressClassName: traefik
   host: longhorn.json-server.win
   annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
     traefik.ingress.kubernetes.io/router.middlewares: authentik-ak-outpost-authentik-embedded-outpost@kubernetescrd
+  tls: true
+  tlsSecret: longhorn-tls
 
 # raspi-1을 Longhorn 스토리지 노드에서 제외
 longhornManager:
