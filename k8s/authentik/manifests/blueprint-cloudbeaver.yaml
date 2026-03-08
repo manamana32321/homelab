@@ -108,6 +108,20 @@ data:
           provider: !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
           policy_engine_mode: any
 
+      # Longhorn: authentik Admins 그룹만 접근 허용
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, longhorn]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
       # Embedded Outpost (모든 forward auth provider를 포함)
       - model: authentik_outposts.outpost
         state: present
