@@ -6,5 +6,5 @@ operator:
       memory: 128Mi
       ephemeral-storage: 500Mi
     limits:
-      cpu: 200m
+      cpu: 500m
       memory: 256Mi
