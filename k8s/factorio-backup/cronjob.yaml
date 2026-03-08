@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: factorio-backup
+  namespace: factorio
+spec:
+  schedule: "0 */12 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: factorio-factorio-server-charts
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: backup
+              image: minio/mc:latest
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  mc alias set minio http://factorio-backup-minio:9000 "$MC_ACCESS" "$MC_SECRET"
+                  mc mb --ignore-existing minio/factorio-backups
+                  LATEST=$(ls -t /factorio/saves/*.zip 2>/dev/null | head -1)
+                  [ -z "$LATEST" ] && echo "No saves found" && exit 0
+                  KEY="auto/$(date +%Y%m%dT%H%M%S)_$(basename "$LATEST")"
+                  mc cp "$LATEST" "minio/factorio-backups/$KEY"
+                  echo "Uploaded: $KEY"
+                  mc find minio/factorio-backups/auto/ --older-than 720h --exec "mc rm {}"
+                  echo "Cleanup done"
+              env:
+                - name: MC_ACCESS
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-credentials
+                      key: rootUser
+                - name: MC_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-credentials
+                      key: rootPassword
+              volumeMounts:
+                - name: factorio-data
+                  mountPath: /factorio
+                  readOnly: true
+              resources:
+                requests:
+                  memory: 64Mi
+                  cpu: 50m
+                limits:
+                  memory: 128Mi
+                  cpu: 200m
+          volumes:
+            - name: factorio-data
+              persistentVolumeClaim:
+                claimName: factorio-factorio-server-charts-datadir
+          restartPolicy: OnFailure

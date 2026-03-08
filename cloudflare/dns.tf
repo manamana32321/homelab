@@ -62,6 +62,40 @@ resource "cloudflare_record" "db" {
   comment = "CloudBeaver DB admin"
 }
 
+resource "cloudflare_record" "factorio_admin" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio-admin"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+}
+
+resource "cloudflare_record" "factorio" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+}
+
+resource "cloudflare_record" "factorio_rcon" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio-rcon"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Factorio RCON (TCP 30100)"
+}
+
+resource "cloudflare_record" "factorio_minio_console" {
+  zone_id = cloudflare_zone.main.id
+  name    = "factorio-minio"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Factorio MinIO Console"
+}
+
 resource "cloudflare_record" "minecraft" {
   zone_id = cloudflare_zone.main.id
   name    = "mc"

@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: factorio
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # SealedSecrets
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/factorio
+      directory:
+        include: "*-secret.yaml"
+    # Helm chart
+    - repoURL: https://sqljames.github.io/factorio-server-charts
+      chart: factorio-server-charts
+      targetRevision: "2.5.2"
+      helm:
+        valueFiles:
+          - $homelab/k8s/factorio/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: factorio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

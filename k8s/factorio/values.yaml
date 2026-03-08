@@ -1,0 +1,63 @@
+# hostNetwork 활성화 (LAN 게임 검색용)
+hostNetworkEnabled: true
+
+nodeSelector:
+  kubernetes.io/hostname: json-server-1
+
+image:
+  tag: "2.0.73"
+
+service:
+  type: ClusterIP
+  port: 34197
+
+resources:
+  requests:
+    memory: 1024Mi
+    cpu: 500m
+  limits:
+    memory: 4096Mi
+    cpu: 2000m
+
+persistence:
+  dataDir:
+    Size: "4Gi"
+
+factorioServer:
+  save_name: "default"
+  port: 34197
+
+server_settings:
+  name: "JSON"
+  description: "JSON Factorio Space Age Server\n접속법: factorio-admin.json-server.win 에서 가입 후 화이트리스트 등록"
+  tags:
+    - space-age
+  visibility:
+    public: true
+    lan: true
+  require_user_verification: true
+  autosave_slots: 20
+
+admin_list:
+  - YumeMana
+
+rcon:
+  external: true
+  type: NodePort
+  passwordSecret: factorio-rcon-password
+  port: 30100
+
+map_gen_settings:
+  autoplace_controls:
+    coal:
+      size: 6
+    stone:
+      size: 6
+    copper-ore:
+      size: 6
+    iron-ore:
+      size: 6
+    uranium-ore:
+      size: 6
+    crude-oil:
+      size: 6

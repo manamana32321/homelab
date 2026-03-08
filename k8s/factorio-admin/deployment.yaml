@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio-admin
+  namespace: factorio
+  labels:
+    app: factorio-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio-admin
+  template:
+    metadata:
+      labels:
+        app: factorio-admin
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: factorio-factorio-server-charts
+              topologyKey: kubernetes.io/hostname
+      serviceAccountName: factorio-admin
+      securityContext:
+        supplementalGroups: [845]
+      containers:
+        - name: factorio-admin
+          image: ghcr.io/manamana32321/factorio-admin:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: factorio-data
+              mountPath: /factorio
+          env:
+            - name: NODE_EXTRA_CA_CERTS
+              value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            - name: FACTORIO_SAVES_PATH
+              value: "/factorio/saves"
+            - name: BETTER_AUTH_URL
+              value: "https://factorio-admin.json-server.win"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: "postgresql://factorio:$(POSTGRES_PASSWORD)@factorio-admin-postgres:5432/factorio_admin"
+            - name: RCON_HOST
+              # Factorio server pod runs with hostNetwork, so use node IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: RCON_PORT
+              value: "27015"
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: auth-secret
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: github-client-id
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: github-client-secret
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: rcon-password
+            - name: FACTORIO_POD_LABEL
+              value: "app=factorio-factorio-server-charts"
+            - name: S3_ENDPOINT
+              value: "http://factorio-backup-minio:9000"
+            - name: S3_BUCKET
+              value: "factorio-backups"
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: rootUser
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: rootPassword
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090"
+            - name: LOKI_URL
+              value: "http://loki.observability.svc.cluster.local:3100"
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+      volumes:
+        - name: factorio-data
+          persistentVolumeClaim:
+            claimName: factorio-factorio-server-charts-datadir
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factorio-admin
+  namespace: factorio
+spec:
+  selector:
+    app: factorio-admin
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: factorio-admin
+  namespace: factorio
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  tls:
+    - hosts:
+        - factorio-admin.json-server.win
+      secretName: factorio-admin-tls
+  rules:
+    - host: factorio-admin.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: factorio-admin
+                port:
+                  number: 80

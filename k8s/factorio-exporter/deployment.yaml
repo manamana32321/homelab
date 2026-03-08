@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio-exporter
+  namespace: factorio
+  labels:
+    app: factorio-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio-exporter
+  template:
+    metadata:
+      labels:
+        app: factorio-exporter
+    spec:
+      serviceAccountName: factorio-exporter
+      containers:
+        - name: factorio-exporter
+          image: ghcr.io/manamana32321/factorio-exporter:latest
+          env:
+            - name: RCON_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: rcon-password
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "factorio-exporter"
+            - name: DISCORD_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-discord-secrets
+                  key: discord-bot-token
+            - name: DISCORD_CHANNEL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-discord-secrets
+                  key: discord-channel-id
+            - name: CONFIG_PATH
+              value: "/etc/factorio-exporter/config.yaml"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/factorio-exporter
+              readOnly: true
+          resources:
+            requests:
+              memory: 48Mi
+              cpu: 15m
+            limits:
+              memory: 96Mi
+              cpu: 200m
+      volumes:
+        - name: config
+          configMap:
+            name: factorio-exporter-config
