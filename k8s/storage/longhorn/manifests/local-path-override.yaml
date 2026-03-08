@@ -1,0 +1,12 @@
+# K3s 기본 local-path StorageClass의 default 해제
+# K3s가 재시작 시 default로 복원하지만, ArgoCD selfHeal이 다시 false로 되돌림
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
