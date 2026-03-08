@@ -77,6 +77,30 @@ terraform apply
 - **Reflector**: `cloudflare-credentials` namespace에서 다른 namespace로 복제
 - **External Secrets** (옵션): AWS Secrets Manager → K8s Secret 동기화
 
+#### SealedSecret 생성 방법
+공개키(cert)가 `k8s/sealed-secrets/cert.pem`에 저장되어 있으므로 **VPN/클러스터 접근 없이도** seal 가능:
+
+```bash
+# 단일 값 seal (raw)
+echo -n "MY_SECRET_VALUE" | kubeseal --raw \
+  --cert k8s/sealed-secrets/cert.pem \
+  --name <secret-name> --namespace <namespace> \
+  --scope strict
+
+# Secret 파일 전체 seal
+kubeseal --format yaml \
+  --cert k8s/sealed-secrets/cert.pem \
+  < secret.yaml > sealed-secret.yaml
+```
+
+> **주의**: cert는 30일마다 로테이션됨. 새로 seal할 때 cert가 오래됐다면 VPN 연결 후 재발급:
+> ```bash
+> kubeseal --fetch-cert \
+>   --controller-name=sealed-secrets-controller \
+>   --controller-namespace=kube-system \
+>   > k8s/sealed-secrets/cert.pem
+> ```
+
 ### Observability Stack
 ```
 App (OTLP) → OTel Collector → Prometheus (메트릭)
@@ -106,8 +130,8 @@ kubectl get applications -n argocd
 kubectl get clustersecretstore
 kubectl get externalsecret -A
 
-# SealedSecret 생성
-kubeseal --format yaml < secret.yaml > sealed-secret.yaml
+# SealedSecret 생성 (cert 사용, VPN 불필요)
+kubeseal --format yaml --cert k8s/sealed-secrets/cert.pem < secret.yaml > sealed-secret.yaml
 ```
 
 ## Conventions

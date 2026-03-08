@@ -1,15 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: blueprint-forward-auth
+  name: blueprint-cloudbeaver
   namespace: authentik
 data:
-  forward-auth.yaml: |
+  cloudbeaver.yaml: |
     version: 1
     metadata:
-      name: "Forward Auth Applications"
+      name: "CloudBeaver Forward Auth"
     entries:
-      # CloudBeaver
       - model: authentik_providers_proxy.proxyprovider
         state: present
         identifiers:
@@ -21,6 +20,46 @@ data:
           authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
           invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
 
+      # Expression Policy: skku-amang GitHub org 멤버만 허용
+      - model: authentik_policies_expression.expressionpolicy
+        state: present
+        identifiers:
+          name: cloudbeaver-require-skku-amang-org
+        attrs:
+          name: cloudbeaver-require-skku-amang-org
+          expression: |
+            from authentik.sources.oauth.models import UserOAuthSourceConnection
+
+            GITHUB_SOURCE_SLUG = "github"
+            REQUIRED_ORG = "skku-amang"
+
+            connection = UserOAuthSourceConnection.objects.filter(
+                user=request.user,
+                source__slug=GITHUB_SOURCE_SLUG
+            ).first()
+
+            if not connection:
+                ak_message("GitHub 계정으로 로그인해야 합니다.")
+                return False
+
+            try:
+                orgs = requests.get(
+                    "https://api.github.com/user/orgs",
+                    headers={
+                        "Authorization": f"token {connection.access_token}",
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                ).json()
+
+                if any(org["login"] == REQUIRED_ORG for org in orgs):
+                    return True
+            except Exception as e:
+                ak_logger.warning(f"GitHub org check failed: {e}")
+                return False
+
+            ak_message(f"{REQUIRED_ORG} GitHub 조직 멤버만 접근 가능합니다.")
+            return False
+
       - model: authentik_core.application
         state: present
         identifiers:
@@ -31,6 +70,20 @@ data:
           meta_launch_url: https://db.json-server.win
           provider: !Find [authentik_providers_proxy.proxyprovider, [name, cloudbeaver-provider]]
           policy_engine_mode: any
+
+      # Policy를 Application에 바인딩
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, cloudbeaver]]
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, cloudbeaver-require-skku-amang-org]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
 
       # Longhorn
       - model: authentik_providers_proxy.proxyprovider

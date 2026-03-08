@@ -70,4 +70,5 @@ postgresql:
 
 blueprints:
   configMaps:
-    - blueprint-forward-auth
+    - blueprint-cloudbeaver
+    - blueprint-github-source
