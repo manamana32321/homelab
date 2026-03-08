@@ -35,7 +35,6 @@ prometheus:
               - https://k8s.json-server.win
               - https://auth.json-server.win
               - https://frigate.json-server.win
-              - https://longhorn.json-server.win
               - https://amang-api.json-server.win
               - https://minio.json-server.win
               - https://amang-api-staging.json-server.win
@@ -59,6 +58,7 @@ prometheus:
               - https://s3-staging.json-server.win
               - https://db.json-server.win
               - https://otel.json-server.win
+              - https://longhorn.json-server.win
             labels:
               source: coral
         relabel_configs:

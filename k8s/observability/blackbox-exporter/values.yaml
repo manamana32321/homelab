@@ -103,7 +103,7 @@ serviceMonitor:
       module: http_2xx
     - name: longhorn
       url: https://longhorn.json-server.win
-      module: http_2xx
+      module: http_any_response
     - name: otel-collector
       url: https://otel.json-server.win
       module: http_any_response
