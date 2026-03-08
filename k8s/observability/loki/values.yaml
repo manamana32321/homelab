@@ -28,6 +28,7 @@ loki:
     retention_period: 30d
   compactor:
     retention_enabled: true
+    delete_request_store: s3
   schemaConfig:
     configs:
       - from: 2025-08-15
