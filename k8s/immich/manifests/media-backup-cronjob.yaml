@@ -54,6 +54,8 @@ spec:
                     --checkers 8 \
                     --s3-upload-cutoff 100M \
                     --s3-chunk-size 50M \
+                    --bwlimit 7M \
+                    --retries 3 \
                     --log-level INFO \
                     --stats 60s
 
