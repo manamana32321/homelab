@@ -142,7 +142,7 @@ grafana.ini:
     allow_sign_up: true
     auto_login: true
     scopes: user:email,read:org
-    role_attribute_path: "'Admin'"
+    role_attribute_path: "'GrafanaAdmin'"
     role_attribute_strict: false
     allow_assign_grafana_admin: true
     skip_org_role_sync: false
