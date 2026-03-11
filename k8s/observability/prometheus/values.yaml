@@ -96,7 +96,7 @@ prometheus:
           - source_labels: [__param_target]
             target_label: instance
           - target_label: __address__
-            replacement: 192.168.0.35:9115
+            replacement: 192.168.0.44:9115
       - job_name: coral-blackbox-s3
         metrics_path: /probe
         params:
@@ -116,7 +116,7 @@ prometheus:
           - source_labels: [__param_target]
             target_label: instance
           - target_label: __address__
-            replacement: 192.168.0.35:9115
+            replacement: 192.168.0.44:9115
 
   ingress:
     enabled: true
