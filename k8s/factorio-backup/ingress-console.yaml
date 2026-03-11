@@ -9,10 +9,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - factorio-minio.json-server.win
+        - minio.factorio.json-server.win
       secretName: factorio-minio-console-tls
   rules:
-    - host: factorio-minio.json-server.win
+    - host: minio.factorio.json-server.win
       http:
         paths:
           - path: /

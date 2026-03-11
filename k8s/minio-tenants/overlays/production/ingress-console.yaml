@@ -8,10 +8,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - minio.json-server.win
+        - minio.amang.json-server.win
       secretName: minio-console-tls
   rules:
-    - host: minio.json-server.win
+    - host: minio.amang.json-server.win
       http:
         paths:
           - path: /

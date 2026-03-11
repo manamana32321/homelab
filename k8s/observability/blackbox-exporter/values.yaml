@@ -108,22 +108,22 @@ serviceMonitor:
       url: https://otel.json-server.win
       module: http_any_response
     - name: amang-api
-      url: https://amang-api.json-server.win
+      url: https://api.amang.json-server.win
       module: http_2xx
-    - name: minio-console
-      url: https://minio.json-server.win
+    - name: amang-minio-console
+      url: https://minio.amang.json-server.win
       module: http_2xx
-    - name: minio-s3-api
-      url: https://s3.json-server.win
+    - name: amang-s3-api
+      url: https://s3.amang.json-server.win
       module: http_any_response
     - name: amang-api-staging
-      url: https://amang-api-staging.json-server.win
+      url: https://api.amang.staging.json-server.win
       module: http_2xx
-    - name: minio-console-staging
-      url: https://minio-staging.json-server.win
+    - name: amang-minio-console-staging
+      url: https://minio.amang.staging.json-server.win
       module: http_2xx
-    - name: minio-s3-api-staging
-      url: https://s3-staging.json-server.win
+    - name: amang-s3-api-staging
+      url: https://s3.amang.staging.json-server.win
       module: http_any_response
 
     # --- 내부 서비스 헬스체크 ---
