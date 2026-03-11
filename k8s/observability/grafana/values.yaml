@@ -139,7 +139,7 @@ grafana.ini:
     enabled: true
     allow_sign_up: true
     auto_login: true
-    org_attribute_path: email
+    scopes: user:email,read:org
     role_attribute_path: "'Editor'"
     role_attribute_strict: false
     allow_assign_grafana_admin: false
