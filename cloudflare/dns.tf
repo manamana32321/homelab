@@ -12,16 +12,33 @@ resource "cloudflare_record" "root" {
   comment = "IpTime A1004"
 }
 
-# AMANG project - wildcard subdomains
-# Convention: (service).amang.(env).json-server.win
+# AMANG project - convention: (service).amang.(env).json-server.win
 # proxied=false: multi-level subdomains need cert-manager TLS (Cloudflare free Universal SSL doesn't cover)
-resource "cloudflare_record" "wildcard_amang" {
+resource "cloudflare_record" "amang_api" {
   zone_id = cloudflare_zone.main.id
-  name    = "*.amang"
+  name    = "api.amang"
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "AMANG production services (api.amang, s3.amang, minio.amang)"
+  comment = "AMANG API (production)"
+}
+
+resource "cloudflare_record" "amang_s3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3.amang"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "AMANG MinIO S3 API (production)"
+}
+
+resource "cloudflare_record" "amang_minio" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio.amang"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "AMANG MinIO Console (production)"
 }
 
 resource "cloudflare_record" "amang_staging" {
@@ -30,16 +47,34 @@ resource "cloudflare_record" "amang_staging" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "AMANG staging web"
+  comment = "AMANG web (staging)"
 }
 
-resource "cloudflare_record" "wildcard_amang_staging" {
+resource "cloudflare_record" "amang_api_staging" {
   zone_id = cloudflare_zone.main.id
-  name    = "*.amang.staging"
+  name    = "api.amang.staging"
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "AMANG staging services (api.amang.staging, s3.amang.staging, minio.amang.staging)"
+  comment = "AMANG API (staging)"
+}
+
+resource "cloudflare_record" "amang_s3_staging" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3.amang.staging"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "AMANG MinIO S3 API (staging)"
+}
+
+resource "cloudflare_record" "amang_minio_staging" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio.amang.staging"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "AMANG MinIO Console (staging)"
 }
 
 resource "cloudflare_record" "argocd" {
@@ -93,14 +128,13 @@ resource "cloudflare_record" "factorio_rcon" {
   comment = "Factorio RCON (TCP 30100)"
 }
 
-# Factorio project - wildcard subdomain
-resource "cloudflare_record" "wildcard_factorio" {
+resource "cloudflare_record" "factorio_minio" {
   zone_id = cloudflare_zone.main.id
-  name    = "*.factorio"
+  name    = "minio.factorio"
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "Factorio services (minio.factorio)"
+  comment = "Factorio MinIO Console"
 }
 
 resource "cloudflare_record" "minecraft" {

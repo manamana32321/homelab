@@ -154,6 +154,6 @@ kubeseal --format yaml --cert k8s/sealed-secrets/cert.pem < secret.yaml > sealed
 | 프로젝트 하위 서비스 (prod) | `service.project.json-server.win` | `api.amang.json-server.win` |
 | 프로젝트 하위 서비스 (staging) | `service.project.staging.json-server.win` | `api.amang.staging.json-server.win` |
 
-- **DNS**: 프로젝트별 와일드카드 (`*.amang`, `*.amang.staging`) 사용 → `cloudflare/dns.tf`
+- **DNS**: 개별 A 레코드로 관리 → `cloudflare/dns.tf`
 - **TLS**: 멀티레벨 서브도메인은 Cloudflare 무료 Universal SSL 미지원 → `proxied = false` + cert-manager DNS01
 - **네이밍**: 하이픈 구분(`amang-api`) 대신 점 구분(`api.amang`) 사용
