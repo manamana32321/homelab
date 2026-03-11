@@ -8,10 +8,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - s3-staging.json-server.win
+        - s3.amang.staging.json-server.win
       secretName: minio-api-tls
   rules:
-    - host: s3-staging.json-server.win
+    - host: s3.amang.staging.json-server.win
       http:
         paths:
           - path: /

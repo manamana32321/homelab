@@ -28,10 +28,10 @@ scrape_configs:
           - https://k8s.json-server.win
           - https://auth.json-server.win
           - https://frigate.json-server.win
-          - https://amang-api.json-server.win
-          - https://minio.json-server.win
-          - https://amang-api-staging.json-server.win
-          - https://minio-staging.json-server.win
+          - https://api.amang.json-server.win
+          - https://minio.amang.json-server.win
+          - https://api.amang.staging.json-server.win
+          - https://minio.amang.staging.json-server.win
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -46,8 +46,8 @@ scrape_configs:
       module: [http_any_response]
     static_configs:
       - targets:
-          - https://s3.json-server.win
-          - https://s3-staging.json-server.win
+          - https://s3.amang.json-server.win
+          - https://s3.amang.staging.json-server.win
           - https://db.json-server.win
           - https://otel.json-server.win
           - https://longhorn.json-server.win
