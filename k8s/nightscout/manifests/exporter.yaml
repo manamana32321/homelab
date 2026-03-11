@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nightscout-exporter-script
+  namespace: nightscout
+data:
+  exporter.py: |
+    """Nightscout Prometheus Exporter - queries Nightscout API and exposes metrics."""
+    import http.server
+    import json
+    import os
+    import threading
+    import time
+    import urllib.request
+
+    NIGHTSCOUT_URL = os.environ.get("NIGHTSCOUT_URL", "http://nightscout:1337")
+    API_SECRET = os.environ.get("API_SECRET", "")
+    PORT = int(os.environ.get("PORT", "9552"))
+    SCRAPE_INTERVAL = int(os.environ.get("SCRAPE_INTERVAL", "60"))
+
+    metrics = {"sgv": 0, "bgdelta": 0, "trend": 0, "direction": "NONE", "timestamp": 0}
+
+    def fetch_nightscout():
+        while True:
+            try:
+                url = f"{NIGHTSCOUT_URL}/api/v1/entries/current.json"
+                req = urllib.request.Request(url)
+                if API_SECRET:
+                    import hashlib
+                    token = hashlib.sha1(API_SECRET.encode()).hexdigest()
+                    req.add_header("api-secret", token)
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    data = json.loads(resp.read())
+                    if data and len(data) > 0:
+                        entry = data[0]
+                        metrics["sgv"] = entry.get("sgv", 0)
+                        metrics["bgdelta"] = entry.get("delta", 0)
+                        metrics["trend"] = entry.get("trend", 0)
+                        metrics["direction"] = entry.get("direction", "NONE")
+                        metrics["timestamp"] = entry.get("date", 0) / 1000
+            except Exception as e:
+                print(f"Error fetching Nightscout data: {e}", flush=True)
+            time.sleep(SCRAPE_INTERVAL)
+
+    DIRECTION_MAP = {
+        "NONE": 0, "DoubleUp": 1, "SingleUp": 2, "FortyFiveUp": 3,
+        "Flat": 4, "FortyFiveDown": 5, "SingleDown": 6, "DoubleDown": 7,
+        "NOT COMPUTABLE": 8, "RATE OUT OF RANGE": 9,
+    }
+
+    class MetricsHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path != "/metrics":
+                self.send_response(404)
+                self.end_headers()
+                return
+            direction_val = DIRECTION_MAP.get(metrics["direction"], 0)
+            body = (
+                "# HELP nightscout_sgv Sensor glucose value in mg/dL\n"
+                "# TYPE nightscout_sgv gauge\n"
+                f'nightscout_sgv {metrics["sgv"]}\n'
+                "# HELP nightscout_bgdelta Blood glucose delta (rate of change) in mg/dL\n"
+                "# TYPE nightscout_bgdelta gauge\n"
+                f'nightscout_bgdelta {metrics["bgdelta"]}\n'
+                "# HELP nightscout_trend Trend direction (0=none, 1=double_up ... 7=double_down)\n"
+                "# TYPE nightscout_trend gauge\n"
+                f"nightscout_trend {direction_val}\n"
+                "# HELP nightscout_timestamp_seconds Unix timestamp of last reading\n"
+                "# TYPE nightscout_timestamp_seconds gauge\n"
+                f'nightscout_timestamp_seconds {metrics["timestamp"]}\n'
+            )
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; version=0.0.4")
+            self.end_headers()
+            self.wfile.write(body.encode())
+
+        def log_message(self, format, *args):
+            pass
+
+    if __name__ == "__main__":
+        threading.Thread(target=fetch_nightscout, daemon=True).start()
+        print(f"Nightscout exporter listening on :{PORT}", flush=True)
+        server = http.server.HTTPServer(("", PORT), MetricsHandler)
+        server.serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nightscout-exporter
+  namespace: nightscout
+  labels:
+    app: nightscout-exporter
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nightscout-exporter
+  template:
+    metadata:
+      labels:
+        app: nightscout-exporter
+    spec:
+      containers:
+        - name: exporter
+          image: python:3.12-alpine
+          command: ["python", "/app/exporter.py"]
+          env:
+            - name: NIGHTSCOUT_URL
+              value: http://nightscout:1337
+            - name: API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nightscout-secret
+                  key: API_SECRET
+            - name: PORT
+              value: "9552"
+            - name: SCRAPE_INTERVAL
+              value: "60"
+          ports:
+            - name: metrics
+              containerPort: 9552
+          volumeMounts:
+            - name: script
+              mountPath: /app
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 9552
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      volumes:
+        - name: script
+          configMap:
+            name: nightscout-exporter-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nightscout-exporter
+  namespace: nightscout
+  labels:
+    app: nightscout-exporter
+spec:
+  selector:
+    app: nightscout-exporter
+  ports:
+    - name: metrics
+      port: 9552
+      targetPort: metrics
