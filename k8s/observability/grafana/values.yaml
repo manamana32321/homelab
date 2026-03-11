@@ -129,6 +129,8 @@ downloadDashboards:
 grafana.ini:
   log:
     mode: console
+    level: debug
+    filters: "oauth:debug user.sync:debug authn.service:debug"
   server:
     domain: "grafana.json-server.win"
     root_url: "https://grafana.json-server.win"
@@ -140,9 +142,9 @@ grafana.ini:
     allow_sign_up: true
     auto_login: true
     scopes: user:email,read:org
-    role_attribute_path: "'Editor'"
+    role_attribute_path: "'Admin'"
     role_attribute_strict: false
-    allow_assign_grafana_admin: false
+    allow_assign_grafana_admin: true
     skip_org_role_sync: false
   # TODO: setup git sync provisioning
   # feature_toggles:
