@@ -10,6 +10,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
     traefik.ingress.kubernetes.io/redirect-entry-point: https
+    traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
   hosts:
     - host: k8s.json-server.win
       paths:
