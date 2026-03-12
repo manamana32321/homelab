@@ -129,8 +129,7 @@ downloadDashboards:
 grafana.ini:
   log:
     mode: console
-    level: debug
-    filters: "oauth:debug user.sync:debug authn.service:debug"
+    level: info
   server:
     domain: "grafana.json-server.win"
     root_url: "https://grafana.json-server.win"
