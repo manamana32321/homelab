@@ -30,9 +30,19 @@ homelab/
 │   ├── reflector/               # Secret 복제 설정
 │   ├── dashboard/               # Kubernetes Dashboard
 │   └── observability/           # 모니터링 스택 (OTel, Prometheus, Loki, Tempo)
+├── coral/                   # Coral Dev Board (standalone Docker, K3s 외부)
+│   └── monitoring/              # Prometheus + Alertmanager + Blackbox Exporter
 ├── .envrc                   # 공개 환경변수 (TF_VAR_*)
 └── .envrc.local             # 민감한 credentials (gitignored)
 ```
+
+### CD 파이프라인
+
+| 대상 | 방식 | 트리거 |
+|------|------|--------|
+| `k8s/` | ArgoCD GitOps (자동 sync) | Git push → ArgoCD가 감지 |
+| `cloudflare/` | 수동 `terraform apply` | - |
+| `coral/monitoring/` | GitHub Actions self-hosted runner (`coral-1`) | Git push → `.github/workflows/coral-deploy.yaml` |
 
 ## Cloudflare/Terraform
 
