@@ -5,7 +5,7 @@ metadata:
   namespace: openclaw
 data:
   NODE_ENV: production
-  NODE_OPTIONS: --max-old-space-size=1536
+  NODE_OPTIONS: --max-old-space-size=1536 --dns-result-order=ipv4first --no-network-family-autoselection
   PLAYWRIGHT_BROWSERS_PATH: /home/node/.cache/ms-playwright
 ---
 apiVersion: v1
