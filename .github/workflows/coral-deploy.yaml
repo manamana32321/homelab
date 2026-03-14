@@ -1,0 +1,28 @@
+name: coral-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - coral/monitoring/**
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, coral]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: coral/monitoring
+
+      - name: Sync monitoring configs
+        run: |
+          rsync -av --delete \
+            --exclude='.env' \
+            --exclude='alertmanager-rendered.yml' \
+            coral/monitoring/ /home/mendel/monitoring/
+
+      - name: Deploy
+        run: |
+          cd /home/mendel/monitoring
+          ./deploy.sh
