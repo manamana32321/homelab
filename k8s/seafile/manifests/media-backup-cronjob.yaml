@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: seafile-media-backup
+  namespace: seafile
+  labels:
+    app: seafile
+    job-type: media-backup
+spec:
+  schedule: "0 5 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 1
+      activeDeadlineSeconds: 21600
+      template:
+        metadata:
+          labels:
+            app: seafile
+            job-type: media-backup
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: json-server-1
+          containers:
+            - name: media-backup
+              image: rclone/rclone:1.69
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+
+                  # rclone config
+                  mkdir -p /root/.config/rclone
+                  cat > /root/.config/rclone/rclone.conf <<CONF
+                  [s3]
+                  type = s3
+                  provider = AWS
+                  access_key_id = ${AWS_ACCESS_KEY_ID}
+                  secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+                  region = ap-northeast-2
+                  location_constraint = ap-northeast-2
+                  no_check_bucket = true
+                  storage_class = GLACIER_IR
+                  CONF
+
+                  # Sync seafile data to S3
+                  rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
+                    --s3-no-check-bucket \
+                    --transfers 4 \
+                    --checkers 8 \
+                    --s3-upload-cutoff 100M \
+                    --s3-chunk-size 50M \
+                    --bwlimit 7M \
+                    --retries 3 \
+                    --log-level INFO \
+                    --stats 60s
+
+                  echo "Media backup sync complete"
+              envFrom:
+                - secretRef:
+                    name: seafile-backup-credentials
+              volumeMounts:
+                - name: seafile-data
+                  mountPath: /seafile-data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+          volumes:
+            - name: seafile-data
+              persistentVolumeClaim:
+                claimName: seafile-data
