@@ -13,3 +13,20 @@ output "immich_backup_bucket" {
   description = "S3 bucket name for Immich backups"
   value       = aws_s3_bucket.immich_backup.bucket
 }
+
+# Seafile backup
+output "seafile_backup_access_key_id" {
+  description = "Access Key ID for seafile-backup IAM user"
+  value       = aws_iam_access_key.seafile_backup.id
+}
+
+output "seafile_backup_secret_access_key" {
+  description = "Secret Access Key for seafile-backup IAM user"
+  value       = aws_iam_access_key.seafile_backup.secret
+  sensitive   = true
+}
+
+output "seafile_backup_bucket" {
+  description = "S3 bucket name for Seafile backups"
+  value       = aws_s3_bucket.seafile_backup.bucket
+}
