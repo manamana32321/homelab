@@ -80,7 +80,7 @@ dashboardProviders:
     providers:
       - name: "grafana-dashboards"
         orgId: 1
-        folder: "Provisioned"
+        folder: ""
         type: file
         disableDeletion: false
         editable: true
