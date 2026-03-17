@@ -29,7 +29,7 @@ spec:
                 - sh
                 - -c
                 - |
-                  set -e
+                  set -eo pipefail
                   apk add --no-cache mariadb-client rclone
 
                   # rclone config
@@ -51,7 +51,7 @@ spec:
                   mysqldump \
                     -h mariadb-svc -u seafile -p"${DB_PASSWORD}" \
                     --databases ccnet_db seafile_db seahub_db \
-                    --single-transaction \
+                    --single-transaction --skip-ssl \
                     | gzip > "${DUMP_FILE}"
 
                   # Upload to S3

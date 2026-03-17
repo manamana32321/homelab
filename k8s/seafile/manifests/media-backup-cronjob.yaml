@@ -32,7 +32,7 @@ spec:
                 - sh
                 - -c
                 - |
-                  set -e
+                  set -eo pipefail
 
                   # rclone config
                   mkdir -p /root/.config/rclone
