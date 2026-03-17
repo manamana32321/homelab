@@ -6,7 +6,7 @@ metadata:
     app: immich
     job-type: db-backup
 spec:
-  schedule: "0 2 * * *"
+  schedule: "0 17 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -28,7 +28,7 @@ spec:
                 - sh
                 - -c
                 - |
-                  set -e
+                  set -eo pipefail
                   apk add --no-cache postgresql16-client rclone
 
                   # rclone config

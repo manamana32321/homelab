@@ -6,7 +6,7 @@ metadata:
     app: immich
     job-type: media-backup
 spec:
-  schedule: "0 3 * * *"
+  schedule: "0 18 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -31,7 +31,7 @@ spec:
                 - sh
                 - -c
                 - |
-                  set -e
+                  set -eo pipefail
 
                   # rclone config
                   mkdir -p /root/.config/rclone
