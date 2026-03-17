@@ -97,37 +97,46 @@ primary_region = "nrt"  # Tokyo (한국 최근접)
 
 ## 시크릿 배분
 
-| ID | 키 | 래미 (Fly.io) | 홈랩 (K3s) |
-|---|---|---|---|
-| 1 | `ANTHROPIC_SETUP_TOKEN` | ✅ 동일값 공유 | ✅ 유지 |
-| 2 | `TELEGRAM_BOT_TOKEN` (default) | ❌ | ❌ 제거 |
-| 3 | `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN` | ✅ 이전 | ❌ 제거 |
-| 4 | `DISCORD_BOT_TOKEN` | ❌ | ❌ 제거 |
-| 5 | `OPENAI_API_KEY` | ✅ 회사 키 | ✅ 개인 키 (별도) |
-| 6 | `TELEGRAM_BOT_TOKEN_JARVIS` | ❌ | ✅ 유지 |
-| 7 | `TELEGRAM_BOT_TOKEN_STUDY` | ❌ | ✅ 유지 |
-| 8 | health/relationship/interview 토큰 | ❌ | ✅ 유지 (런타임) |
-| 9 | `CANVAS_ACCESS_TOKEN` | ❌ | ✅ 유지 |
-| 10 | `OPENCLAW_GATEWAY_TOKEN` | ✅ 새로 발급 | ✅ 기존 유지 |
-| 11 | `NOTION_TOKEN` | ✅ 이전 | ❌ 제거 |
-| 12 | `SEAFILE_TOKEN` / `SEAFILE_URL` | ❌ | ✅ 유지 (오픈캠퍼스용) |
+SealedSecret에 있는 키와 런타임 config에만 있는 키를 구분한다.
+
+| ID | 키 | 저장 위치 | 래미 (Fly.io) | 홈랩 (K3s) |
+|---|---|---|---|---|
+| 1 | `ANTHROPIC_SETUP_TOKEN` | SealedSecret | ✅ 동일값 공유 | ✅ 유지 |
+| 2 | `TELEGRAM_BOT_TOKEN` (default) | SealedSecret | ❌ | ❌ 제거 |
+| 3 | `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN` | SealedSecret | ✅ 이전 | ❌ 제거 |
+| 4 | `DISCORD_BOT_TOKEN` | SealedSecret | ❌ | ❌ 제거 |
+| 5 | `OPENAI_API_KEY` | SealedSecret + 런타임 | ✅ 회사 키 | ✅ 개인 키 (별도) |
+| 6 | `TELEGRAM_BOT_TOKEN_JARVIS` | SealedSecret | ❌ | ✅ 유지 |
+| 7 | `TELEGRAM_BOT_TOKEN_STUDY` | SealedSecret | ❌ | ✅ 유지 |
+| 8 | health/relationship/interview 토큰 | 런타임 only | ❌ | ✅ 유지 |
+| 9 | `CANVAS_ACCESS_TOKEN` | SealedSecret | ❌ | ✅ 유지 |
+| 10 | `OPENCLAW_GATEWAY_TOKEN` | SealedSecret | ✅ 새로 발급 | ✅ 기존 유지 |
+| 11 | `NOTION_TOKEN` | 런타임 only | ✅ 이전 | ❌ 제거 |
+| 12 | `SEAFILE_TOKEN` / `SEAFILE_URL` | 런타임 only | ❌ | ✅ 유지 (오픈캠퍼스용) |
 
 ## 전환 절차 (Blue-Green)
 
-### Phase 1: Fly.io에 래미 배포
+### Phase 1: Fly.io에 래미 배포 (Slack 없이)
 
 1. `mortonCareer/openclaw` private 레포 생성
 2. `fly launch` → app 생성 (`remi-openclaw`, nrt region)
 3. `fly volumes create openclaw_data --size 10 --region nrt --snapshot-retention 60`
-4. `fly secrets set ANTHROPIC_SETUP_TOKEN=... SLACK_BOT_TOKEN=... SLACK_APP_TOKEN=... OPENAI_API_KEY=... OPENCLAW_GATEWAY_TOKEN=... NOTION_TOKEN=...`
+4. Slack 토큰 **제외**하고 시크릿 설정 (동시 연결 충돌 방지):
+   `fly secrets set ANTHROPIC_SETUP_TOKEN=... OPENAI_API_KEY=... OPENCLAW_GATEWAY_TOKEN=... NOTION_TOKEN=...`
 5. `fly deploy`
-6. gateway 웹UI 접속 확인
+6. gateway 웹UI 접속 확인 (`remi-openclaw.fly.dev`)
+7. 래미 에이전트 초기 설정:
+   - GUI에서 에이전트 등록 (id: main, name: 래미, default: true)
+   - 또는 `fly ssh console`로 `~/.openclaw/` 초기 config 배치
+   - `--bind lan`이 Fly.io에서 동작하지 않으면 바인드 옵션 조정 필요
 
 ### Phase 2: Slack 전환
 
 1. 홈랩 OpenClaw GUI에서 Slack 비활성화 (`enabled: false`)
-2. Fly.io 래미의 Slack Socket Mode 연결 확인
-3. Slack 메시지로 래미 응답 검증
+2. 홈랩 OpenClaw 재시작하여 Slack Socket Mode 연결 해제 확인
+3. Fly.io에 Slack 토큰 추가: `fly secrets set SLACK_BOT_TOKEN=... SLACK_APP_TOKEN=...`
+4. Fly.io 래미 재시작 → Slack Socket Mode 연결 확인
+5. Slack 메시지로 래미 응답 검증
 
 ### Phase 3: 홈랩 정리 (PR)
 
@@ -147,7 +156,7 @@ primary_region = "nrt"  # Tokyo (한국 최근접)
    - `channels.slack` → `enabled: false`
    - `channels.discord` 제거
    - `env.vars`에서 `NOTION_TOKEN` 제거
-   - `bindings`에서 래미 관련 제거 (현재 런타임에 명시적 래미 바인딩 없으므로 확인만)
+   - `bindings`에서 Slack 바인딩(`agentId: "main"`) 제거
 
 4. PR 머지 → ArgoCD 자동 sync
 
@@ -156,6 +165,22 @@ primary_region = "nrt"  # Tokyo (한국 최근접)
 1. 홈랩 OpenClaw 재시작 후 자비스 등 정상 동작 확인
 2. Fly.io 래미 Slack 응답 안정성 확인
 3. 래미에서 홈랩 내부 서비스 접근 불가 확인
+
+## 롤백 절차
+
+| 상황 | 조치 |
+|------|------|
+| Fly.io 배포 실패 (Phase 1) | 래미는 아직 홈랩에 있으므로 영향 없음. Fly.io 리소스 정리 |
+| Slack 전환 실패 (Phase 2) | Fly.io에서 Slack 토큰 제거 → 홈랩 GUI에서 Slack 재활성화 |
+| 홈랩 정리 PR 문제 (Phase 3) | `git revert` → ArgoCD 자동 sync로 복원. 런타임 config는 PVC에 있으므로 PR revert로 ConfigMap/SealedSecret만 복원하면 됨 |
+
+## 리스크
+
+| 리스크 | 영향 | 완화 |
+|--------|------|------|
+| Fly Volume 호스트 장애 | 최대 24시간 state 유실 | 일 1회 자동 스냅샷 + 60일 보관. 홈랩의 매시간 git 백업보다 주기 길지만 관리형 인프라 안정성으로 상쇄 |
+| `--bind lan` Fly.io 호환 | gateway 접근 불가 | Phase 1에서 조기 발견, `--bind 0.0.0.0` 등 대안 적용 |
+| Slack Socket Mode 동시 연결 | 메시지 유실/중복 | Phase 2에서 홈랩 Slack 먼저 비활성화 후 Fly.io에 토큰 추가 (순차 전환) |
 
 ## 홈랩 ConfigMap 현황 vs 변경
 
