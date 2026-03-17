@@ -83,7 +83,6 @@ prometheus:
               - https://claw.json-server.win
               - https://k8s.json-server.win
               - https://auth.json-server.win
-              - https://frigate.json-server.win
               - https://api.amang.json-server.win
               - https://minio.amang.json-server.win
               - https://api.amang.staging.json-server.win
