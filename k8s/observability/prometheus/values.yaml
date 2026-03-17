@@ -59,7 +59,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: local-path-hdd-samsung
+          storageClassName: longhorn-ssd
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
