@@ -124,7 +124,9 @@ dashboards:
     smartctl-exporter:
       gnetId: 22604
       revision: 2
-      datasource: Prometheus
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
 
 downloadDashboards:
   env: {}
