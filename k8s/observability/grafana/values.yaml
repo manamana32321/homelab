@@ -120,6 +120,11 @@ dashboards:
       gnetId: 13659
       revision: 1
       datasource: Prometheus
+    # Smartctl Exporter (SMART disk health) - https://grafana.com/grafana/dashboards/22604
+    smartctl-exporter:
+      gnetId: 22604
+      revision: 2
+      datasource: Prometheus
 
 downloadDashboards:
   env: {}
