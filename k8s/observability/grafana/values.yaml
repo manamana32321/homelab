@@ -125,6 +125,16 @@ dashboards:
       gnetId: 22604
       revision: 2
       datasource: Prometheus
+    # Alertmanager (cluster status, notifications) - https://grafana.com/grafana/dashboards/9578
+    alertmanager:
+      gnetId: 9578
+      revision: 4
+      datasource: Prometheus
+    # Open Alerts (live firing alerts overview) - https://grafana.com/grafana/dashboards/12947
+    open-alerts:
+      gnetId: 12947
+      revision: 3
+      datasource: Prometheus
 
 downloadDashboards:
   env: {}
