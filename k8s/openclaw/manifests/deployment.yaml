@@ -64,7 +64,7 @@ spec:
               readOnly: true
       containers:
         - name: openclaw
-          image: ghcr.io/openclaw/openclaw:latest
+          image: ghcr.io/manamana32321/openclaw:latest
           command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
           envFrom:
             - configMapRef:
