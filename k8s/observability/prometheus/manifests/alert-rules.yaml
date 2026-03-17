@@ -58,6 +58,36 @@ spec:
             summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
             description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
 
+    # SMART 디스크 건강 알림 (ATA HDD 특화 — NVMe 기본 알림은 smartctl-exporter chart에 내장)
+    - name: smart
+      rules:
+        - alert: DiskPendingSectors
+          expr: smartctl_device_attribute{attribute_name="Current_Pending_Sector"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pending sectors: {{ $labels.device }} ({{ $labels.instance }})"
+            description: "{{ $labels.device }} has {{ $value }} pending sector(s). Potential disk failure."
+
+        - alert: DiskReallocatedSectors
+          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Reallocated sectors: {{ $labels.device }} ({{ $labels.instance }})"
+            description: "{{ $labels.device }} has {{ $value }} reallocated sector(s)."
+
+        - alert: DiskReallocatedSectorsCritical
+          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct"} > 100
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CRITICAL: Many reallocated sectors on {{ $labels.device }}"
+            description: "{{ $labels.device }} has {{ $value }} reallocated sectors. Replace disk."
+
     # 리소스 알림 (kube-prometheus-stack 기본 NodeMemory rule은 예측 기반이라 직관적이지 않음)
     - name: resources
       rules:
