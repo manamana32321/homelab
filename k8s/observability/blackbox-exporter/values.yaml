@@ -67,66 +67,46 @@ serviceMonitor:
     module: http_2xx
 
   targets:
-    # --- 외부 Ingress 엔드포인트 (HTTPS + TLS 인증서 모니터링) ---
-    - name: argocd
+    # --- 외부 경로 헬스체크 (DNS → Cloudflare → 라우터 → Traefik → TLS) ---
+    # 대표 1개로 전체 외부 경로 상태 확인
+    - name: external-route
       url: https://argocd.json-server.win
       module: http_2xx
-    - name: grafana
-      url: https://grafana.json-server.win
-      module: http_2xx
-    - name: prometheus
-      url: https://prometheus.json-server.win
-      module: http_2xx
-    - name: immich
-      url: https://photos.json-server.win
-      module: http_2xx
-    - name: seafile
-      url: https://files.json-server.win
-      module: http_2xx
-    - name: home-assistant
-      url: https://ha.json-server.win
-      module: http_2xx
-    - name: openclaw
-      url: https://claw.json-server.win
-      module: http_2xx
-    - name: k8s-dashboard
-      url: https://k8s.json-server.win
-      module: http_2xx
-    - name: authentik
-      url: https://auth.json-server.win
-      module: http_2xx
-    - name: cloudbeaver
-      url: https://db.json-server.win
-      module: http_any_response
-    - name: frigate
-      url: https://frigate.json-server.win
-      module: http_2xx
-    - name: longhorn
-      url: https://longhorn.json-server.win
-      module: http_any_response
-    - name: otel-collector
-      url: https://otel.json-server.win
-      module: http_any_response
-    - name: amang-api
-      url: https://api.amang.json-server.win
-      module: http_2xx
-    - name: amang-minio-console
-      url: https://minio.amang.json-server.win
-      module: http_2xx
-    - name: amang-s3-api
-      url: https://s3.amang.json-server.win
-      module: http_any_response
-    - name: amang-api-staging
-      url: https://api.amang.staging.json-server.win
-      module: http_2xx
-    - name: amang-minio-console-staging
-      url: https://minio.amang.staging.json-server.win
-      module: http_2xx
-    - name: amang-s3-api-staging
-      url: https://s3.amang.staging.json-server.win
-      module: http_any_response
 
-    # --- 내부 서비스 헬스체크 ---
+    # --- 내부 서비스 헬스체크 (ClusterIP, 서비스 자체 health) ---
+    - name: grafana
+      url: http://grafana.observability.svc.cluster.local/login
+      module: http_2xx_no_tls
+    - name: prometheus
+      url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/-/ready
+      module: http_2xx_no_tls
+    - name: authentik
+      url: http://authentik-server.authentik.svc.cluster.local/-/health/live/
+      module: http_2xx_no_tls
+    - name: immich
+      url: http://immich-server.immich.svc.cluster.local:2283/api/server/ping
+      module: http_2xx_no_tls
+    - name: seafile
+      url: http://seafile.seafile.svc.cluster.local
+      module: http_2xx_no_tls
+    - name: home-assistant
+      url: http://home-assistant.home-assistant.svc.cluster.local:8080
+      module: http_2xx_no_tls
+    - name: openclaw
+      url: http://openclaw.openclaw.svc.cluster.local:18789
+      module: http_2xx_no_tls
+    - name: k8s-dashboard
+      url: http://headlamp.headlamp.svc.cluster.local
+      module: http_2xx_no_tls
+    - name: cloudbeaver
+      url: http://cloudbeaver.cloudbeaver.svc.cluster.local:8978
+      module: http_2xx_no_tls
+    - name: amang-api
+      url: http://api-server.amang-api-production.svc.cluster.local:8000
+      module: http_2xx_no_tls
+    - name: amang-api-staging
+      url: http://api-server.amang-api-staging.svc.cluster.local:8000
+      module: http_2xx_no_tls
     - name: loki
       url: http://loki.observability.svc.cluster.local:3100/ready
       module: http_2xx_no_tls

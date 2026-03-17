@@ -29,13 +29,31 @@ spec:
             description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
 
         - alert: SlowResponse
-          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 7
+          expr: avg_over_time(probe_duration_seconds{source!="coral", target!="external-route"}[5m]) > 3
           for: 5m
           labels:
             severity: warning
           annotations:
             summary: "Slow response: {{ $labels.instance }}"
             description: "{{ $labels.instance }} avg response time is {{ $value | humanize }}s over last 5 minutes."
+
+        - alert: ExternalRouteDown
+          expr: probe_success{target="external-route", source!="coral"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "External route is down (DNS/Cloudflare/Traefik/TLS)"
+            description: "https://argocd.json-server.win unreachable for 5 minutes. Check DNS, Cloudflare, router, Traefik, or TLS."
+
+        - alert: ExternalRouteSlow
+          expr: avg_over_time(probe_duration_seconds{target="external-route", source!="coral"}[5m]) > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "External route slow ({{ $value | humanize }}s)"
+            description: "External route avg response > 10s. Network or Traefik issue."
 
     # 스토리지 알림 (kube-prometheus-stack 기본에 PVC/디스크 임계치 rule 없음)
     - name: storage
