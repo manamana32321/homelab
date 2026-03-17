@@ -1,0 +1,45 @@
+config:
+  devices:
+    - /dev/sdb
+    - /dev/sdc
+
+common:
+  config:
+    collect_not_more_than_period: 300s
+
+nodeSelector:
+  kubernetes.io/hostname: json-server-1
+
+serviceMonitor:
+  enabled: true
+  extraLabels:
+    release: prometheus
+  interval: 5m
+  scrapeTimeout: 30s
+
+prometheusRules:
+  enabled: true
+  extraLabels:
+    release: prometheus
+  rules:
+    smartCTLDeviceMediaErrors:
+      enabled: true
+    smartCTLDeviceCriticalWarning:
+      enabled: true
+    smartCTLDeviceAvailableSpareUnderThreshold:
+      enabled: true
+    smartCTLDeviceStatus:
+      enabled: true
+    smartCTLDInterfaceSlow:
+      enabled: false
+    smartCTLDDeviceTemperature:
+      enabled: true
+      expr: smartctl_device_temperature{temperature_type="current"} > 55
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
