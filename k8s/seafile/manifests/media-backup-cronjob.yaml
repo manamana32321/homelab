@@ -7,7 +7,7 @@ metadata:
     app: seafile
     job-type: media-backup
 spec:
-  schedule: "0 20 * * *"
+  schedule: "0 18 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
