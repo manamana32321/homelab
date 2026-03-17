@@ -29,7 +29,7 @@ spec:
             description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
 
         - alert: SlowResponse
-          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 5
+          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 7
           for: 5m
           labels:
             severity: warning
