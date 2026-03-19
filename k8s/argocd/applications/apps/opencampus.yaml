@@ -11,6 +11,8 @@ spec:
     repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
     path: k8s/opencampus
+    directory:
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: opencampus
