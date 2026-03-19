@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opencampus-postgres-data
+  namespace: opencampus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: longhorn-ssd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencampus-postgres
+  namespace: opencampus
+  labels:
+    app: opencampus-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opencampus-postgres
+  template:
+    metadata:
+      labels:
+        app: opencampus-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: opencampus
+            - name: POSTGRES_USER
+              value: opencampus
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opencampus-api-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: opencampus-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencampus-postgres
+  namespace: opencampus
+spec:
+  selector:
+    app: opencampus-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

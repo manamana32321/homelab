@@ -256,3 +256,40 @@ resource "cloudflare_record" "vercel_verify" {
   type    = "TXT"
   content = "vc-domain-verify=amang.json-server.win,9fa5cbcbc9713e7db0c9,dc"
 }
+
+# OpenCampus project
+resource "cloudflare_record" "opencampus" {
+  zone_id = cloudflare_zone.main.id
+  name    = "opencampus"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "OpenCampus frontend"
+}
+
+resource "cloudflare_record" "opencampus_api" {
+  zone_id = cloudflare_zone.main.id
+  name    = "api.opencampus"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "OpenCampus API"
+}
+
+resource "cloudflare_record" "opencampus_s3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3.opencampus"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "OpenCampus MinIO S3 (proxied=false for cert-manager)"
+}
+
+resource "cloudflare_record" "opencampus_minio" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio.opencampus"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "OpenCampus MinIO Console (proxied=false for cert-manager)"
+}
