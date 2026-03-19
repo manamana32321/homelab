@@ -10,3 +10,5 @@ data:
   MINIO_PORT: "9000"
   MINIO_USE_SSL: "false"
   MINIO_BUCKET: opencampus
+  GOOGLE_CALLBACK_URL: https://api.opencampus.json-server.win/auth/google/callback
+  FRONTEND_URL: https://opencampus.json-server.win

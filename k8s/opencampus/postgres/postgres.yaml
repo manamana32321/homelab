@@ -9,7 +9,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: local-path
+  storageClassName: longhorn-ssd
 ---
 apiVersion: apps/v1
 kind: Deployment
