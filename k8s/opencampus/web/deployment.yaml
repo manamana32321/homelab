@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencampus-web
+  namespace: opencampus
+  labels:
+    app: opencampus-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opencampus-web
+  template:
+    metadata:
+      labels:
+        app: opencampus-web
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/manamana32321/opencampus-web:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
