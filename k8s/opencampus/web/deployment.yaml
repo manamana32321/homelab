@@ -18,6 +18,7 @@ spec:
       containers:
         - name: web
           image: ghcr.io/manamana32321/opencampus-web:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
