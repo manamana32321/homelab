@@ -67,13 +67,11 @@ serviceMonitor:
     module: http_2xx
 
   targets:
-    # --- 외부 경로 헬스체크 (DNS → Cloudflare → 라우터 → Traefik → TLS) ---
-    # 대표 1개로 전체 외부 경로 상태 확인
-    - name: external-route
-      url: https://argocd.json-server.win
-      module: http_2xx
-
     # --- 내부 서비스 헬스체크 (ClusterIP, 서비스 자체 health) ---
+    # 외부 경로 헬스체크는 coral이 담당 (독립 관측점)
+    - name: argocd
+      url: http://argocd-server.argocd.svc.cluster.local
+      module: http_2xx_no_tls
     - name: grafana
       url: http://grafana.observability.svc.cluster.local/login
       module: http_2xx_no_tls

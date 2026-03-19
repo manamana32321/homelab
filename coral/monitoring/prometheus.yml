@@ -12,6 +12,8 @@ alerting:
             - alertmanager:9093
 
 scrape_configs:
+  # 외부 경로 헬스체크 (DNS → Cloudflare → 라우터 → Traefik → TLS)
+  # 대표 1개로 전체 외부 경로 상태 확인 (K8s blackbox와 동일 전략)
   - job_name: blackbox-http
     metrics_path: /probe
     params:
@@ -19,38 +21,6 @@ scrape_configs:
     static_configs:
       - targets:
           - https://argocd.json-server.win
-          - https://grafana.json-server.win
-          - https://prometheus.json-server.win
-          - https://photos.json-server.win
-          - https://files.json-server.win
-          - https://ha.json-server.win
-          - https://claw.json-server.win
-          - https://k8s.json-server.win
-          - https://auth.json-server.win
-          - https://frigate.json-server.win
-          - https://api.amang.json-server.win
-          - https://minio.amang.json-server.win
-          - https://api.amang.staging.json-server.win
-          - https://minio.amang.staging.json-server.win
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115
-
-  - job_name: blackbox-s3
-    metrics_path: /probe
-    params:
-      module: [http_any_response]
-    static_configs:
-      - targets:
-          - https://s3.amang.json-server.win
-          - https://s3.amang.staging.json-server.win
-          - https://db.json-server.win
-          - https://otel.json-server.win
-          - https://longhorn.json-server.win
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
