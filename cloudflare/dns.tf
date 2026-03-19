@@ -272,8 +272,8 @@ resource "cloudflare_record" "opencampus_api" {
   name    = "api.opencampus"
   type    = "A"
   content = var.default_ip
-  proxied = true
-  comment = "OpenCampus API"
+  proxied = false
+  comment = "OpenCampus API (proxied=false for 2-level subdomain TLS)"
 }
 
 resource "cloudflare_record" "opencampus_s3" {
