@@ -12,10 +12,6 @@
       "name": "홈랩 · authentik-central-auth",
       "path": "../authentik-central-auth",
     },
-    {
-      "name": "홈랩 · blackbox-probing-cleanup",
-      "path": "../blackbox-probing-cleanup",
-    },
   ],
   "settings": {
     "terminal.integrated.cwd": "${workspaceFolder:홈랩 · main}",
