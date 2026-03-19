@@ -10,10 +10,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - opencampus.api.json-server.win
+        - api.opencampus.json-server.win
       secretName: opencampus-api-tls
   rules:
-    - host: opencampus.api.json-server.win
+    - host: api.opencampus.json-server.win
       http:
         paths:
           - path: /
