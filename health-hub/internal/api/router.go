@@ -17,6 +17,7 @@ func NewRouter(repo DataRepository, apiToken string) http.Handler {
 	mux.HandleFunc("GET /api/v1/nutrition", h.queryNutrition)
 	mux.HandleFunc("GET /api/v1/body", h.queryBody)
 	mux.HandleFunc("GET /api/v1/summary", h.summary)
+	mux.HandleFunc("POST /api/v1/hc-webhook", h.hcWebhook)
 
 	var root http.Handler = mux
 	root = loggingMiddleware(root)
