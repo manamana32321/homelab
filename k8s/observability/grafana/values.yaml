@@ -65,6 +65,22 @@ datasources:
         access: proxy
         url: http://tempo.observability.svc.cluster.local:3200
         editable: false
+      - name: HealthHub
+        type: postgres
+        access: proxy
+        url: timescaledb.health-hub.svc.cluster.local:5432
+        database: healthhub
+        user: healthhub
+        secureJsonData:
+          password: "kBXFGF9NNiLHedI5Mk27BpHP6O5QvJBH"
+        jsonData:
+          sslmode: disable
+          maxOpenConns: 5
+          maxIdleConns: 2
+          connMaxLifetime: 14400
+          postgresVersion: 1700
+          timescaledb: true
+        editable: false
 
 # help grafana to detect provisioned dashboards
 sidecar:
