@@ -62,7 +62,12 @@ spec:
     - name: smart
       rules:
         - alert: DiskPendingSectors
-          expr: smartctl_device_attribute{attribute_name="Current_Pending_Sector", attribute_value_type="raw"} > 0
+          # TODO(2026-12): sdc 디스크 교체 후 원복 — 기존: > 0
+          # sdc는 pending 2개가 물리적으로 복구 불가 상태이므로 3개 이상만 알림
+          expr: >-
+            smartctl_device_attribute{attribute_name="Current_Pending_Sector", attribute_value_type="raw"} > 0
+            unless
+            (smartctl_device_attribute{attribute_name="Current_Pending_Sector", attribute_value_type="raw", device="sdc"} <= 2)
           for: 5m
           labels:
             severity: warning
