@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: opencampus
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/manamana32321/opencampus-api, web=ghcr.io/manamana32321/opencampus-web
+    argocd-image-updater.argoproj.io/api.update-strategy: digest
+    argocd-image-updater.argoproj.io/web.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
