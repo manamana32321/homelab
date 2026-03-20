@@ -24,6 +24,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=7d
       - --storage.tsdb.retention.size=1GB
+      - --web.enable-lifecycle
 
   alertmanager:
     image: prom/alertmanager:v0.28.1

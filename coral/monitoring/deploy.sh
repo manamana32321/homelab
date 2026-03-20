@@ -18,6 +18,11 @@ envsubst '${TELEGRAM_BOT_TOKEN} ${TELEGRAM_CHAT_ID} ${TELEGRAM_MESSAGE_THREAD_ID
 
 docker compose up -d
 
+# Reload configs for running containers (hot-reload without restart)
+sleep 2
+curl -sf -X POST http://localhost:9090/-/reload && echo "Prometheus config reloaded." || echo "Prometheus reload skipped (lifecycle API may not be ready yet)."
+curl -sf -X POST http://localhost:9093/-/reload && echo "Alertmanager config reloaded." || echo "Alertmanager reload skipped."
+
 echo "Monitoring stack deployed."
 echo "  Blackbox Exporter: http://$(hostname -I | awk '{print $1}'):9115"
 echo "  Prometheus:        http://$(hostname -I | awk '{print $1}'):9090"
