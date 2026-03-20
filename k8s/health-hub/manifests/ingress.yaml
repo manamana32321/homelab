@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: health-hub
+  namespace: health-hub
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: health.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: health-hub
+                port:
+                  number: 8080
+  tls:
+    - secretName: health-hub-tls
+      hosts:
+        - health.json-server.win

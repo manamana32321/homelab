@@ -1,0 +1,220 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: health-hub-grafana-dashboard
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  health-hub.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "title": "Daily Steps",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('1 hour', time) AS time, SUM(value) AS steps FROM health_metrics WHERE metric_type = 'steps' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "bars", "fillOpacity": 30 },
+              "unit": "short",
+              "displayName": "Steps"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Heart Rate",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('5 minutes', time) AS time, AVG(value) AS avg_hr, MIN(value) AS min_hr, MAX(value) AS max_hr FROM health_metrics WHERE metric_type = 'heart_rate' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "line", "fillOpacity": 10 },
+              "unit": "bpm",
+              "displayName": "Heart Rate"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Sleep Duration (hours)",
+          "type": "bargauge",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT start_time::date AS time, duration_m / 60.0 AS hours FROM sleep_sessions WHERE $__timeFilter(start_time) ORDER BY start_time DESC LIMIT 14",
+            "format": "time_series",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "h",
+              "min": 0, "max": 12,
+              "thresholds": {
+                "steps": [
+                  { "color": "red", "value": 0 },
+                  { "color": "yellow", "value": 6 },
+                  { "color": "green", "value": 7 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Weight Trend",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time, weight_kg FROM body_measurements WHERE weight_kg IS NOT NULL AND $__timeFilter(time) ORDER BY time",
+            "format": "time_series",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "fixedColor": "blue", "mode": "fixed" },
+              "custom": { "drawStyle": "line", "pointSize": 6, "showPoints": "always" },
+              "unit": "masskg",
+              "displayName": "Weight"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "SpO2",
+          "type": "gauge",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('1 hour', time) AS time, AVG(value) AS spo2 FROM health_metrics WHERE metric_type = 'spo2' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1 DESC LIMIT 1",
+            "format": "table",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 85, "max": 100,
+              "thresholds": {
+                "steps": [
+                  { "color": "red", "value": 85 },
+                  { "color": "yellow", "value": 93 },
+                  { "color": "green", "value": 95 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Calories Burned",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('1 hour', time) AS time, SUM(value) AS kcal FROM health_metrics WHERE metric_type = 'calories' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": {
+              "color": { "fixedColor": "orange", "mode": "fixed" },
+              "custom": { "drawStyle": "bars", "fillOpacity": 40 },
+              "unit": "kcal",
+              "displayName": "Calories"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Exercise Sessions",
+          "type": "table",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT start_time, exercise_type, duration_m, calories_kcal, distance_m FROM exercise_sessions WHERE $__timeFilter(start_time) ORDER BY start_time DESC LIMIT 20",
+            "format": "table",
+            "refId": "A"
+          }],
+          "fieldConfig": { "defaults": {}, "overrides": [] }
+        },
+        {
+          "title": "Nutrition Log",
+          "type": "table",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT time, meal_type, calories, protein_g, fat_g, carbs_g FROM nutrition_records WHERE $__timeFilter(time) ORDER BY time DESC LIMIT 20",
+            "format": "table",
+            "refId": "A"
+          }],
+          "fieldConfig": { "defaults": {}, "overrides": [] }
+        },
+        {
+          "title": "Distance Walked/Run",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT SUM(value) / 1000.0 AS km FROM health_metrics WHERE metric_type = 'distance' AND $__timeFilter(time)",
+            "format": "table",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": { "unit": "km", "displayName": "Total Distance" },
+            "overrides": []
+          }
+        },
+        {
+          "title": "Hydration",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
+          "datasource": { "type": "postgres", "uid": "${DS_HEALTHHUB}" },
+          "targets": [{
+            "rawSql": "SELECT SUM(value) AS ml FROM health_metrics WHERE metric_type = 'hydration' AND $__timeFilter(time)",
+            "format": "table",
+            "refId": "A"
+          }],
+          "fieldConfig": {
+            "defaults": { "unit": "ml", "displayName": "Water Intake" },
+            "overrides": []
+          }
+        }
+      ],
+      "schemaVersion": 39,
+      "templating": {
+        "list": [
+          {
+            "name": "DS_HEALTHHUB",
+            "type": "datasource",
+            "query": "postgres",
+            "current": { "text": "HealthHub", "value": "HealthHub" },
+            "hide": 0
+          }
+        ]
+      },
+      "time": { "from": "now-7d", "to": "now" },
+      "timepicker": {},
+      "timezone": "Asia/Seoul",
+      "title": "Health Hub",
+      "uid": "health-hub",
+      "version": 1
+    }

@@ -68,3 +68,39 @@ resource "aws_iam_user_policy_attachment" "seafile_backup" {
 resource "aws_iam_access_key" "seafile_backup" {
   user = aws_iam_user.seafile_backup.name
 }
+
+# Health Hub backup
+resource "aws_iam_user" "health_backup" {
+  name = "health-backup"
+}
+
+resource "aws_iam_policy" "health_backup" {
+  name        = "health-backup-s3"
+  description = "Allow Health Hub backup CronJobs to sync to S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject",
+      ]
+      Resource = [
+        aws_s3_bucket.health_backup.arn,
+        "${aws_s3_bucket.health_backup.arn}/*",
+      ]
+    }]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "health_backup" {
+  user       = aws_iam_user.health_backup.name
+  policy_arn = aws_iam_policy.health_backup.arn
+}
+
+resource "aws_iam_access_key" "health_backup" {
+  user = aws_iam_user.health_backup.name
+}

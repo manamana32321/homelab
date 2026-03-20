@@ -257,6 +257,15 @@ resource "cloudflare_record" "vercel_verify" {
   content = "vc-domain-verify=amang.json-server.win,9fa5cbcbc9713e7db0c9,dc"
 }
 
+resource "cloudflare_record" "health" {
+  zone_id = cloudflare_zone.main.id
+  name    = "health"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Health Hub dashboard"
+}
+
 # OpenCampus project
 resource "cloudflare_record" "opencampus" {
   zone_id = cloudflare_zone.main.id

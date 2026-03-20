@@ -30,3 +30,20 @@ output "seafile_backup_bucket" {
   description = "S3 bucket name for Seafile backups"
   value       = aws_s3_bucket.seafile_backup.bucket
 }
+
+# Health Hub backup
+output "health_backup_access_key_id" {
+  description = "Access Key ID for health-backup IAM user"
+  value       = aws_iam_access_key.health_backup.id
+}
+
+output "health_backup_secret_access_key" {
+  description = "Secret Access Key for health-backup IAM user"
+  value       = aws_iam_access_key.health_backup.secret
+  sensitive   = true
+}
+
+output "health_backup_bucket" {
+  description = "S3 bucket name for Health Hub backups"
+  value       = aws_s3_bucket.health_backup.bucket
+}
