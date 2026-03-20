@@ -74,6 +74,7 @@ datasources:
         secureJsonData:
           password: "kBXFGF9NNiLHedI5Mk27BpHP6O5QvJBH"
         jsonData:
+          database: healthhub
           sslmode: disable
           maxOpenConns: 5
           maxIdleConns: 2
