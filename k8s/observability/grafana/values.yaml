@@ -69,18 +69,19 @@ datasources:
         type: postgres
         access: proxy
         url: timescaledb.health-hub.svc.cluster.local:5432
-        database: healthhub
         user: healthhub
-        secureJsonData:
-          password: "kBXFGF9NNiLHedI5Mk27BpHP6O5QvJBH"
         jsonData:
           database: healthhub
+          user: healthhub
           sslmode: disable
-          maxOpenConns: 5
-          maxIdleConns: 2
+          maxOpenConns: 100
+          maxIdleConns: 100
+          maxIdleConnsAuto: true
           connMaxLifetime: 14400
           postgresVersion: 1700
           timescaledb: true
+        secureJsonData:
+          password: "kBXFGF9NNiLHedI5Mk27BpHP6O5QvJBH"
         editable: false
 
 # help grafana to detect provisioned dashboards
