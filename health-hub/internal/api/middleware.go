@@ -15,8 +15,16 @@ func authMiddleware(token string, next http.Handler) http.Handler {
 			return
 		}
 
+		// Check Bearer header or ?token= query param
+		authorized := false
 		auth := r.Header.Get("Authorization")
-		if !strings.HasPrefix(auth, "Bearer ") || strings.TrimPrefix(auth, "Bearer ") != token {
+		if strings.HasPrefix(auth, "Bearer ") && strings.TrimPrefix(auth, "Bearer ") == token {
+			authorized = true
+		}
+		if !authorized && r.URL.Query().Get("token") == token {
+			authorized = true
+		}
+		if !authorized {
 			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 			return
 		}

@@ -22,4 +22,5 @@ type DataRepository interface {
 	QueryNutritionRecords(ctx context.Context, q model.TimeRangeQuery) ([]model.NutritionRecord, error)
 	QueryBodyMeasurements(ctx context.Context, q model.TimeRangeQuery) ([]model.BodyMeasurement, error)
 	GetDailySummary(ctx context.Context, date time.Time) (*model.DailySummary, error)
+	PurgeNonWebhookData(ctx context.Context) (int64, error)
 }

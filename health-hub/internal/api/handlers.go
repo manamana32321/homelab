@@ -243,3 +243,12 @@ func (h *handler) summary(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, result)
 }
+
+func (h *handler) purgeData(w http.ResponseWriter, r *http.Request) {
+	deleted, err := h.repo.PurgeNonWebhookData(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]int64{"deleted": deleted})
+}

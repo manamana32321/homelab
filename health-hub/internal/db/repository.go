@@ -410,3 +410,18 @@ func (r *Repository) GetDailySummary(ctx context.Context, date time.Time) (*mode
 
 	return summary, nil
 }
+
+// PurgeNonWebhookData truncates all tables, keeping schema intact.
+// HC Webhook can resync 48h of data after purge.
+func (r *Repository) PurgeNonWebhookData(ctx context.Context) (int64, error) {
+	tables := []string{"health_metrics", "sleep_sessions", "exercise_sessions", "nutrition_records", "body_measurements"}
+	var total int64
+	for _, t := range tables {
+		ct, err := r.pool.Exec(ctx, "DELETE FROM "+t)
+		if err != nil {
+			return total, fmt.Errorf("purge %s: %w", t, err)
+		}
+		total += ct.RowsAffected()
+	}
+	return total, nil
+}

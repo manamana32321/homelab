@@ -141,6 +141,16 @@ func (m *mockRepo) GetDailySummary(_ context.Context, date time.Time) (*model.Da
 	return summary, nil
 }
 
+func (m *mockRepo) PurgeNonWebhookData(_ context.Context) (int64, error) {
+	count := int64(len(m.metrics) + len(m.sleep) + len(m.exercises) + len(m.nutrition) + len(m.body))
+	m.metrics = nil
+	m.sleep = nil
+	m.exercises = nil
+	m.nutrition = nil
+	m.body = nil
+	return count, nil
+}
+
 func newTestServer(repo DataRepository, token string) *httptest.Server {
 	return httptest.NewServer(NewRouter(repo, token))
 }
