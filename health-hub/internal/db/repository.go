@@ -72,7 +72,7 @@ func (r *Repository) InsertSleepSessions(ctx context.Context, sessions []model.S
 		// Check for duplicate by start_time (within 1 minute window)
 		var exists bool
 		err := r.pool.QueryRow(ctx,
-			`SELECT EXISTS(SELECT 1 FROM sleep_sessions WHERE start_time BETWEEN $1 - INTERVAL '1 minute' AND $1 + INTERVAL '1 minute')`,
+			`SELECT EXISTS(SELECT 1 FROM sleep_sessions WHERE start_time BETWEEN $1::timestamptz - INTERVAL '1 minute' AND $1::timestamptz + INTERVAL '1 minute')`,
 			s.StartTime).Scan(&exists)
 		if err != nil {
 			return inserted, fmt.Errorf("check sleep dup: %w", err)
@@ -107,7 +107,7 @@ func (r *Repository) InsertExerciseSessions(ctx context.Context, sessions []mode
 
 		var exists bool
 		err := r.pool.QueryRow(ctx,
-			`SELECT EXISTS(SELECT 1 FROM exercise_sessions WHERE exercise_type = $1 AND start_time BETWEEN $2 - INTERVAL '1 minute' AND $2 + INTERVAL '1 minute')`,
+			`SELECT EXISTS(SELECT 1 FROM exercise_sessions WHERE exercise_type = $1 AND start_time BETWEEN $2::timestamptz - INTERVAL '1 minute' AND $2::timestamptz + INTERVAL '1 minute')`,
 			s.ExerciseType, s.StartTime).Scan(&exists)
 		if err != nil {
 			return inserted, fmt.Errorf("check exercise dup: %w", err)
@@ -143,7 +143,7 @@ func (r *Repository) InsertNutritionRecords(ctx context.Context, records []model
 		// Dedup by time + meal_type (within 1 minute)
 		var exists bool
 		err := r.pool.QueryRow(ctx,
-			`SELECT EXISTS(SELECT 1 FROM nutrition_records WHERE time BETWEEN $1 - INTERVAL '1 minute' AND $1 + INTERVAL '1 minute' AND COALESCE(meal_type,'') = COALESCE($2,''))`,
+			`SELECT EXISTS(SELECT 1 FROM nutrition_records WHERE time BETWEEN $1::timestamptz - INTERVAL '1 minute' AND $1::timestamptz + INTERVAL '1 minute' AND COALESCE(meal_type,'') = COALESCE($2,''))`,
 			n.Time, n.MealType).Scan(&exists)
 		if err != nil {
 			return inserted, fmt.Errorf("check nutrition dup: %w", err)
