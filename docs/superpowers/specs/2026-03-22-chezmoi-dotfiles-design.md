@@ -146,7 +146,8 @@ chezmoi git push
 
 ## 추후 스코프 (이번 미포함)
 
-- `~/.aws/config` (credentials 제외)
-- `~/.kube/config` (age 암호화 필요 → 이때 age 설정 도입)
+- `~/.aws/config` + `~/.aws/credentials` (age 암호화)
+- `~/.kube/config` (age 암호화)
+- → 이 두 파일 도입 시 age 설정 함께 구성
 - Oh My Zsh 커스텀 설정 (`~/.oh-my-zsh/custom/`)
 - `.envrc` 정리 (없으면 삭제 — 현재 홈 디렉토리에 `.envrc` 없음 확인 완료)
