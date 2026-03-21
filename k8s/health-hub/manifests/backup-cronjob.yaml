@@ -30,7 +30,7 @@ spec:
                 - -c
                 - |
                   set -eo pipefail
-                  apk add --no-cache postgresql16-client rclone
+                  apk add --no-cache postgresql17-client rclone
 
                   # rclone config
                   mkdir -p /root/.config/rclone
