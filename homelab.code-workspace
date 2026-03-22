@@ -13,16 +13,10 @@
       "path": "../authentik-central-auth",
     },
   ],
-  "settings": {
-    "terminal.integrated.cwd": "${workspaceFolder:홈랩 · main}",
-    "yaml.schemas": {
-      "kubernetes": "k8s/**/*.yaml"
-    }
-  },
   "extensions": {
     "recommendations": [
       "redhat.vscode-yaml",
-      "ms-kubernetes-tools.vscode-kubernetes-tools"
-    ]
-  }
+      "ms-kubernetes-tools.vscode-kubernetes-tools",
+    ],
+  },
 }

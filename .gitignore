@@ -3,3 +3,4 @@
 **/node_modules/
 .turbo/
 client_secret_*.json
+.playwright-mcp/
