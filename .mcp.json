@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "npx",
+      "args": ["-y", "-p", "mcp-communicator-telegram", "mcptelegram"],
+      "env": {
+        "TELEGRAM_TOKEN": "${TELEGRAM_BOT_TOKEN}",
+        "CHAT_ID": "${TELEGRAM_CHAT_ID}"
+      }
+    },
+    "kubernetes": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-kubernetes"],
+      "env": {
+        "KUBECONFIG": "${KUBECONFIG}"
+      }
+    },
+    "aws": {
+      "command": "uvx",
+      "args": ["awslabs.aws-api-mcp-server@latest"],
+      "env": {
+        "AWS_PROFILE": "${AWS_PROFILE}",
+        "AWS_REGION": "${AWS_REGION}"
+      }
+    }
+  }
+}
