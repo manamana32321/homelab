@@ -1,9 +1,16 @@
 # Cloudflare API Token (for Terraform)
 export TF_VAR_cloudflare_api_token=""
 
-# AWS credentials (S3 backend + aws/ Terraform provider)
-export AWS_ACCESS_KEY_ID=""
-export AWS_SECRET_ACCESS_KEY=""
-
 # Default IP for A records (dynamic IP)
 export TF_VAR_default_ip=""
+
+# Telegram MCP (bot token from @BotFather)
+export TELEGRAM_BOT_TOKEN=""
+export TELEGRAM_CHAT_ID=""
+
+# Kubernetes MCP
+export KUBECONFIG="$HOME/.kube/config"
+
+# AWS MCP
+export AWS_PROFILE="homelab"
+export AWS_REGION="ap-northeast-2"
