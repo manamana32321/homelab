@@ -50,6 +50,7 @@ spec:
                   # Sync library to S3
                   rclone sync /library s3:immich-backup-json-server/media/ \
                     --s3-no-check-bucket \
+                    --fast-list \
                     --transfers 4 \
                     --checkers 8 \
                     --s3-upload-cutoff 100M \
