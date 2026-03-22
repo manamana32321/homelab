@@ -82,6 +82,17 @@ terraform apply
 - 모든 앱은 `k8s/argocd/applications/`에 Application CR로 정의
 - Helm 차트는 multi-source 패턴 사용 (chart + values ref)
 
+### 스토리지 클래스 규칙
+
+| StorageClass | 대상 | 용도 |
+|---|---|---|
+| `longhorn-ssd` (xfs) | server-1 + server-2 SSD | DB/stateful 앱, Prometheus |
+| `local-path-hdd-samsung` | server-1 Samsung 640GB | 텔레메트리 (Loki, Tempo, Grafana) |
+| hostPath `/mnt/hdd-seagate-1t` | server-1 Seagate 1TB | 미디어 (Immich, Seafile) |
+
+- raspi-1: PV 배치 최후순위 (SD카드, IO 느림)
+- 새 PV 추가 시 위 분류에 따라 적절한 StorageClass 선택
+
 ### Secret Management
 - **SealedSecret**: 암호화된 시크릿을 Git에 저장 (`kubeseal`)
 - **Reflector**: `cloudflare-credentials` namespace에서 다른 namespace로 복제
