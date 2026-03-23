@@ -10,7 +10,10 @@ import (
 )
 
 //go:embed migrations/001_init.sql
-var migrationSQL string
+var migration001 string
+
+//go:embed migrations/002_unique_dedup.sql
+var migration002 string
 
 func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
@@ -34,11 +37,21 @@ func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 }
 
 func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
-	slog.Info("running migrations")
-	_, err := pool.Exec(ctx, migrationSQL)
-	if err != nil {
-		return fmt.Errorf("migration: %w", err)
+	migrations := []struct {
+		name string
+		sql  string
+	}{
+		{"001_init", migration001},
+		{"002_unique_dedup", migration002},
 	}
+
+	for _, m := range migrations {
+		slog.Info("running migration", "name", m.name)
+		if _, err := pool.Exec(ctx, m.sql); err != nil {
+			return fmt.Errorf("migration %s: %w", m.name, err)
+		}
+	}
+
 	slog.Info("migrations complete")
 	return nil
 }
