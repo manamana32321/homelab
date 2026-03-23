@@ -54,9 +54,49 @@ data:
           }
         },
         {
+          "title": "Sleep Heatmap",
+          "type": "marcusolsson-hourly-heatmap-panel",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+          "datasource": { "type": "postgres", "uid": "HealthHub" },
+          "targets": [{
+            "rawSql": "SELECT start_time::date AS time, duration_m / 60.0 AS hours FROM sleep_sessions WHERE start_time >= NOW() - INTERVAL '365 days' AND $__timeFilter(start_time) ORDER BY 1",
+            "format": "table",
+            "refId": "A"
+          }],
+          "options": {
+            "from": "now-1y",
+            "to": "now",
+            "calculation": "sum",
+            "color": {
+              "scheme": "Blues",
+              "exponent": 0.5
+            },
+            "cellGap": 2,
+            "cellRadius": 2,
+            "showLegend": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "h",
+              "color": { "mode": "continuous-blues" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "#ebedf0", "value": 0 },
+                  { "color": "#c6dbef", "value": 4 },
+                  { "color": "#6baed6", "value": 6 },
+                  { "color": "#2171b5", "value": 7 },
+                  { "color": "#084594", "value": 9 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
           "title": "Daily Steps",
           "type": "barchart",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time_bucket('1 day', time) AS time, SUM(value) AS steps FROM health_metrics WHERE metric_type = 'steps' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
@@ -83,7 +123,7 @@ data:
         {
           "title": "Heart Rate",
           "type": "timeseries",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time_bucket('5 minutes', time) AS time, AVG(value) AS \"avg\", MIN(value) AS \"min\", MAX(value) AS \"max\" FROM health_metrics WHERE metric_type = 'heart_rate' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
@@ -105,7 +145,7 @@ data:
         {
           "title": "Sleep Duration",
           "type": "barchart",
-          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT start_time::date AS time, duration_m / 60.0 AS hours FROM sleep_sessions WHERE $__timeFilter(start_time) ORDER BY start_time",
@@ -138,7 +178,7 @@ data:
         {
           "title": "Weight Trend",
           "type": "timeseries",
-          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time, weight_kg FROM body_measurements WHERE weight_kg IS NOT NULL AND $__timeFilter(time) ORDER BY time",
@@ -158,7 +198,7 @@ data:
         {
           "title": "SpO2",
           "type": "gauge",
-          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time, value AS spo2 FROM health_metrics WHERE metric_type = 'spo2' AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
@@ -184,7 +224,7 @@ data:
         {
           "title": "Daily Calories Burned",
           "type": "barchart",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time_bucket('1 day', time) AS time, SUM(value) AS kcal FROM health_metrics WHERE metric_type = 'calories' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
@@ -208,7 +248,7 @@ data:
         {
           "title": "Exercise Sessions",
           "type": "table",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT start_time, exercise_type AS type, duration_m AS \"min\", calories_kcal AS kcal, ROUND(distance_m::numeric) AS \"distance_m\" FROM exercise_sessions WHERE $__timeFilter(start_time) ORDER BY start_time DESC LIMIT 20",
@@ -220,7 +260,7 @@ data:
         {
           "title": "Daily Distance",
           "type": "barchart",
-          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 32 },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 40 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT time_bucket('1 day', time) AS time, SUM(value) / 1000.0 AS km FROM health_metrics WHERE metric_type = 'distance' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
@@ -244,7 +284,7 @@ data:
         {
           "title": "Hydration",
           "type": "stat",
-          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 32 },
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 40 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [{
             "rawSql": "SELECT SUM(value) AS ml FROM health_metrics WHERE metric_type = 'hydration' AND $__timeFilter(time)",
@@ -259,7 +299,7 @@ data:
         {
           "title": "Today's Summary",
           "type": "stat",
-          "gridPos": { "h": 4, "w": 12, "x": 12, "y": 32 },
+          "gridPos": { "h": 4, "w": 12, "x": 12, "y": 40 },
           "datasource": { "type": "postgres", "uid": "HealthHub" },
           "targets": [
             {
