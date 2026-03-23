@@ -1,6 +1,9 @@
 # check default values.yaml
 # https://artifacthub.io/packages/helm/grafana/grafana?modal=values
 
+plugins:
+  - marcusolsson-hourly-heatmap-panel
+
 envFromSecret: grafana-github-oauth
 
 replicas: 1
