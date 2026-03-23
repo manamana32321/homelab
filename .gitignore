@@ -4,3 +4,4 @@
 .turbo/
 client_secret_*.json
 .playwright-mcp/
+.claude/settings.local.json
