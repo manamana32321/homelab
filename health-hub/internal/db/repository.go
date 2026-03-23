@@ -30,7 +30,7 @@ func (r *Repository) InsertMetrics(ctx context.Context, metrics []model.Metric) 
 	}
 	query := `INSERT INTO health_metrics (time, metric_type, value, unit, source, metadata)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT DO NOTHING`
+		ON CONFLICT (time, metric_type) DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit, source = EXCLUDED.source, metadata = EXCLUDED.metadata`
 
 	batch := &pgx.Batch{}
 	for _, m := range metrics {
@@ -171,7 +171,7 @@ func (r *Repository) InsertBodyMeasurements(ctx context.Context, measurements []
 
 	query := `INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg)
 		VALUES ($1, $2, $3, $4)
-		ON CONFLICT DO NOTHING`
+		ON CONFLICT (time) DO UPDATE SET weight_kg = EXCLUDED.weight_kg, body_fat_pct = EXCLUDED.body_fat_pct, lean_mass_kg = EXCLUDED.lean_mass_kg`
 
 	batch := &pgx.Batch{}
 	for _, m := range measurements {
