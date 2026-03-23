@@ -12,6 +12,10 @@
       "name": "홈랩 · authentik-central-auth",
       "path": "../authentik-central-auth",
     },
+    {
+      "name": "홈랩 · opencampus-infra",
+      "path": "../opencampus-infra",
+    },
   ],
   "extensions": {
     "recommendations": [

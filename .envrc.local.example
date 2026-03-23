@@ -14,3 +14,6 @@ export KUBECONFIG="$HOME/.kube/config"
 # AWS MCP
 export AWS_PROFILE="homelab"
 export AWS_REGION="ap-northeast-2"
+
+# GitHub MCP (gh CLI 토큰 재활용, gh auth login 필요)
+export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
