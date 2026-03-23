@@ -139,11 +139,12 @@ func (h *handler) hcWebhook(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	result := model.IngestResult{}
 
-	// Convert steps → metrics
+	// Convert steps → metrics (truncate to hour to prevent duplicates from overlapping syncs)
 	var metrics []model.Metric
 	for _, s := range payload.Steps {
+		t := parseTime(s.StartTime).Truncate(time.Hour)
 		metrics = append(metrics, model.Metric{
-			Time: parseTime(s.EndTime), MetricType: "steps", Value: float64(s.Count), Unit: "count", Source: "hc_webhook",
+			Time: t, MetricType: "steps", Value: float64(s.Count), Unit: "count", Source: "hc_webhook",
 		})
 	}
 	for _, hr := range payload.HeartRate {
@@ -162,18 +163,21 @@ func (h *handler) hcWebhook(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	for _, d := range payload.Distance {
+		t := parseTime(d.StartTime).Truncate(time.Hour)
 		metrics = append(metrics, model.Metric{
-			Time: parseTime(d.EndTime), MetricType: "distance", Value: d.Meters, Unit: "m", Source: "hc_webhook",
+			Time: t, MetricType: "distance", Value: d.Meters, Unit: "m", Source: "hc_webhook",
 		})
 	}
 	for _, c := range payload.ActiveCalories {
+		t := parseTime(c.StartTime).Truncate(time.Hour)
 		metrics = append(metrics, model.Metric{
-			Time: parseTime(c.EndTime), MetricType: "active_calories", Value: c.Calories, Unit: "kcal", Source: "hc_webhook",
+			Time: t, MetricType: "active_calories", Value: c.Calories, Unit: "kcal", Source: "hc_webhook",
 		})
 	}
 	for _, c := range payload.TotalCalories {
+		t := parseTime(c.StartTime).Truncate(time.Hour)
 		metrics = append(metrics, model.Metric{
-			Time: parseTime(c.EndTime), MetricType: "calories", Value: c.Calories, Unit: "kcal", Source: "hc_webhook",
+			Time: t, MetricType: "calories", Value: c.Calories, Unit: "kcal", Source: "hc_webhook",
 		})
 	}
 	for _, o := range payload.OxygenSaturation {
@@ -182,8 +186,9 @@ func (h *handler) hcWebhook(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	for _, hy := range payload.Hydration {
+		t := parseTime(hy.StartTime).Truncate(time.Hour)
 		metrics = append(metrics, model.Metric{
-			Time: parseTime(hy.EndTime), MetricType: "hydration", Value: hy.Liters * 1000, Unit: "mL", Source: "hc_webhook",
+			Time: t, MetricType: "hydration", Value: hy.Liters * 1000, Unit: "mL", Source: "hc_webhook",
 		})
 	}
 	for _, bp := range payload.BloodPressure {
