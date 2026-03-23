@@ -27,10 +27,10 @@ resource "cloudflare_record" "wildcard_amang" {
 resource "cloudflare_record" "amang_staging" {
   zone_id = cloudflare_zone.main.id
   name    = "amang.staging"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "cname.vercel-dns.com"
   proxied = false
-  comment = "AMANG staging web"
+  comment = "AMANG staging web (Vercel preview deployment)"
 }
 
 resource "cloudflare_record" "wildcard_amang_staging" {
