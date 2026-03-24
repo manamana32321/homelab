@@ -1,7 +1,8 @@
+# API — Bearer token auth (no Authentik)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: health-hub
+  name: health-hub-api
   namespace: health-hub
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
@@ -26,6 +27,26 @@ spec:
                 name: health-hub
                 port:
                   number: 8080
+  tls:
+    - secretName: health-hub-tls
+      hosts:
+        - health.json-server.win
+---
+# Dashboard — Authentik forward auth
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: health-hub-dashboard
+  namespace: health-hub
+  annotations:
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+    traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: health.json-server.win
+      http:
+        paths:
           - path: /
             pathType: Prefix
             backend:
