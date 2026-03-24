@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: factorio
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: factorio=factoriotools/factorio:~2.0
+    argocd-image-updater.argoproj.io/factorio.update-strategy: semver
+    argocd-image-updater.argoproj.io/factorio.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/factorio.helm.image-tag: image.tag
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
