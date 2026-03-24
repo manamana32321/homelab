@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Footprints,
   Moon,
@@ -21,14 +22,15 @@ import {
 } from "@/lib/format";
 
 export default function HomePage() {
-  const date = today();
-  const { data, isLoading } = useSummary(date);
+  const [date, setDate] = useState("");
+  useEffect(() => setDate(today()), []);
+  const { data, isLoading } = useSummary(date || today());
 
   return (
     <div>
       <h2 className="text-xl font-bold mb-1">오늘의 건강</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        {formatDateFull(date + "T00:00:00")}
+        {date && formatDateFull(date + "T00:00:00")}
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
