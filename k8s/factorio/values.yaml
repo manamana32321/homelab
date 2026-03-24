@@ -5,7 +5,7 @@ nodeSelector:
   kubernetes.io/hostname: json-server-2
 
 image:
-  tag: "2.0.73"
+  tag: "2.0.76"
 
 service:
   type: ClusterIP
@@ -30,7 +30,7 @@ factorioServer:
 
 server_settings:
   name: "JSON"
-  description: "JSON Factorio Space Age Server\n접속법: factorio-admin.json-server.win 에서 가입 후 화이트리스트 등록"
+  description: "JSON Factorio Space Age Server\n접속법: factorio.json-server.win 또는 factorio-admin.json-server.win 에서 가입 후 화이트리스트 등록"
   tags:
     - space-age
   visibility:
