@@ -244,6 +244,26 @@ func (h *handler) summary(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+func (h *handler) addMeal(w http.ResponseWriter, r *http.Request) {
+	var meal model.NutritionRecord
+	if err := json.NewDecoder(r.Body).Decode(&meal); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json: "+err.Error())
+		return
+	}
+
+	if meal.Time.IsZero() {
+		meal.Time = time.Now()
+	}
+
+	n, err := h.repo.InsertNutritionRecords(r.Context(), []model.NutritionRecord{meal})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"inserted": n, "meal": meal})
+}
+
 func (h *handler) purgeData(w http.ResponseWriter, r *http.Request) {
 	deleted, err := h.repo.PurgeNonWebhookData(r.Context())
 	if err != nil {

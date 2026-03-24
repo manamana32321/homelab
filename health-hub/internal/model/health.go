@@ -44,11 +44,13 @@ type ExerciseSession struct {
 type NutritionRecord struct {
 	ID       int64                  `json:"id,omitempty"`
 	Time     time.Time              `json:"time"`
+	Name     *string                `json:"name,omitempty"`
 	MealType *string                `json:"meal_type,omitempty"`
 	Calories *float64               `json:"calories,omitempty"`
 	ProteinG *float64               `json:"protein_g,omitempty"`
 	FatG     *float64               `json:"fat_g,omitempty"`
 	CarbsG   *float64               `json:"carbs_g,omitempty"`
+	Notes    *string                `json:"notes,omitempty"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 

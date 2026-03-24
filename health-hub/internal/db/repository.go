@@ -153,8 +153,8 @@ func (r *Repository) InsertNutritionRecords(ctx context.Context, records []model
 		}
 
 		_, err = r.pool.Exec(ctx,
-			`INSERT INTO nutrition_records (time, meal_type, calories, protein_g, fat_g, carbs_g, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-			n.Time, n.MealType, n.Calories, n.ProteinG, n.FatG, n.CarbsG, meta)
+			`INSERT INTO nutrition_records (time, name, meal_type, calories, protein_g, fat_g, carbs_g, notes, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			n.Time, n.Name, n.MealType, n.Calories, n.ProteinG, n.FatG, n.CarbsG, n.Notes, meta)
 		if err != nil {
 			return inserted, fmt.Errorf("insert nutrition: %w", err)
 		}
@@ -279,7 +279,7 @@ func (r *Repository) QueryExerciseSessions(ctx context.Context, q model.TimeRang
 // QueryNutritionRecords returns nutrition records in a time range.
 func (r *Repository) QueryNutritionRecords(ctx context.Context, q model.TimeRangeQuery) ([]model.NutritionRecord, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, time, meal_type, calories, protein_g, fat_g, carbs_g, metadata
+		SELECT id, time, name, meal_type, calories, protein_g, fat_g, carbs_g, notes, metadata
 		FROM nutrition_records
 		WHERE time >= $1 AND time < $2
 		ORDER BY time DESC`, q.From, q.To)
@@ -292,7 +292,7 @@ func (r *Repository) QueryNutritionRecords(ctx context.Context, q model.TimeRang
 	for rows.Next() {
 		var n model.NutritionRecord
 		var metaJSON []byte
-		if err := rows.Scan(&n.ID, &n.Time, &n.MealType, &n.Calories, &n.ProteinG, &n.FatG, &n.CarbsG, &metaJSON); err != nil {
+		if err := rows.Scan(&n.ID, &n.Time, &n.Name, &n.MealType, &n.Calories, &n.ProteinG, &n.FatG, &n.CarbsG, &n.Notes, &metaJSON); err != nil {
 			return nil, fmt.Errorf("scan nutrition: %w", err)
 		}
 		if metaJSON != nil {

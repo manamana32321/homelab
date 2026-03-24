@@ -210,6 +210,89 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 		),
 		makeMetricHandler(repo, "distance"),
 	)
+
+	// add_meal — 식단 기록 추가
+	s.AddTool(
+		mcp.NewTool("add_meal",
+			mcp.WithDescription("식단/식사를 기록합니다. 사용자가 먹은 음식을 Health Hub에 저장합니다."),
+			mcp.WithString("name", mcp.Description("음식 이름 (예: '고등어구이, 계란프라이, 샐러드'). 필수."), mcp.Required()),
+			mcp.WithString("meal_type", mcp.Description("식사 종류: breakfast, lunch, dinner, snack. 생략 가능.")),
+			mcp.WithNumber("calories", mcp.Description("칼로리 (kcal). 모르면 생략.")),
+			mcp.WithNumber("protein_g", mcp.Description("단백질 (g). 모르면 생략.")),
+			mcp.WithNumber("fat_g", mcp.Description("지방 (g). 모르면 생략.")),
+			mcp.WithNumber("carbs_g", mcp.Description("탄수화물 (g). 모르면 생략.")),
+			mcp.WithString("notes", mcp.Description("메모 (예: '클린식', '설밀나튀 0'). 생략 가능.")),
+			mcp.WithString("time", mcp.Description("식사 시간 (RFC3339 또는 HH:MM). 생략하면 현재 시각.")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			name := req.GetString("name", "")
+			if name == "" {
+				return mcp.NewToolResultError("음식 이름(name)은 필수입니다."), nil
+			}
+
+			meal := model.NutritionRecord{
+				Name: &name,
+				Time: time.Now(),
+			}
+
+			if mt := req.GetString("meal_type", ""); mt != "" {
+				meal.MealType = &mt
+			}
+			if notes := req.GetString("notes", ""); notes != "" {
+				meal.Notes = &notes
+			}
+			if timeStr := req.GetString("time", ""); timeStr != "" {
+				if t, err := time.Parse(time.RFC3339, timeStr); err == nil {
+					meal.Time = t
+				} else if t, err := time.Parse("15:04", timeStr); err == nil {
+					now := time.Now()
+					meal.Time = time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
+				}
+			}
+
+			args := req.GetArguments()
+			if v, ok := args["calories"].(float64); ok {
+				meal.Calories = &v
+			}
+			if v, ok := args["protein_g"].(float64); ok {
+				meal.ProteinG = &v
+			}
+			if v, ok := args["fat_g"].(float64); ok {
+				meal.FatG = &v
+			}
+			if v, ok := args["carbs_g"].(float64); ok {
+				meal.CarbsG = &v
+			}
+
+			n, err := repo.InsertNutritionRecords(ctx, []model.NutritionRecord{meal})
+			if err != nil {
+				return mcp.NewToolResultError("저장 실패: " + err.Error()), nil
+			}
+
+			return mcp.NewToolResultText(fmt.Sprintf("식단 기록 완료 (%d건): %s", n, name)), nil
+		},
+	)
+
+	// get_meals — 식단 기록 조회
+	s.AddTool(
+		mcp.NewTool("get_meals",
+			mcp.WithDescription("식단/식사 기록을 조회합니다. 음식명, 영양소, 메모 등을 반환합니다."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
+			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			from, to := parseRange(req)
+			records, err := repo.QueryNutritionRecords(ctx, model.TimeRangeQuery{From: from, To: to})
+			if err != nil {
+				return mcp.NewToolResultError("조회 실패: " + err.Error()), nil
+			}
+			if records == nil {
+				records = []model.NutritionRecord{}
+			}
+			b, _ := json.MarshalIndent(records, "", "  ")
+			return mcp.NewToolResultText(string(b)), nil
+		},
+	)
 }
 
 func makeMetricHandler(repo *db.Repository, metricType string) server.ToolHandlerFunc {
