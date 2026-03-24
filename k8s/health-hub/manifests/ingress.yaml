@@ -12,13 +12,27 @@ spec:
     - host: health.json-server.win
       http:
         paths:
-          - path: /
+          - path: /api/v1
             pathType: Prefix
             backend:
               service:
                 name: health-hub
                 port:
                   number: 8080
+          - path: /healthz
+            pathType: Exact
+            backend:
+              service:
+                name: health-hub
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
   tls:
     - secretName: health-hub-tls
       hosts:
