@@ -60,3 +60,40 @@ spec:
               port: http
             initialDelaySeconds: 3
             periodSeconds: 5
+        - name: mcp
+          image: ghcr.io/manamana32321/health-hub:latest
+          command: ["health-hub-mcp"]
+          imagePullPolicy: Always
+          ports:
+            - name: mcp
+              containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: timescaledb
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: healthhub
+            - name: DB_NAME
+              value: healthhub
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: health-hub-secret
+                  key: DB_PASSWORD
+            - name: LISTEN_ADDR
+              value: ":8081"
+            - name: BASE_URL
+              value: "http://health-hub.health-hub.svc.cluster.local:8081"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          livenessProbe:
+            tcpSocket:
+              port: mcp
+            initialDelaySeconds: 5
+            periodSeconds: 30
