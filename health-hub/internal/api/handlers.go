@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -255,13 +256,112 @@ func (h *handler) addMeal(w http.ResponseWriter, r *http.Request) {
 		meal.Time = time.Now()
 	}
 
-	n, err := h.repo.InsertNutritionRecords(r.Context(), []model.NutritionRecord{meal})
+	id, err := h.repo.InsertNutritionRecord(r.Context(), meal)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"inserted": n, "meal": meal})
+	meal.ID = id
+	writeJSON(w, http.StatusCreated, meal)
+}
+
+func (h *handler) updateMeal(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := parseInt64(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	existing, err := h.repo.GetNutritionRecord(r.Context(), id)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "record not found")
+		return
+	}
+
+	// Decode partial update
+	var patch model.NutritionRecord
+	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json: "+err.Error())
+		return
+	}
+
+	// Merge: only overwrite non-zero fields
+	existing.ID = id
+	if patch.Name != nil {
+		existing.Name = patch.Name
+	}
+	if patch.MealType != nil {
+		existing.MealType = patch.MealType
+	}
+	if !patch.Time.IsZero() {
+		existing.Time = patch.Time
+	}
+	if patch.Calories != nil {
+		existing.Calories = patch.Calories
+	}
+	if patch.ProteinG != nil {
+		existing.ProteinG = patch.ProteinG
+	}
+	if patch.FatG != nil {
+		existing.FatG = patch.FatG
+	}
+	if patch.CarbsG != nil {
+		existing.CarbsG = patch.CarbsG
+	}
+	if patch.Notes != nil {
+		existing.Notes = patch.Notes
+	}
+
+	if err := h.repo.UpdateNutritionRecord(r.Context(), *existing); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, existing)
+}
+
+func (h *handler) deleteMeal(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := parseInt64(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	if err := h.repo.DeleteNutritionRecord(r.Context(), id); err != nil {
+		writeError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+func (h *handler) getMeals(w http.ResponseWriter, r *http.Request) {
+	from, to, err := parseTimeRange(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid time format: "+err.Error())
+		return
+	}
+
+	mealType := r.URL.Query().Get("meal_type")
+	results, err := h.repo.QueryNutritionByType(r.Context(), model.TimeRangeQuery{From: from, To: to}, mealType)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if results == nil {
+		results = []model.NutritionRecord{}
+	}
+	writeJSON(w, http.StatusOK, results)
+}
+
+func parseInt64(s string) (int64, error) {
+	var id int64
+	_, err := fmt.Sscanf(s, "%d", &id)
+	return id, err
 }
 
 func (h *handler) purgeData(w http.ResponseWriter, r *http.Request) {

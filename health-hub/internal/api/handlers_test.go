@@ -151,6 +151,58 @@ func (m *mockRepo) PurgeNonWebhookData(_ context.Context) (int64, error) {
 	return count, nil
 }
 
+func (m *mockRepo) InsertNutritionRecord(_ context.Context, n model.NutritionRecord) (int64, error) {
+	n.ID = int64(len(m.nutrition) + 1)
+	m.nutrition = append(m.nutrition, n)
+	return n.ID, nil
+}
+
+func (m *mockRepo) UpdateNutritionRecord(_ context.Context, n model.NutritionRecord) error {
+	for i, existing := range m.nutrition {
+		if existing.ID == n.ID {
+			m.nutrition[i] = n
+			return nil
+		}
+	}
+	return fmt.Errorf("record not found: %d", n.ID)
+}
+
+func (m *mockRepo) DeleteNutritionRecord(_ context.Context, id int64) error {
+	for i, n := range m.nutrition {
+		if n.ID == id {
+			m.nutrition = append(m.nutrition[:i], m.nutrition[i+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("record not found: %d", id)
+}
+
+func (m *mockRepo) GetNutritionRecord(_ context.Context, id int64) (*model.NutritionRecord, error) {
+	for _, n := range m.nutrition {
+		if n.ID == id {
+			return &n, nil
+		}
+	}
+	return nil, fmt.Errorf("record not found: %d", id)
+}
+
+func (m *mockRepo) QueryNutritionByType(_ context.Context, q model.TimeRangeQuery, mealType string) ([]model.NutritionRecord, error) {
+	var results []model.NutritionRecord
+	for _, n := range m.nutrition {
+		if !n.Time.Before(q.From) && n.Time.Before(q.To) {
+			if mealType == "" || (n.MealType != nil && *n.MealType == mealType) {
+				results = append(results, n)
+			}
+		}
+	}
+	return results, nil
+}
+
+func (m *mockRepo) InsertBodyMeasurement(_ context.Context, bm model.BodyMeasurement) error {
+	m.body = append(m.body, bm)
+	return nil
+}
+
 func newTestServer(repo DataRepository, token string) *httptest.Server {
 	return httptest.NewServer(NewRouter(repo, token))
 }

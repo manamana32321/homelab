@@ -163,6 +163,113 @@ func (r *Repository) InsertNutritionRecords(ctx context.Context, records []model
 	return inserted, nil
 }
 
+// InsertNutritionRecord inserts a single nutrition record and returns the ID.
+func (r *Repository) InsertNutritionRecord(ctx context.Context, n model.NutritionRecord) (int64, error) {
+	var meta []byte
+	if n.Metadata != nil {
+		meta, _ = json.Marshal(n.Metadata)
+	}
+
+	var id int64
+	err := r.pool.QueryRow(ctx,
+		`INSERT INTO nutrition_records (time, name, meal_type, calories, protein_g, fat_g, carbs_g, notes, metadata)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		n.Time, n.Name, n.MealType, n.Calories, n.ProteinG, n.FatG, n.CarbsG, n.Notes, meta).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("insert nutrition: %w", err)
+	}
+	return id, nil
+}
+
+// UpdateNutritionRecord updates an existing nutrition record by ID.
+func (r *Repository) UpdateNutritionRecord(ctx context.Context, n model.NutritionRecord) error {
+	var meta []byte
+	if n.Metadata != nil {
+		meta, _ = json.Marshal(n.Metadata)
+	}
+
+	ct, err := r.pool.Exec(ctx,
+		`UPDATE nutrition_records SET time=$1, name=$2, meal_type=$3, calories=$4, protein_g=$5, fat_g=$6, carbs_g=$7, notes=$8, metadata=$9 WHERE id=$10`,
+		n.Time, n.Name, n.MealType, n.Calories, n.ProteinG, n.FatG, n.CarbsG, n.Notes, meta, n.ID)
+	if err != nil {
+		return fmt.Errorf("update nutrition: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return fmt.Errorf("record not found: %d", n.ID)
+	}
+	return nil
+}
+
+// DeleteNutritionRecord deletes a nutrition record by ID.
+func (r *Repository) DeleteNutritionRecord(ctx context.Context, id int64) error {
+	ct, err := r.pool.Exec(ctx, `DELETE FROM nutrition_records WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("delete nutrition: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return fmt.Errorf("record not found: %d", id)
+	}
+	return nil
+}
+
+// GetNutritionRecord gets a single nutrition record by ID.
+func (r *Repository) GetNutritionRecord(ctx context.Context, id int64) (*model.NutritionRecord, error) {
+	var n model.NutritionRecord
+	var metaJSON []byte
+	err := r.pool.QueryRow(ctx,
+		`SELECT id, time, name, meal_type, calories, protein_g, fat_g, carbs_g, notes, metadata FROM nutrition_records WHERE id = $1`, id).
+		Scan(&n.ID, &n.Time, &n.Name, &n.MealType, &n.Calories, &n.ProteinG, &n.FatG, &n.CarbsG, &n.Notes, &metaJSON)
+	if err != nil {
+		return nil, fmt.Errorf("get nutrition: %w", err)
+	}
+	if metaJSON != nil {
+		_ = json.Unmarshal(metaJSON, &n.Metadata)
+	}
+	return &n, nil
+}
+
+// QueryNutritionByType returns nutrition records filtered by meal_type.
+func (r *Repository) QueryNutritionByType(ctx context.Context, q model.TimeRangeQuery, mealType string) ([]model.NutritionRecord, error) {
+	query := `SELECT id, time, name, meal_type, calories, protein_g, fat_g, carbs_g, notes, metadata
+		FROM nutrition_records WHERE time >= $1 AND time < $2`
+	args := []interface{}{q.From, q.To}
+
+	if mealType != "" {
+		query += " AND meal_type = $3"
+		args = append(args, mealType)
+	}
+	query += " ORDER BY time DESC"
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query nutrition: %w", err)
+	}
+	defer rows.Close()
+
+	var results []model.NutritionRecord
+	for rows.Next() {
+		var n model.NutritionRecord
+		var metaJSON []byte
+		if err := rows.Scan(&n.ID, &n.Time, &n.Name, &n.MealType, &n.Calories, &n.ProteinG, &n.FatG, &n.CarbsG, &n.Notes, &metaJSON); err != nil {
+			return nil, fmt.Errorf("scan nutrition: %w", err)
+		}
+		if metaJSON != nil {
+			_ = json.Unmarshal(metaJSON, &n.Metadata)
+		}
+		results = append(results, n)
+	}
+	return results, rows.Err()
+}
+
+// InsertBodyMeasurement inserts a single body measurement and returns the time.
+func (r *Repository) InsertBodyMeasurement(ctx context.Context, m model.BodyMeasurement) error {
+	_, err := r.pool.Exec(ctx,
+		`INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (time) DO UPDATE SET weight_kg = EXCLUDED.weight_kg, body_fat_pct = EXCLUDED.body_fat_pct, lean_mass_kg = EXCLUDED.lean_mass_kg`,
+		m.Time, m.WeightKg, m.BodyFatPct, m.LeanMassKg)
+	return err
+}
+
 // InsertBodyMeasurements inserts body composition data.
 func (r *Repository) InsertBodyMeasurements(ctx context.Context, measurements []model.BodyMeasurement) (int, error) {
 	if len(measurements) == 0 {

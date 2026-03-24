@@ -264,12 +264,12 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 				meal.CarbsG = &v
 			}
 
-			n, err := repo.InsertNutritionRecords(ctx, []model.NutritionRecord{meal})
+			id, err := repo.InsertNutritionRecord(ctx, meal)
 			if err != nil {
 				return mcp.NewToolResultError("저장 실패: " + err.Error()), nil
 			}
 
-			return mcp.NewToolResultText(fmt.Sprintf("식단 기록 완료 (%d건): %s", n, name)), nil
+			return mcp.NewToolResultText(fmt.Sprintf("식단 기록 완료 (ID: %d): %s", id, name)), nil
 		},
 	)
 
@@ -279,10 +279,12 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 			mcp.WithDescription("식단/식사 기록을 조회합니다. 음식명, 영양소, 메모 등을 반환합니다."),
 			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
 			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+			mcp.WithString("meal_type", mcp.Description("필터: breakfast, lunch, dinner, snack. 생략하면 전체.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			from, to := parseRange(req)
-			records, err := repo.QueryNutritionRecords(ctx, model.TimeRangeQuery{From: from, To: to})
+			mealType := req.GetString("meal_type", "")
+			records, err := repo.QueryNutritionByType(ctx, model.TimeRangeQuery{From: from, To: to}, mealType)
 			if err != nil {
 				return mcp.NewToolResultError("조회 실패: " + err.Error()), nil
 			}
@@ -291,6 +293,128 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 			}
 			b, _ := json.MarshalIndent(records, "", "  ")
 			return mcp.NewToolResultText(string(b)), nil
+		},
+	)
+
+	// update_meal — 식단 기록 수정
+	s.AddTool(
+		mcp.NewTool("update_meal",
+			mcp.WithDescription("기존 식단 기록을 수정합니다. ID로 특정 기록을 찾아 수정합니다."),
+			mcp.WithNumber("id", mcp.Description("수정할 식단 기록 ID. 필수."), mcp.Required()),
+			mcp.WithString("name", mcp.Description("음식 이름.")),
+			mcp.WithString("meal_type", mcp.Description("식사 종류.")),
+			mcp.WithNumber("calories", mcp.Description("칼로리 (kcal).")),
+			mcp.WithNumber("protein_g", mcp.Description("단백질 (g).")),
+			mcp.WithNumber("fat_g", mcp.Description("지방 (g).")),
+			mcp.WithNumber("carbs_g", mcp.Description("탄수화물 (g).")),
+			mcp.WithString("notes", mcp.Description("메모.")),
+			mcp.WithString("time", mcp.Description("식사 시간 (RFC3339).")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			idFloat, ok := args["id"].(float64)
+			if !ok {
+				return mcp.NewToolResultError("ID는 필수입니다."), nil
+			}
+			id := int64(idFloat)
+
+			existing, err := repo.GetNutritionRecord(ctx, id)
+			if err != nil {
+				return mcp.NewToolResultError(fmt.Sprintf("기록을 찾을 수 없습니다 (ID: %d)", id)), nil
+			}
+
+			if v := req.GetString("name", ""); v != "" {
+				existing.Name = &v
+			}
+			if v := req.GetString("meal_type", ""); v != "" {
+				existing.MealType = &v
+			}
+			if v := req.GetString("notes", ""); v != "" {
+				existing.Notes = &v
+			}
+			if v := req.GetString("time", ""); v != "" {
+				if t, err := time.Parse(time.RFC3339, v); err == nil {
+					existing.Time = t
+				}
+			}
+			if v, ok := args["calories"].(float64); ok {
+				existing.Calories = &v
+			}
+			if v, ok := args["protein_g"].(float64); ok {
+				existing.ProteinG = &v
+			}
+			if v, ok := args["fat_g"].(float64); ok {
+				existing.FatG = &v
+			}
+			if v, ok := args["carbs_g"].(float64); ok {
+				existing.CarbsG = &v
+			}
+
+			if err := repo.UpdateNutritionRecord(ctx, *existing); err != nil {
+				return mcp.NewToolResultError("수정 실패: " + err.Error()), nil
+			}
+
+			b, _ := json.MarshalIndent(existing, "", "  ")
+			return mcp.NewToolResultText(fmt.Sprintf("식단 기록 수정 완료 (ID: %d)\n%s", id, string(b))), nil
+		},
+	)
+
+	// delete_meal — 식단 기록 삭제
+	s.AddTool(
+		mcp.NewTool("delete_meal",
+			mcp.WithDescription("식단 기록을 삭제합니다."),
+			mcp.WithNumber("id", mcp.Description("삭제할 식단 기록 ID. 필수."), mcp.Required()),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			idFloat, ok := args["id"].(float64)
+			if !ok {
+				return mcp.NewToolResultError("ID는 필수입니다."), nil
+			}
+			id := int64(idFloat)
+
+			if err := repo.DeleteNutritionRecord(ctx, id); err != nil {
+				return mcp.NewToolResultError(fmt.Sprintf("삭제 실패: %v", err)), nil
+			}
+
+			return mcp.NewToolResultText(fmt.Sprintf("식단 기록 삭제 완료 (ID: %d)", id)), nil
+		},
+	)
+
+	// add_weight — 체중 수동 입력
+	s.AddTool(
+		mcp.NewTool("add_weight",
+			mcp.WithDescription("체중을 수동으로 기록합니다."),
+			mcp.WithNumber("weight_kg", mcp.Description("체중 (kg). 필수."), mcp.Required()),
+			mcp.WithNumber("body_fat_pct", mcp.Description("체지방률 (%). 모르면 생략.")),
+			mcp.WithString("time", mcp.Description("측정 시간 (RFC3339). 생략하면 현재 시각.")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args := req.GetArguments()
+			wt, ok := args["weight_kg"].(float64)
+			if !ok || wt <= 0 {
+				return mcp.NewToolResultError("체중(weight_kg)은 필수입니다."), nil
+			}
+
+			bm := model.BodyMeasurement{
+				Time:     time.Now(),
+				WeightKg: &wt,
+			}
+
+			if v, ok := args["body_fat_pct"].(float64); ok {
+				bm.BodyFatPct = &v
+			}
+			if v := req.GetString("time", ""); v != "" {
+				if t, err := time.Parse(time.RFC3339, v); err == nil {
+					bm.Time = t
+				}
+			}
+
+			if err := repo.InsertBodyMeasurement(ctx, bm); err != nil {
+				return mcp.NewToolResultError("저장 실패: " + err.Error()), nil
+			}
+
+			return mcp.NewToolResultText(fmt.Sprintf("체중 기록 완료: %.1fkg", wt)), nil
 		},
 	)
 }
