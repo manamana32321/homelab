@@ -2,7 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/manamana32321/homelab/health-hub/internal/model"
@@ -130,11 +135,32 @@ func parseTime(s string) time.Time {
 }
 
 func (h *handler) hcWebhook(w http.ResponseWriter, r *http.Request) {
+	// Read raw body for debug logging, then decode
+	rawBody, _ := io.ReadAll(r.Body)
 	var payload hcWebhookPayload
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.Unmarshal(rawBody, &payload); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json: "+err.Error())
 		return
 	}
+
+	// Save raw payload to disk for debugging
+	debugDir := os.Getenv("DEBUG_PAYLOAD_DIR")
+	if debugDir == "" {
+		debugDir = "/tmp/hc-webhook-payloads"
+	}
+	os.MkdirAll(debugDir, 0755)
+	ts := time.Now().Format("20060102-150405")
+	debugPath := filepath.Join(debugDir, fmt.Sprintf("payload-%s.json", ts))
+	os.WriteFile(debugPath, rawBody, 0644)
+
+	// Log summary
+	var rawMap map[string]json.RawMessage
+	json.Unmarshal(rawBody, &rawMap)
+	keys := make([]string, 0, len(rawMap))
+	for k := range rawMap {
+		keys = append(keys, k)
+	}
+	slog.Info("hc-webhook received", "keys", keys, "weight_count", len(payload.Weight), "saved_to", debugPath)
 
 	ctx := r.Context()
 	result := model.IngestResult{}
