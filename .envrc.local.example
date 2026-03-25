@@ -1,3 +1,6 @@
+# Notion MCP (https://www.notion.so/profile/integrations 에서 Internal Integration 생성)
+export NOTION_TOKEN=""
+
 # Cloudflare API Token (for Terraform)
 export TF_VAR_cloudflare_api_token=""
 
