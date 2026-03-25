@@ -16,6 +16,10 @@
       "name": "홈랩 · opencampus-infra",
       "path": "../opencampus-infra",
     },
+    {
+      "name": "SME투어 · main",
+      "path": "../../sme-tour-worktrees/main",
+    },
   ],
   "extensions": {
     "recommendations": [
