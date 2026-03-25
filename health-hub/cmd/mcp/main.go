@@ -63,7 +63,7 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_daily_summary
 	s.AddTool(
 		mcp.NewTool("get_daily_summary",
-			mcp.WithDescription("오늘 또는 특정 날짜의 건강 요약 (걸음수, 평균 심박수, 수면, 운동, 칼로리, SpO2, 체중)"),
+			mcp.WithDescription("오늘 또는 특정 날짜의 건강 요약 (걸음수, 평균 심박수, 수면, 운동, 칼로리, SpO2, 체중). 데이터는 2018-12부터 존재합니다."),
 			mcp.WithString("date",
 				mcp.Description("조회할 날짜 (YYYY-MM-DD). 생략하면 오늘."),
 			),
@@ -94,10 +94,10 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_steps
 	s.AddTool(
 		mcp.NewTool("get_steps",
-			mcp.WithDescription("걸음수 조회. 시간대별 집계를 반환합니다."),
-			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD 또는 RFC3339). 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
-			mcp.WithString("interval", mcp.Description("집계 간격: 1h, 1d 등. 기본 1d.")),
+			mcp.WithDescription("걸음수 조회. 시간대별 집계를 반환합니다. 데이터는 2018-12부터 존재. 장기간 분석 시 from을 반드시 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간 분석 시 '2018-01-01' 사용.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
+			mcp.WithString("interval", mcp.Description("집계 간격: 1h, 1d, 1w, 1month, 1y. 기본 1d. 장기간은 1month 또는 1y 권장.")),
 		),
 		makeMetricHandler(repo, "steps"),
 	)
@@ -105,10 +105,10 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_heart_rate
 	s.AddTool(
 		mcp.NewTool("get_heart_rate",
-			mcp.WithDescription("심박수 조회. 평균/최소/최대를 시간대별로 반환합니다."),
-			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD 또는 RFC3339). 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
-			mcp.WithString("interval", mcp.Description("집계 간격: 5m, 1h, 1d 등. 기본 1h.")),
+			mcp.WithDescription("심박수 조회. 평균/최소/최대를 시간대별로 반환합니다. 데이터는 2022-06부터 존재. 장기간 분석 시 from을 반드시 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간 분석 시 '2022-01-01' 사용.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
+			mcp.WithString("interval", mcp.Description("집계 간격: 5m, 1h, 1d, 1month, 1y. 기본 1h. 장기간은 1month 또는 1y 권장.")),
 		),
 		makeMetricHandler(repo, "heart_rate"),
 	)
@@ -116,9 +116,9 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_sleep
 	s.AddTool(
 		mcp.NewTool("get_sleep",
-			mcp.WithDescription("수면 기록 조회. 세션별 시작/종료/시간/단계 정보를 반환합니다."),
-			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+			mcp.WithDescription("수면 기록 조회. 세션별 시작/종료/시간/단계 정보를 반환합니다. 데이터는 2022-07부터 존재. 장기간 분석 시 from을 반드시 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간 분석 시 '2022-01-01' 사용.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			from, to := parseRange(req)
@@ -137,9 +137,9 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_exercises
 	s.AddTool(
 		mcp.NewTool("get_exercises",
-			mcp.WithDescription("운동 기록 조회. 종류, 시간, 칼로리, 거리 등을 반환합니다."),
-			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+			mcp.WithDescription("운동 기록 조회. 종류, 시간, 칼로리, 거리 등을 반환합니다. 데이터는 2018-12부터 존재. 장기간 분석 시 from을 반드시 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간 분석 시 '2018-01-01' 사용.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			from, to := parseRange(req)
@@ -158,9 +158,9 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_weight
 	s.AddTool(
 		mcp.NewTool("get_weight",
-			mcp.WithDescription("체중 및 체성분 기록 조회."),
-			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 30일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+			mcp.WithDescription("체중 및 체성분 기록 조회. 데이터는 2018-12부터 존재 (363건). 장기간 트렌드 분석 시 from을 반드시 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 30일 전. 전체 기간 분석 시 '2018-01-01' 사용.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			fromStr := req.GetString("from", "")
@@ -181,10 +181,10 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_spo2
 	s.AddTool(
 		mcp.NewTool("get_spo2",
-			mcp.WithDescription("산소포화도(SpO2) 조회."),
-			mcp.WithString("from", mcp.Description("시작일. 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
-			mcp.WithString("interval", mcp.Description("집계 간격. 기본 1d.")),
+			mcp.WithDescription("산소포화도(SpO2) 조회. HC Webhook 데이터만 존재 (2026-03~)."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
+			mcp.WithString("interval", mcp.Description("집계 간격: 1h, 1d. 기본 1d.")),
 		),
 		makeMetricHandler(repo, "spo2"),
 	)
@@ -192,10 +192,10 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_calories
 	s.AddTool(
 		mcp.NewTool("get_calories",
-			mcp.WithDescription("소모 칼로리 조회."),
-			mcp.WithString("from", mcp.Description("시작일. 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
-			mcp.WithString("interval", mcp.Description("집계 간격. 기본 1d.")),
+			mcp.WithDescription("소모 칼로리 조회. 데이터는 2018-12부터 존재. 장기간 분석 시 from을 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간: '2018-01-01'.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
+			mcp.WithString("interval", mcp.Description("집계 간격: 1h, 1d, 1month, 1y. 기본 1d.")),
 		),
 		makeMetricHandler(repo, "calories"),
 	)
@@ -203,10 +203,10 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 	// get_distance
 	s.AddTool(
 		mcp.NewTool("get_distance",
-			mcp.WithDescription("이동 거리 조회 (미터 단위)."),
-			mcp.WithString("from", mcp.Description("시작일. 생략하면 7일 전.")),
-			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
-			mcp.WithString("interval", mcp.Description("집계 간격. 기본 1d.")),
+			mcp.WithDescription("이동 거리 조회 (미터 단위). 데이터는 2018-12부터 존재. 장기간 분석 시 from을 과거 날짜로 설정하세요."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전. 전체 기간: '2018-01-01'.")),
+			mcp.WithString("to", mcp.Description("종료일 (YYYY-MM-DD). 생략하면 현재.")),
+			mcp.WithString("interval", mcp.Description("집계 간격: 1h, 1d, 1month, 1y. 기본 1d.")),
 		),
 		makeMetricHandler(repo, "distance"),
 	)
