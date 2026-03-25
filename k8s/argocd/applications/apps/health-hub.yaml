@@ -3,6 +3,13 @@ kind: Application
 metadata:
   name: health-hub
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/manamana32321/health-hub:latest, dashboard=ghcr.io/manamana32321/health-hub-dashboard:latest
+    argocd-image-updater.argoproj.io/app.update-strategy: digest
+    argocd-image-updater.argoproj.io/app.force-update: "true"
+    argocd-image-updater.argoproj.io/dashboard.update-strategy: digest
+    argocd-image-updater.argoproj.io/dashboard.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
