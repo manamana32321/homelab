@@ -21,6 +21,8 @@ type DataRepository interface {
 	QueryNutritionByType(ctx context.Context, q model.TimeRangeQuery, mealType string) ([]model.NutritionRecord, error)
 	InsertBodyMeasurements(ctx context.Context, measurements []model.BodyMeasurement) (int, error)
 	InsertBodyMeasurement(ctx context.Context, m model.BodyMeasurement) error
+	InsertHealthNote(ctx context.Context, n model.HealthNote) (int64, error)
+	QueryHealthNotes(ctx context.Context, q model.TimeRangeQuery, category string) ([]model.HealthNote, error)
 	QueryMetrics(ctx context.Context, q model.MetricsQuery) ([]model.AggregatedMetric, error)
 	QuerySleepSessions(ctx context.Context, q model.TimeRangeQuery) ([]model.SleepSession, error)
 	QueryExerciseSessions(ctx context.Context, q model.TimeRangeQuery) ([]model.ExerciseSession, error)

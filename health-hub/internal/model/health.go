@@ -54,6 +54,14 @@ type NutritionRecord struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// HealthNote represents a health memo/symptom/condition record.
+type HealthNote struct {
+	ID       int64     `json:"id,omitempty"`
+	Time     time.Time `json:"time"`
+	Category string    `json:"category"`
+	Text     string    `json:"text"`
+}
+
 // BodyMeasurement represents weight and body composition.
 type BodyMeasurement struct {
 	Time       time.Time `json:"time"`

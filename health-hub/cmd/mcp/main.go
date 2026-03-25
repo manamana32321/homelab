@@ -417,6 +417,64 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 			return mcp.NewToolResultText(fmt.Sprintf("체중 기록 완료: %.1fkg", wt)), nil
 		},
 	)
+
+	// add_note — 건강 메모/특이사항 기록
+	s.AddTool(
+		mcp.NewTool("add_note",
+			mcp.WithDescription("건강 메모/특이사항을 기록합니다. 증상, 컨디션, 음주 등."),
+			mcp.WithString("text", mcp.Description("내용. 필수."), mcp.Required()),
+			mcp.WithString("category", mcp.Description("카테고리: symptom, condition, memo. 기본 memo.")),
+			mcp.WithString("time", mcp.Description("시간 (RFC3339). 생략하면 현재 시각.")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			text := req.GetString("text", "")
+			if text == "" {
+				return mcp.NewToolResultError("내용(text)은 필수입니다."), nil
+			}
+
+			note := model.HealthNote{
+				Text:     text,
+				Category: req.GetString("category", "memo"),
+				Time:     time.Now(),
+			}
+
+			if v := req.GetString("time", ""); v != "" {
+				if t, err := time.Parse(time.RFC3339, v); err == nil {
+					note.Time = t
+				}
+			}
+
+			id, err := repo.InsertHealthNote(ctx, note)
+			if err != nil {
+				return mcp.NewToolResultError("저장 실패: " + err.Error()), nil
+			}
+
+			return mcp.NewToolResultText(fmt.Sprintf("건강 메모 기록 완료 (ID: %d, %s): %s", id, note.Category, text)), nil
+		},
+	)
+
+	// get_notes — 건강 메모 조회
+	s.AddTool(
+		mcp.NewTool("get_notes",
+			mcp.WithDescription("건강 메모/특이사항을 조회합니다."),
+			mcp.WithString("from", mcp.Description("시작일 (YYYY-MM-DD). 생략하면 7일 전.")),
+			mcp.WithString("to", mcp.Description("종료일. 생략하면 현재.")),
+			mcp.WithString("category", mcp.Description("필터: symptom, condition, memo. 생략하면 전체.")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			from, to := parseRange(req)
+			category := req.GetString("category", "")
+			notes, err := repo.QueryHealthNotes(ctx, model.TimeRangeQuery{From: from, To: to}, category)
+			if err != nil {
+				return mcp.NewToolResultError("조회 실패: " + err.Error()), nil
+			}
+			if notes == nil {
+				notes = []model.HealthNote{}
+			}
+			b, _ := json.MarshalIndent(notes, "", "  ")
+			return mcp.NewToolResultText(string(b)), nil
+		},
+	)
 }
 
 func makeMetricHandler(repo *db.Repository, metricType string) server.ToolHandlerFunc {

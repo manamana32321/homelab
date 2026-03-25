@@ -21,6 +21,8 @@ func NewRouter(repo DataRepository, apiToken string) http.Handler {
 	mux.HandleFunc("POST /api/v1/meals", h.addMeal)
 	mux.HandleFunc("PUT /api/v1/meals/{id}", h.updateMeal)
 	mux.HandleFunc("DELETE /api/v1/meals/{id}", h.deleteMeal)
+	mux.HandleFunc("POST /api/v1/notes", h.addNote)
+	mux.HandleFunc("GET /api/v1/notes", h.getNotes)
 	mux.HandleFunc("POST /api/v1/hc-webhook", h.hcWebhook)
 	mux.HandleFunc("DELETE /api/v1/admin/purge", h.purgeData)
 

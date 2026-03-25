@@ -21,6 +21,7 @@ type mockRepo struct {
 	exercises  []model.ExerciseSession
 	nutrition  []model.NutritionRecord
 	body       []model.BodyMeasurement
+	notes      []model.HealthNote
 	pingErr    error
 	insertErr  error
 }
@@ -201,6 +202,24 @@ func (m *mockRepo) QueryNutritionByType(_ context.Context, q model.TimeRangeQuer
 func (m *mockRepo) InsertBodyMeasurement(_ context.Context, bm model.BodyMeasurement) error {
 	m.body = append(m.body, bm)
 	return nil
+}
+
+func (m *mockRepo) InsertHealthNote(_ context.Context, n model.HealthNote) (int64, error) {
+	n.ID = int64(len(m.notes) + 1)
+	m.notes = append(m.notes, n)
+	return n.ID, nil
+}
+
+func (m *mockRepo) QueryHealthNotes(_ context.Context, q model.TimeRangeQuery, category string) ([]model.HealthNote, error) {
+	var results []model.HealthNote
+	for _, n := range m.notes {
+		if !n.Time.Before(q.From) && n.Time.Before(q.To) {
+			if category == "" || n.Category == category {
+				results = append(results, n)
+			}
+		}
+	}
+	return results, nil
 }
 
 func newTestServer(repo DataRepository, token string) *httptest.Server {

@@ -270,6 +270,49 @@ func (r *Repository) InsertBodyMeasurement(ctx context.Context, m model.BodyMeas
 	return err
 }
 
+// InsertHealthNote inserts a health note and returns the ID.
+func (r *Repository) InsertHealthNote(ctx context.Context, n model.HealthNote) (int64, error) {
+	if n.Category == "" {
+		n.Category = "memo"
+	}
+	var id int64
+	err := r.pool.QueryRow(ctx,
+		`INSERT INTO health_notes (time, category, text) VALUES ($1, $2, $3) RETURNING id`,
+		n.Time, n.Category, n.Text).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("insert note: %w", err)
+	}
+	return id, nil
+}
+
+// QueryHealthNotes returns health notes filtered by time range and optional category.
+func (r *Repository) QueryHealthNotes(ctx context.Context, q model.TimeRangeQuery, category string) ([]model.HealthNote, error) {
+	query := `SELECT id, time, category, text FROM health_notes WHERE time >= $1 AND time < $2`
+	args := []interface{}{q.From, q.To}
+
+	if category != "" {
+		query += " AND category = $3"
+		args = append(args, category)
+	}
+	query += " ORDER BY time DESC"
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query notes: %w", err)
+	}
+	defer rows.Close()
+
+	var results []model.HealthNote
+	for rows.Next() {
+		var n model.HealthNote
+		if err := rows.Scan(&n.ID, &n.Time, &n.Category, &n.Text); err != nil {
+			return nil, fmt.Errorf("scan note: %w", err)
+		}
+		results = append(results, n)
+	}
+	return results, rows.Err()
+}
+
 // InsertBodyMeasurements inserts body composition data.
 func (r *Repository) InsertBodyMeasurements(ctx context.Context, measurements []model.BodyMeasurement) (int, error) {
 	if len(measurements) == 0 {

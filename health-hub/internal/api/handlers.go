@@ -358,6 +358,50 @@ func (h *handler) getMeals(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, results)
 }
 
+func (h *handler) addNote(w http.ResponseWriter, r *http.Request) {
+	var note model.HealthNote
+	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json: "+err.Error())
+		return
+	}
+	if note.Text == "" {
+		writeError(w, http.StatusBadRequest, "text is required")
+		return
+	}
+	if note.Time.IsZero() {
+		note.Time = time.Now()
+	}
+	if note.Category == "" {
+		note.Category = "memo"
+	}
+
+	id, err := h.repo.InsertHealthNote(r.Context(), note)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	note.ID = id
+	writeJSON(w, http.StatusCreated, note)
+}
+
+func (h *handler) getNotes(w http.ResponseWriter, r *http.Request) {
+	from, to, err := parseTimeRange(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid time format: "+err.Error())
+		return
+	}
+	category := r.URL.Query().Get("category")
+	results, err := h.repo.QueryHealthNotes(r.Context(), model.TimeRangeQuery{From: from, To: to}, category)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if results == nil {
+		results = []model.HealthNote{}
+	}
+	writeJSON(w, http.StatusOK, results)
+}
+
 func parseInt64(s string) (int64, error) {
 	var id int64
 	_, err := fmt.Sscanf(s, "%d", &id)
