@@ -60,6 +60,12 @@ spec:
                 name: seafile-secret
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              memory: 2Gi
           volumeMounts:
             - name: seafile-data
               mountPath: /shared
