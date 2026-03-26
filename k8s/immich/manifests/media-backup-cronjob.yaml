@@ -48,14 +48,16 @@ spec:
                   CONF
 
                   # Sync library to S3
-                  rclone sync /library s3:immich-backup-json-server/media/ \
+                  # ionice idle class: Seafile과 동일 디스크(Seagate 1TB) 경합 방지
+                  ionice -c 3 rclone sync /library s3:immich-backup-json-server/media/ \
                     --s3-no-check-bucket \
                     --fast-list \
-                    --transfers 4 \
-                    --checkers 8 \
+                    --transfers 2 \
+                    --checkers 1 \
                     --s3-upload-cutoff 100M \
                     --s3-chunk-size 50M \
                     --bwlimit 7M \
+                    --tpslimit 2 \
                     --retries 3 \
                     --log-level INFO \
                     --stats 60s
