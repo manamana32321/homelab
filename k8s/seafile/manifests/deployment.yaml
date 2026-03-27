@@ -58,6 +58,22 @@ spec:
                 name: seafile-env
             - secretRef:
                 name: seafile-secret
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    # nginx access log를 off로 변경 — HDD sync write가 IO 경합 유발
+                    for i in 1 2 3 4 5; do
+                      if [ -f /etc/nginx/sites-enabled/seafile.nginx.conf ]; then
+                        sed -i 's|access_log .*seafileformat;|access_log off;|g' /etc/nginx/sites-enabled/seafile.nginx.conf
+                        nginx -s reload 2>/dev/null || true
+                        break
+                      fi
+                      sleep 2
+                    done
           ports:
             - containerPort: 80
           resources:
