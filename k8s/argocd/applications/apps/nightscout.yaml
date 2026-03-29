@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nightscout
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.gabe565.com
+      chart: nightscout
+      targetRevision: "0.13.0"
+      helm:
+        releaseName: nightscout
+        valueFiles:
+          - $homelab/k8s/nightscout/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/nightscout/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nightscout
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

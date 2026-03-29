@@ -1,0 +1,266 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nightscout-dashboard
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  nightscout.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [
+        {
+          "title": "Nightscout UI",
+          "url": "https://nightscout.json-server.win",
+          "type": "link",
+          "targetBlank": true
+        }
+      ],
+      "panels": [
+        {
+          "id": 1,
+          "title": "현재 혈당",
+          "type": "stat",
+          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "nightscout_sgv",
+              "legendFormat": "혈당",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "mg/dL",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "dark-red", "value": null },
+                  { "color": "dark-red", "value": 0 },
+                  { "color": "red", "value": 54 },
+                  { "color": "orange", "value": 70 },
+                  { "color": "green", "value": 80 },
+                  { "color": "dark-green", "value": 100 },
+                  { "color": "green", "value": 140 },
+                  { "color": "yellow", "value": 180 },
+                  { "color": "orange", "value": 250 },
+                  { "color": "red", "value": 300 }
+                ]
+              },
+              "mappings": [],
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name"
+          }
+        },
+        {
+          "id": 2,
+          "title": "트렌드 방향",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "nightscout_trend",
+              "legendFormat": "Trend",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                { "type": "value", "options": { "0": { "text": "—", "color": "text" } } },
+                { "type": "value", "options": { "1": { "text": "⬆⬆", "color": "red" } } },
+                { "type": "value", "options": { "2": { "text": "⬆", "color": "orange" } } },
+                { "type": "value", "options": { "3": { "text": "↗", "color": "yellow" } } },
+                { "type": "value", "options": { "4": { "text": "→", "color": "green" } } },
+                { "type": "value", "options": { "5": { "text": "↘", "color": "yellow" } } },
+                { "type": "value", "options": { "6": { "text": "⬇", "color": "orange" } } },
+                { "type": "value", "options": { "7": { "text": "⬇⬇", "color": "red" } } }
+              ],
+              "color": { "mode": "thresholds" },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value"
+          }
+        },
+        {
+          "id": 3,
+          "title": "변화율 (mg/dL)",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "nightscout_bgdelta",
+              "legendFormat": "Delta",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "mg/dL",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": -3 },
+                  { "color": "green", "value": -1 },
+                  { "color": "green", "value": 0 },
+                  { "color": "orange", "value": 3 },
+                  { "color": "red", "value": 5 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 4,
+          "title": "혈당 추이 (24시간)",
+          "type": "timeseries",
+          "gridPos": { "h": 12, "w": 12, "x": 12, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "nightscout_sgv",
+              "legendFormat": "혈당 (mg/dL)",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "mg/dL",
+              "min": 40,
+              "max": 400,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "red", "value": 0 },
+                  { "color": "orange", "value": 54 },
+                  { "color": "yellow", "value": 70 },
+                  { "color": "green", "value": 80 },
+                  { "color": "yellow", "value": 180 },
+                  { "color": "orange", "value": 250 },
+                  { "color": "red", "value": 300 }
+                ]
+              },
+              "custom": {
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "always",
+                "spanNulls": 900000,
+                "thresholdsStyle": { "mode": "area" },
+                "fillOpacity": 10
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "options": {
+            "tooltip": { "mode": "single" },
+            "legend": { "displayMode": "hidden" }
+          }
+        },
+        {
+          "id": 5,
+          "title": "혈당 변화율 추이",
+          "type": "timeseries",
+          "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "nightscout_bgdelta",
+              "legendFormat": "변화율",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "mg/dL",
+              "custom": {
+                "lineWidth": 1,
+                "fillOpacity": 20,
+                "gradientMode": "scheme",
+                "thresholdsStyle": { "mode": "line" }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 5 },
+                  { "color": "red", "value": -5 }
+                ]
+              },
+              "color": { "mode": "continuous-GrYlRd" }
+            }
+          }
+        },
+        {
+          "id": 6,
+          "title": "마지막 업데이트",
+          "type": "stat",
+          "gridPos": { "h": 2, "w": 12, "x": 0, "y": 14 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "time() - nightscout_timestamp_seconds",
+              "legendFormat": "마지막 읽기",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 600 },
+                  { "color": "red", "value": 1800 }
+                ]
+              },
+              "color": { "mode": "thresholds" }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "none"
+          }
+        }
+      ],
+      "refresh": "1m",
+      "schemaVersion": 39,
+      "tags": ["health", "cgm", "nightscout"],
+      "templating": { "list": [] },
+      "time": { "from": "now-24h", "to": "now" },
+      "timepicker": {},
+      "timezone": "Asia/Seoul",
+      "title": "Blood Glucose Monitor",
+      "uid": "nightscout-cgm"
+    }

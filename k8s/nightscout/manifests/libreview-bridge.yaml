@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: libreview-bridge
+  namespace: nightscout
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: libreview-bridge
+  template:
+    metadata:
+      labels:
+        app: libreview-bridge
+    spec:
+      containers:
+        - name: lvconnect
+          image: node:20-alpine
+          command:
+            - sh
+            - -c
+            - |
+              npm install -g lvconnect && node $(npm root -g)/lvconnect/index.js
+          env:
+            - name: WEBSITE_HOSTNAME
+              value: nightscout:1337
+            - name: NS
+              value: http://nightscout:1337
+            - name: LVCONNECT_SERVER
+              value: api-ap.libreview.io
+            - name: LVCONNECT_INTERVAL
+              value: "900000"
+            - name: LVCONNECT_FIRST_FULL_DAYS
+              value: "90"
+            - name: LVCONNECT_TIME_OFFSET_MINUTES
+              value: "540"
+            - name: API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nightscout-secret
+                  key: API_SECRET
+          envFrom:
+            - secretRef:
+                name: libreview-credentials
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
