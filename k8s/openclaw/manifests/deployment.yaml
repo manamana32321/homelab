@@ -22,45 +22,30 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       initContainers:
-        - name: setup-gogcli
+        - name: setup-gws
           image: alpine:3.21
           command: ["sh", "-c"]
           args:
             - |
               set -e
-              BINARY_PATH=/home/node/.local/bin/gog
-              if [ ! -f "$BINARY_PATH" ]; then
-                echo "Downloading gogcli v0.11.0..."
-                mkdir -p /home/node/.local/bin
-                wget -qO- https://github.com/steipete/gogcli/releases/download/v0.11.0/gogcli_0.11.0_linux_amd64.tar.gz | tar xz -C /tmp
-                mv /tmp/gog "$BINARY_PATH"
-                chmod +x "$BINARY_PATH"
-                echo "gogcli installed."
+              GWS_DIR=/home/node/.config/gws
+              mkdir -p "$GWS_DIR"
+              # Copy credentials from Secret mount
+              if [ -f /secrets/gws/client_secret.json ]; then
+                cp /secrets/gws/client_secret.json "$GWS_DIR/client_secret.json"
+                cp /secrets/gws/credentials.enc "$GWS_DIR/credentials.enc"
+                cp /secrets/gws/encryption_key "$GWS_DIR/.encryption_key"
+                chmod 600 "$GWS_DIR/.encryption_key" "$GWS_DIR/credentials.enc"
+                chown -R 1000:1000 "$GWS_DIR"
+                echo "Google Workspace CLI credentials configured."
               else
-                echo "gogcli already installed."
+                echo "Warning: gws credentials not found, skipping."
               fi
-              # Register client_secret.json if available and not yet configured
-              if [ -f /secrets/gog/client_secret.json ] && [ ! -f /home/node/.config/gogcli/config.json ]; then
-                echo "Registering Google OAuth credentials..."
-                export HOME=/home/node
-                export PATH="/home/node/.local/bin:$PATH"
-                gog auth credentials /secrets/gog/client_secret.json
-                echo "Credentials registered."
-              fi
-          env:
-            - name: GOG_KEYRING_BACKEND
-              value: file
-            - name: GOG_KEYRING_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: gog-secret
-                  key: GOG_KEYRING_PASSWORD
-                  optional: true
           volumeMounts:
             - name: openclaw-home
               mountPath: /home/node
-            - name: gog-client-secret
-              mountPath: /secrets/gog
+            - name: gws-credentials
+              mountPath: /secrets/gws
               readOnly: true
       containers:
         - name: openclaw
@@ -74,14 +59,8 @@ spec:
           env:
             - name: PATH
               value: /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-            - name: GOG_KEYRING_BACKEND
+            - name: GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND
               value: file
-            - name: GOG_KEYRING_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: gog-secret
-                  key: GOG_KEYRING_PASSWORD
-                  optional: true
           ports:
             - name: gateway
               containerPort: 18789
@@ -101,7 +80,7 @@ spec:
         - name: openclaw-home
           persistentVolumeClaim:
             claimName: openclaw-home
-        - name: gog-client-secret
+        - name: gws-credentials
           secret:
-            secretName: gog-client-secret
+            secretName: gws-credentials
             optional: true

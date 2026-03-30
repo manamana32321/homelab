@@ -11,4 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   fonts-liberation \
   && rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g @googleworkspace/cli
+
 USER node
