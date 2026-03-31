@@ -75,7 +75,7 @@ spec:
               memory: 1Gi
             limits:
               cpu: "2"
-              memory: 2Gi
+              memory: 3Gi
       volumes:
         - name: openclaw-home
           persistentVolumeClaim:
