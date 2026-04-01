@@ -20,6 +20,14 @@
       "name": "SME투어 · main",
       "path": "../../sme-tour-worktrees/main",
     },
+    {
+      "name": "습관트래커 · main",
+      "path": "../../habit-tracker-worktrees/main",
+    },
+    {
+      "name": "팩토리오 어드민 · main",
+      "path": "../../factorio-admin",
+    },
   ],
   "extensions": {
     "recommendations": [
