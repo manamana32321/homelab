@@ -41,22 +41,7 @@ data:
 
     discord:
       enabled: true
-      events:
-        - chat
-        - join
-        - leave
-        - research
-        - research_started
-        - research_cancelled
-        - player_died
-        - player_respawned
-        - player_changed_surface
-        - rocket
-        - rocket_launch_ordered
-        - space_platform_changed_state
-        - spawner_destroyed
-        - surface_created
-        - tag_added
+      events: []
 
     loki:
       enabled: true
