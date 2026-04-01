@@ -14,6 +14,7 @@ spec:
       containers:
         - name: migrate
           image: ghcr.io/manamana32321/factorio-admin-migrator:latest
+          imagePullPolicy: Always
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
