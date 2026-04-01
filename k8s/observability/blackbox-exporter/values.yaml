@@ -100,10 +100,10 @@ serviceMonitor:
       url: http://cloudbeaver.cloudbeaver.svc.cluster.local:8978
       module: http_2xx_no_tls
     - name: amang-api
-      url: http://api-server.amang-api-production.svc.cluster.local:8000
+      url: http://api-server.amang-api-production.svc.cluster.local:8000/health
       module: http_2xx_no_tls
     - name: amang-api-staging
-      url: http://api-server.amang-api-staging.svc.cluster.local:8000
+      url: http://api-server.amang-api-staging.svc.cluster.local:8000/health
       module: http_2xx_no_tls
     - name: loki
       url: http://loki.observability.svc.cluster.local:3100/ready
