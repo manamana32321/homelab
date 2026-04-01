@@ -5,10 +5,6 @@
       "path": ".",
     },
     {
-      "name": "AMANG · main",
-      "path": "../../amang-worktrees/main",
-    },
-    {
       "name": "홈랩 · authentik-central-auth",
       "path": "../authentik-central-auth",
     },
