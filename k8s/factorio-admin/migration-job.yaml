@@ -5,7 +5,7 @@ metadata:
   namespace: factorio
   annotations:
     argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookFailed
 spec:
   backoffLimit: 3
   template:
