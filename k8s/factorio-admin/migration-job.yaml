@@ -13,7 +13,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: migrate
-          image: ghcr.io/manamana32321/factorio-admin-migrator:sha-e1b61de
+          image: ghcr.io/manamana32321/factorio-admin-migrator:latest
           imagePullPolicy: Always
           env:
             - name: POSTGRES_PASSWORD
