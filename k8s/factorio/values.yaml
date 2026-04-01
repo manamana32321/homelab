@@ -40,6 +40,11 @@ server_settings:
   auto_pause: false
   autosave_slots: 20
 
+mods:
+  enabled: true
+  unofficial:
+    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.0.0-mod/factorio-exporter_1.0.0.zip"
+
 admin_list:
   - YumeMana
 

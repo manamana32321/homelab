@@ -1,0 +1,146 @@
+-- Factorio Exporter Mod
+-- Collects game events into storage.bridge_events for RCON polling.
+-- This runs as a proper mod (not RCON script.on_event) to avoid
+-- "mod event handler mismatch" warnings in multiplayer.
+
+local function push(e)
+  if #storage.bridge_events >= 100 then return end
+  table.insert(storage.bridge_events, e)
+end
+
+-- Initialize storage
+script.on_init(function()
+  storage.bridge_events = {}
+  storage.decon_counts = {}
+end)
+
+script.on_configuration_changed(function()
+  storage.bridge_events = storage.bridge_events or {}
+  storage.decon_counts = storage.decon_counts or {}
+end)
+
+-- Research events
+script.on_event(defines.events.on_research_started, function(e)
+  push({type = "research_started", name = e.research.name, tick = e.tick})
+end)
+
+script.on_event(defines.events.on_research_cancelled, function(e)
+  push({type = "research_cancelled", name = e.research.name, tick = e.tick})
+end)
+
+-- Player events
+script.on_event(defines.events.on_player_died, function(e)
+  local pl = game.get_player(e.player_index)
+  push({type = "player_died", player = pl.name, cause = e.cause and e.cause.name or "unknown", tick = e.tick})
+end)
+
+script.on_event(defines.events.on_player_respawned, function(e)
+  push({type = "player_respawned", player = game.get_player(e.player_index).name, tick = e.tick})
+end)
+
+script.on_event(defines.events.on_player_changed_surface, function(e)
+  local pl = game.get_player(e.player_index)
+  push({type = "player_changed_surface", player = pl.name, surface = pl.surface.name, tick = e.tick})
+end)
+
+script.on_event(defines.events.on_player_promoted, function(e)
+  push({type = "player_promoted", player = game.get_player(e.player_index).name, tick = e.tick})
+end)
+
+script.on_event(defines.events.on_player_demoted, function(e)
+  push({type = "player_demoted", player = game.get_player(e.player_index).name, tick = e.tick})
+end)
+
+-- Rocket & space platform events
+script.on_event(defines.events.on_rocket_launch_ordered, function(e)
+  push({type = "rocket_launch_ordered", tick = e.tick})
+end)
+
+script.on_event(defines.events.on_space_platform_changed_state, function(e)
+  local pl = e.platform
+  push({type = "platform_state_changed", name = pl.name, state = tostring(pl.state), tick = e.tick})
+end)
+
+script.on_event(defines.events.on_cargo_pod_finished_ascending, function(e)
+  push({type = "cargo_ascended", tick = e.tick})
+end)
+
+script.on_event(defines.events.on_cargo_pod_finished_descending, function(e)
+  push({type = "cargo_descended", tick = e.tick})
+end)
+
+-- Entity events
+script.on_event(defines.events.on_entity_died, function(e)
+  if not e.entity then return end
+  if e.entity.type == "unit-spawner" then
+    push({type = "spawner_destroyed", name = e.entity.name, tick = e.tick})
+  elseif e.entity.force and e.entity.force.name == "player" then
+    local cp = ""
+    if e.cause and e.cause.last_user then cp = e.cause.last_user.name end
+    push({
+      type = "entity_destroyed",
+      name = e.entity.name,
+      surface = e.entity.surface.name,
+      entity_type = e.entity.type,
+      cause_player = cp,
+      tick = e.tick,
+    })
+  end
+end)
+
+script.on_event(defines.events.on_player_mined_entity, function(e)
+  if e.entity and e.entity.force and e.entity.force.name == "player" then
+    local pl = game.get_player(e.player_index)
+    push({
+      type = "entity_mined",
+      name = e.entity.name,
+      surface = e.entity.surface.name,
+      entity_type = e.entity.type,
+      player = pl.name,
+      tick = e.tick,
+    })
+  end
+end)
+
+script.on_event(defines.events.on_marked_for_deconstruction, function(e)
+  if e.entity and e.player_index then
+    local pl = game.get_player(e.player_index)
+    local k = pl.name
+    local d = storage.decon_counts
+    if not d[k] then
+      d[k] = {count = 0, surface = e.entity.surface.name, tick = e.tick}
+    end
+    d[k].count = d[k].count + 1
+  end
+end)
+
+-- Surface & map events
+script.on_event(defines.events.on_surface_created, function(e)
+  local s = game.get_surface(e.surface_index)
+  push({type = "surface_created", name = s and s.name or "unknown", tick = e.tick})
+end)
+
+script.on_event(defines.events.on_chart_tag_added, function(e)
+  push({type = "tag_added", text = e.tag.text or "", tick = e.tick})
+end)
+
+-- RCON interface for polling (called by exporter)
+remote.add_interface("exporter", {
+  poll = function()
+    local r = storage.bridge_events or {}
+    storage.bridge_events = {}
+    -- Flush decon counters
+    local d = storage.decon_counts or {}
+    for k, v in pairs(d) do
+      r[#r + 1] = {
+        type = "entity_marked_deconstruction",
+        player = k,
+        surface = v.surface,
+        count = v.count,
+        tick = v.tick,
+      }
+    end
+    storage.decon_counts = {}
+    rcon.print(helpers.table_to_json(r))
+  end,
+})
