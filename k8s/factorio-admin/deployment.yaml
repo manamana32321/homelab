@@ -25,6 +25,18 @@ spec:
       serviceAccountName: factorio-admin
       securityContext:
         supplementalGroups: [845]
+      initContainers:
+        - name: migrate
+          image: ghcr.io/manamana32321/factorio-admin:latest
+          command: ["sh", "-c", "npx prisma db push --skip-generate && npx prisma db seed"]
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: factorio-admin-secrets
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: "postgresql://factorio:$(POSTGRES_PASSWORD)@factorio-admin-postgres:5432/factorio_admin"
       containers:
         - name: factorio-admin
           image: ghcr.io/manamana32321/factorio-admin:latest

@@ -43,6 +43,8 @@ spec:
                 secretKeyRef:
                   name: factorio-discord-secrets
                   key: discord-channel-id
+            - name: ALERT_ADMIN_URL
+              value: "http://factorio-admin.factorio.svc.cluster.local"
             - name: CONFIG_PATH
               value: "/etc/factorio-exporter/config.yaml"
           volumeMounts:
