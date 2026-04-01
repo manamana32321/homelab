@@ -12,6 +12,8 @@ spec:
       app: factorio-admin
   template:
     metadata:
+      annotations:
+        deploy-trigger: "2026-04-02-force-rollout"
       labels:
         app: factorio-admin
     spec:
@@ -28,7 +30,7 @@ spec:
       initContainers:
         - name: migrate
           image: ghcr.io/manamana32321/factorio-admin:latest
-          command: ["sh", "-c", "npx prisma db push --skip-generate && npx prisma db seed"]
+          command: ["sh", "-c", "npx prisma db push && npx prisma db seed"]
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
