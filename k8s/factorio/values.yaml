@@ -37,6 +37,7 @@ server_settings:
     public: true
     lan: true
   require_user_verification: true
+  auto_pause: false
   autosave_slots: 20
 
 admin_list:
