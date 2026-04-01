@@ -5,3 +5,4 @@ resources:
   - postgres.yaml
   - sealed-secret.yaml
   - rbac.yaml
+  - migration-job.yaml
