@@ -22,7 +22,7 @@ data:
       interval: 15s
 
     events:
-      enabled: false
+      enabled: true
       poll_interval: 2s
       types:
         - research_started
