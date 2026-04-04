@@ -42,8 +42,12 @@ server_settings:
 
 mods:
   enabled: true
+  portal:
+    # Auto-Switch Techs: 스포일 가능한 과학 팩 소비 우선순위 자동 관리
+    # 포탈 모드 다운로드에 Factorio 계정 인증 필요 (account.factorio_token)
+    - AutoSwitchTechs
   unofficial:
-    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.0.0-mod/factorio-exporter_1.0.0.zip"
+    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.1.0-mod/factorio-exporter_1.1.0.zip"
 
 admin_list:
   - YumeMana

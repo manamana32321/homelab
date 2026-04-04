@@ -21,11 +21,15 @@ end)
 
 -- Research events
 script.on_event(defines.events.on_research_started, function(e)
-  push({type = "research_started", name = e.research.name, tick = e.tick})
+  push({type = "research_started", name = e.research.name, level = e.research.level or 0, tick = e.tick})
+end)
+
+script.on_event(defines.events.on_research_finished, function(e)
+  push({type = "research_finished", name = e.research.name, level = e.research.level or 0, tick = e.tick})
 end)
 
 script.on_event(defines.events.on_research_cancelled, function(e)
-  push({type = "research_cancelled", name = e.research.name, tick = e.tick})
+  push({type = "research_cancelled", name = e.research.name, level = e.research.level or 0, tick = e.tick})
 end)
 
 -- Player events
@@ -117,7 +121,12 @@ end)
 -- Surface & map events
 script.on_event(defines.events.on_surface_created, function(e)
   local s = game.get_surface(e.surface_index)
-  push({type = "surface_created", name = s and s.name or "unknown", tick = e.tick})
+  if not s then return end
+  if s.platform then
+    push({type = "platform_created", name = s.platform.name, surface = s.name, tick = e.tick})
+  else
+    push({type = "surface_created", name = s.name, tick = e.tick})
+  end
 end)
 
 script.on_event(defines.events.on_chart_tag_added, function(e)
