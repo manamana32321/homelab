@@ -47,8 +47,7 @@ mods:
   enabled: true
   portal:
     - name: AutoSwitchTechs
-  unofficial:
-    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.1.0-mod/factorio-exporter_1.1.0.zip"
+    - name: factorio-exporter
 
 admin_list:
   - YumeMana
