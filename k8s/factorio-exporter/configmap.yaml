@@ -50,7 +50,7 @@ data:
       events: all
 
     auto_research:
-      enabled: false
+      enabled: true
       check_interval: 5m
       threshold_pct: 0.2
       prometheus_url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
