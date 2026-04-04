@@ -27,6 +27,7 @@ data:
       poll_interval: 2s
       types:
         - research_started
+        - research_finished
         - research_cancelled
         - player_died
         - player_respawned
@@ -37,6 +38,7 @@ data:
         - space_platform_changed_state
         - entity_died
         - surface_created
+        - platform_created
         - chart_tag_added
 
     discord:
@@ -46,3 +48,9 @@ data:
     loki:
       enabled: true
       events: all
+
+    auto_research:
+      enabled: false
+      check_interval: 5m
+      threshold_pct: 0.2
+      prometheus_url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090

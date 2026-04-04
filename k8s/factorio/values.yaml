@@ -40,10 +40,15 @@ server_settings:
   auto_pause: false
   autosave_slots: 20
 
+account:
+  accountSecret: factorio-account
+
 mods:
   enabled: true
+  portal:
+    - AutoSwitchTechs
   unofficial:
-    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.0.0-mod/factorio-exporter_1.0.0.zip"
+    - url: "https://github.com/manamana32321/factorio-exporter/releases/download/v1.1.0-mod/factorio-exporter_1.1.0.zip"
 
 admin_list:
   - YumeMana

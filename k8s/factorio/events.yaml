@@ -1,0 +1,263 @@
+# Factorio Event Contract
+# SSOT for all event types shared between mod, exporter, and admin.
+# Run codegen to regenerate Go/TS code after editing:
+#   cd ~/factorio-exporter && go run ./cmd/codegen -contract ~/homelab-worktrees/main/k8s/factorio/events.yaml
+
+events:
+  # --- Log-based events (parsed from Factorio pod stdout by LogTailer) ---
+  chat:
+    source: logtail
+    fields: { player: string, message: string }
+    discord: "💬 **{player}**: {message}"
+    label: 채팅
+    color: blue
+
+  join:
+    source: logtail
+    fields: { player: string }
+    discord: "➡️ **{player}** joined the game"
+    label: 접속
+    color: green
+
+  leave:
+    source: logtail
+    fields: { player: string }
+    discord: "⬅️ **{player}** left the game"
+    label: 퇴장
+    color: red
+
+  research:
+    source: logtail
+    fields: { tech: string }
+    discord: "🔬 Research completed: **{tech}**"
+    label: "연구 완료 (로그)"
+    color: purple
+
+  rocket:
+    source: logtail
+    fields: {}
+    discord: "🚀 **Rocket launched!**"
+    label: 로켓
+    color: orange
+
+  save:
+    source: logtail
+    fields: { name: string }
+    discord: ""
+    label: 저장
+    color: zinc
+
+  # --- RCON-polled events (captured by mod, polled via exporter) ---
+  research_started:
+    source: mod
+    fields: { name: string, level: int }
+    discord: "🔬 Research {action}: **{name}**"
+    label: 연구 시작
+    color: purple
+    default_rule: { enabled: false, level: INFO }
+
+  research_finished:
+    source: mod
+    fields: { name: string, level: int }
+    discord: "🔬 Research {action}: **{name}**"
+    label: 연구 완료
+    color: purple
+    default_rule: { enabled: true, level: INFO }
+
+  research_cancelled:
+    source: mod
+    fields: { name: string, level: int }
+    discord: "🔬 Research {action}: **{name}**"
+    label: 연구 취소
+    color: purple
+    default_rule: { enabled: false, level: INFO }
+
+  player_died:
+    source: mod
+    fields: { player: string, cause: string }
+    discord: "💀 **{player}** died ({cause})"
+    label: 플레이어 사망
+    color: red
+    default_rule: { enabled: true, level: WARNING }
+
+  player_respawned:
+    source: mod
+    fields: { player: string }
+    discord: "🔄 **{player}** respawned"
+    label: 리스폰
+    color: green
+    default_rule: { enabled: false, level: INFO }
+
+  player_changed_surface:
+    source: mod
+    fields: { player: string, surface: string }
+    discord: "🌍 **{player}** traveled to **{surface}**"
+    label: 행성 이동
+    color: cyan
+    default_rule: { enabled: true, level: INFO }
+
+  player_promoted:
+    source: mod
+    fields: { player: string }
+    discord: "⬆️ **{player}** promoted to admin"
+    label: 관리자 승격
+    color: green
+    default_rule: { enabled: true, level: INFO }
+
+  player_demoted:
+    source: mod
+    fields: { player: string }
+    discord: "⬇️ **{player}** demoted from admin"
+    label: 관리자 해제
+    color: yellow
+    default_rule: { enabled: true, level: INFO }
+
+  rocket_launch_ordered:
+    source: mod
+    fields: {}
+    discord: "🚀 Rocket launch ordered"
+    label: 로켓 발사
+    color: orange
+    default_rule: { enabled: false, level: INFO }
+
+  platform_state_changed:
+    source: mod
+    fields: { name: string, state: string }
+    discord: "🛸 Platform **{name}** state changed"
+    label: 플랫폼 상태 변경
+    color: indigo
+    default_rule: { enabled: false, level: INFO }
+
+  cargo_ascended:
+    source: mod
+    fields: {}
+    discord: "📦 Cargo pod reached orbit"
+    label: 카고 상승
+    color: indigo
+    default_rule: { enabled: false, level: INFO }
+
+  cargo_descended:
+    source: mod
+    fields: {}
+    discord: "📦 Cargo pod landed"
+    label: 카고 하강
+    color: indigo
+    default_rule: { enabled: false, level: INFO }
+
+  spawner_destroyed:
+    source: mod
+    fields: { name: string }
+    discord: "🕳️ Spawner destroyed: **{name}**"
+    label: 둥지 파괴
+    color: yellow
+    default_rule: { enabled: false, level: INFO }
+
+  surface_created:
+    source: mod
+    fields: { name: string }
+    discord: "🌍 New surface discovered: **{name}**"
+    label: 새 표면 발견
+    color: teal
+    default_rule: { enabled: true, level: INFO }
+
+  platform_created:
+    source: mod
+    fields: { name: string, surface: string }
+    discord: "🛸 New platform created: **{name}**"
+    label: 플랫폼 생성
+    color: indigo
+    default_rule: { enabled: true, level: INFO }
+
+  tag_added:
+    source: mod
+    fields: { text: string }
+    discord: "📍 Map tag added: **{text}**"
+    label: 맵 태그
+    color: zinc
+    default_rule: { enabled: true, level: INFO }
+
+  # --- Entity events (with category/batch support) ---
+  entity_destroyed:
+    source: mod
+    fields: { name: string, surface: string, entity_type: string, cause_player: string }
+    discord: "🏚️ **{name}** destroyed on {surface}"
+    label: 엔티티 파괴
+    color: yellow
+    default_rule: { enabled: false, level: INFO }
+
+  entity_mined:
+    source: mod
+    fields: { name: string, surface: string, entity_type: string, player: string }
+    discord: "🔨 **{player}** mined **{name}** on **{surface}**"
+    label: 엔티티 회수
+    color: zinc
+    default_rule: { enabled: false, level: INFO, batch_window_sec: 60, min_count: 20 }
+
+  entity_marked_deconstruction:
+    source: mod
+    fields: { player: string, surface: string, count: int }
+    discord: "🔧 **{player}** marked {count} entities for deconstruction on **{surface}**"
+    label: 해체 마킹
+    color: yellow
+    default_rule: { enabled: true, level: WARNING, min_count: 50 }
+
+  # --- System events (generated by exporter, not by mod) ---
+  auto_research_switch:
+    source: exporter
+    fields: { name: string }
+    discord: "🤖 {message}"
+    label: 자동 연구 전환
+    color: purple
+
+# RCON scripts used by admin panel and exporter
+rcon_scripts:
+  get_research:
+    description: "현재 연구 상태 + 큐 조회"
+    used_by: [admin]
+    lua: >
+      local f=game.forces["player"] local r={}
+      if f.current_research then
+        r.current={name=f.current_research.name,level=f.current_research.level,progress=f.research_progress,count=f.current_research.research_unit_count}
+        r.ingredients={} for _,ing in pairs(f.current_research.research_unit_ingredients) do r.ingredients[#r.ingredients+1]={name=ing.name,amount=ing.amount} end
+      end
+      r.queue={} for i,tech in pairs(f.research_queue) do
+        local ings={} for _,ing in pairs(tech.research_unit_ingredients) do ings[#ings+1]={name=ing.name,amount=ing.amount} end
+        r.queue[i]={name=tech.name,level=tech.level,count=tech.research_unit_count,ingredients=ings}
+      end r.lab_speed=f.laboratory_speed_modifier rcon.print(helpers.table_to_json(r))
+
+  add_research:
+    description: "연구 큐에 기술 추가"
+    used_by: [admin]
+    lua: 'local ok=game.forces["player"].add_research("{tech}") rcon.print(ok and "ok" or "fail")'
+
+  cancel_research:
+    description: "현재 연구 취소"
+    used_by: [admin]
+    lua: 'game.forces["player"].cancel_current_research() rcon.print("ok")'
+
+  reorder_queue:
+    description: "연구 큐 재정렬"
+    used_by: [admin]
+    lua: 'game.forces["player"].research_queue={{{techs}}} rcon.print("ok")'
+
+  get_platforms:
+    description: "우주 플랫폼 목록 조회"
+    used_by: [admin]
+    lua: >
+      local r={} for _,s in pairs(game.surfaces) do local pl=s.platform if pl then
+        local sched={} local loc="unknown" if pl.schedule then
+          for i,rec in pairs(pl.schedule.records) do sched[i]=rec.station or "?" end
+          local cur=pl.schedule.records[pl.schedule.current] if cur then loc=cur.station or "?" end
+        end r[#r+1]={name=pl.name,state=pl.state,speed=pl.speed,weight=pl.weight,location=loc,schedule=sched,schedule_index=pl.schedule and pl.schedule.current or 0}
+      end end rcon.print(helpers.table_to_json(r))
+
+  get_available_techs:
+    description: "연구 가능한 기술 목록 (자동 연구용)"
+    used_by: [exporter]
+    lua: >
+      local f=game.forces["player"] local r={} for name,tech in pairs(f.technologies) do
+        if tech.enabled and not tech.researched and tech.prerequisites_satisfied then
+          local ings={} for _,ing in pairs(tech.research_unit_ingredients) do ings[#ings+1]=ing.name end
+          r[#r+1]={name=tech.name,level=tech.level,ingredients=ings,count=tech.research_unit_count}
+        end
+      end rcon.print(helpers.table_to_json(r))
