@@ -18,8 +18,13 @@ spec:
         app: factorio-exporter
     spec:
       serviceAccountName: factorio-exporter
-      nodeSelector:
-        kubernetes.io/hostname: json-server-2
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: factorio-factorio-server-charts
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: factorio-exporter
           image: ghcr.io/manamana32321/factorio-exporter:latest
