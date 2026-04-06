@@ -48,3 +48,7 @@ data:
     loki:
       enabled: true
       events: all
+
+    auto_research:
+      enabled: true
+      check_interval: 10s

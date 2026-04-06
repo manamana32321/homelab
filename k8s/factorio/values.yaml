@@ -46,7 +46,6 @@ account:
 mods:
   enabled: true
   portal:
-    - name: AutoSwitchTechs
     - name: factorio-exporter
 
 admin_list:
