@@ -46,7 +46,7 @@ account:
 mods:
   enabled: true
   portal:
-    - name: AutoSwitchTechs
+    - name: research-automation-combinator
     - name: factorio-exporter
 
 admin_list:

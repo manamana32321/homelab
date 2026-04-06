@@ -48,9 +48,3 @@ data:
     loki:
       enabled: true
       events: all
-
-    auto_research:
-      enabled: true
-      check_interval: 30s
-      threshold_pct: 0.2
-      prometheus_url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
