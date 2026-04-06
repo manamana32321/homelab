@@ -46,7 +46,7 @@ account:
 mods:
   enabled: true
   portal:
-    - name: research-automation-combinator
+    - name: circuit-network-research-management
     - name: factorio-exporter
 
 admin_list:
