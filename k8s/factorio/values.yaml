@@ -46,7 +46,7 @@ account:
 mods:
   enabled: true
   portal:
-    - name: circuit-network-research-management
+    - name: AutoSwitchTechs
     - name: factorio-exporter
 
 admin_list:
