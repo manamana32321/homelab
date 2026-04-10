@@ -68,23 +68,35 @@ data:
           ]
         },
         {
-          "title": "Total SPM",
-          "type": "stat",
+          "title": "SPM",
+          "type": "timeseries",
           "gridPos": { "h": 4, "w": 6, "x": 0, "y": 10 },
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 20,
+                "gradientMode": "scheme",
+                "showPoints": "never",
+                "spanNulls": true,
+                "axisBorderShow": false,
+                "scaleDistribution": { "type": "linear" }
+              },
+              "color": { "mode": "palette-classic" },
               "thresholds": {
                 "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "yellow", "value": 1000 },
-                  { "color": "green", "value": 5000 }
+                  { "color": "green", "value": null }
                 ]
               }
             }
           },
-          "options": { "graphMode": "area", "textMode": "value_and_name" },
+          "options": {
+            "tooltip": { "mode": "single" },
+            "legend": { "displayMode": "hidden" }
+          },
           "targets": [
             {
               "expr": "max(rate(factorio_item_consumption{name=~\".*-science-pack\"}[5m])) * 60",
@@ -170,6 +182,7 @@ data:
           "type": "logs",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
+          "timeFrom": "7d",
           "options": {
             "showTime": true,
             "showLabels": false,
