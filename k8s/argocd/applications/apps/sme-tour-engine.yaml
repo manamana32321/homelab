@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sme-tour-engine
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: engine=ghcr.io/manamana32321/sme-tour-engine
+    argocd-image-updater.argoproj.io/engine.update-strategy: digest
+    argocd-image-updater.argoproj.io/engine.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/write-back-method: git
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/sme-tour
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sme-tour
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
