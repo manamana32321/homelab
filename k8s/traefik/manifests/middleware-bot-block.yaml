@@ -1,0 +1,22 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: bot-block
+  namespace: kube-system
+spec:
+  plugin:
+    blockpath:
+      regex:
+        # Environment variable files
+        - "(?i)^/\\.env.*"
+        # WordPress probes
+        - "(?i)^/wp-"
+        - "(?i)/wlwmanifest\\.xml"
+        # PHP probes
+        - "(?i)^/phpinfo"
+        - "(?i)^/_profiler"
+        - "(?i)\\.php$"
+        # Configuration file probes
+        - "(?i)^/settings\\.ini"
+        - "(?i)^/config\\.json"
+        - "(?i)^/web\\.config"

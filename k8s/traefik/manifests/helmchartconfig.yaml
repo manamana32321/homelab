@@ -8,3 +8,10 @@ spec:
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
+    additionalArguments:
+      - "--entrypoints.websecure.http.middlewares=kube-system-bot-block@kubernetescrd"
+    experimental:
+      plugins:
+        blockpath:
+          moduleName: github.com/traefik/plugin-blockpath
+          version: v0.2.1
