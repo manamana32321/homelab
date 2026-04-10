@@ -15,6 +15,7 @@ spec:
       labels:
         app: openclaw
     spec:
+      serviceAccountName: jarvis
       nodeSelector:
         kubernetes.io/hostname: json-server-1
       securityContext:
