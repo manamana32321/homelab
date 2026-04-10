@@ -44,7 +44,6 @@ spec:
                   region = ap-northeast-2
                   location_constraint = ap-northeast-2
                   no_check_bucket = true
-                  storage_class = GLACIER_IR
                   CONF
 
                   # Sync library to S3

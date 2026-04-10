@@ -18,6 +18,22 @@ resource "aws_s3_bucket_lifecycle_configuration" "immich_backup" {
       days = 30
     }
   }
+
+  # Media: transition to Glacier IR after 7 days
+  # rclone syncs to Standard to avoid expensive GIR request costs ($0.01/1K vs $0.0004/1K)
+  rule {
+    id     = "media-to-glacier-ir"
+    status = "Enabled"
+
+    filter {
+      prefix = "media/"
+    }
+
+    transition {
+      days          = 7
+      storage_class = "GLACIER_IR"
+    }
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "immich_backup" {
@@ -48,6 +64,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "seafile_backup" {
 
     expiration {
       days = 30
+    }
+  }
+
+  # Media: transition to Glacier IR after 7 days
+  rule {
+    id     = "media-to-glacier-ir"
+    status = "Enabled"
+
+    filter {
+      prefix = "media/"
+    }
+
+    transition {
+      days          = 7
+      storage_class = "GLACIER_IR"
     }
   }
 }

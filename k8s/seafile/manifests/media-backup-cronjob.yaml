@@ -45,12 +45,14 @@ spec:
                   region = ap-northeast-2
                   location_constraint = ap-northeast-2
                   no_check_bucket = true
-                  storage_class = GLACIER_IR
                   CONF
 
-                  # Sync seafile data to S3
+                  # Sync seafile data to S3 (excluding LectureHub library - videos are re-downloadable)
                   # ionice idle class: Seafile과 동일 디스크(Seagate 1TB) 경합 방지
                   ionice -c 3 rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
+                    --exclude "storage/blocks/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
+                    --exclude "storage/commits/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
+                    --exclude "storage/fs/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
                     --s3-no-check-bucket \
                     --fast-list \
                     --transfers 2 \
