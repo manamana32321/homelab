@@ -80,8 +80,8 @@ func (h *handler) ingest(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseTimeRange(r *http.Request) (from, to time.Time, err error) {
-	fromStr := r.URL.Query().Get("from")
-	toStr := r.URL.Query().Get("to")
+	fromStr := r.URL.Query().Get("start_date")
+	toStr := r.URL.Query().Get("end_date")
 
 	if fromStr == "" {
 		from = time.Now().AddDate(0, 0, -7) // default: last 7 days

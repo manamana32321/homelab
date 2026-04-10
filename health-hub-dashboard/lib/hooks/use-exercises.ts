@@ -8,6 +8,6 @@ export function useExercises(from: string, to: string) {
   return useQuery({
     queryKey: ["exercises", from, to],
     queryFn: () =>
-      apiFetch<ExerciseSession[]>("/api/v1/exercises", { from, to }),
+      apiFetch<ExerciseSession[]>("/api/v1/exercises", { start_date: from, end_date: to }),
   });
 }

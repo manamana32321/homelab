@@ -7,6 +7,6 @@ import type { BodyMeasurement } from "@/lib/types";
 export function useBody(from: string, to: string) {
   return useQuery({
     queryKey: ["body", from, to],
-    queryFn: () => apiFetch<BodyMeasurement[]>("/api/v1/body", { from, to }),
+    queryFn: () => apiFetch<BodyMeasurement[]>("/api/v1/body", { start_date: from, end_date: to }),
   });
 }
