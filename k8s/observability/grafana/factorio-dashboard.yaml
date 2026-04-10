@@ -17,12 +17,30 @@ data:
       "timezone": "browser",
       "time": { "from": "now-6h", "to": "now" },
       "refresh": "30s",
+      "templating": {
+        "list": [
+          {
+            "name": "DS_PROMETHEUS",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": { "text": "Prometheus", "value": "Prometheus" },
+            "hide": 2
+          },
+          {
+            "name": "DS_LOKI",
+            "type": "datasource",
+            "query": "loki",
+            "current": { "text": "Loki", "value": "Loki" },
+            "hide": 2
+          }
+        ]
+      },
       "panels": [
         {
           "title": "SPM (Science Per Minute)",
           "type": "timeseries",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
@@ -53,7 +71,7 @@ data:
           "title": "Total SPM",
           "type": "stat",
           "gridPos": { "h": 4, "w": 6, "x": 0, "y": 10 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
@@ -79,7 +97,7 @@ data:
           "title": "Research Progress",
           "type": "gauge",
           "gridPos": { "h": 4, "w": 6, "x": 6, "y": 10 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "percentunit",
@@ -104,7 +122,7 @@ data:
           "title": "Players Online",
           "type": "stat",
           "gridPos": { "h": 4, "w": 6, "x": 12, "y": 10 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
@@ -128,7 +146,7 @@ data:
           "title": "Research Level",
           "type": "stat",
           "gridPos": { "h": 4, "w": 6, "x": 18, "y": 10 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
@@ -151,7 +169,7 @@ data:
           "title": "연구 히스토리",
           "type": "logs",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
           "options": {
             "showTime": true,
             "showLabels": false,
@@ -174,7 +192,7 @@ data:
           "title": "Item Production (Top 20)",
           "type": "timeseries",
           "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "fieldConfig": {
             "defaults": {
               "unit": "short",
