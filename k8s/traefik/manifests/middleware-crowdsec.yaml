@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: crowdsec-bouncer
+  namespace: kube-system
+spec:
+  plugin:
+    bouncer:
+      enabled: true
+      crowdsecMode: stream
+      crowdsecLapiScheme: http
+      crowdsecLapiHost: crowdsec-lapi.crowdsec.svc.cluster.local:8080
+      # Internal cluster key — Traefik plugin CRDs do not support secretKeyRef.
+      # The same key is sealed in k8s/crowdsec/manifests/sealed-secret.yaml.
+      crowdsecLapiKey: ad51ab1251b670b6231b1940d7a227ff78062f08c5bd876f2bf525b542484e0b
+      updateIntervalSeconds: 60
+      defaultDecisionSeconds: 60

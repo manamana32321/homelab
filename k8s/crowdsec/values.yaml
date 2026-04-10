@@ -1,0 +1,39 @@
+container_runtime: containerd
+
+agent:
+  acquisition:
+    - namespace: kube-system
+      podName: traefik-*
+      program: traefik
+  env:
+    - name: COLLECTIONS
+      value: "crowdsecurity/traefik crowdsecurity/http-cve"
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+lapi:
+  env:
+    - name: BOUNCER_KEY_traefik
+      valueFrom:
+        secretKeyRef:
+          name: crowdsec-bouncer-key
+          key: BOUNCER_KEY_traefik
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  persistentVolume:
+    data:
+      enabled: true
+      storageClassName: longhorn-ssd
+      size: 1Gi
+    config:
+      enabled: true
+      storageClassName: longhorn-ssd
+      size: 100Mi

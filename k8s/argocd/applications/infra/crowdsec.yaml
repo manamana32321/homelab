@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crowdsec
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: CrowdSec Helm chart
+    - repoURL: https://crowdsecurity.github.io/helm-charts
+      chart: crowdsec
+      targetRevision: 0.23.0
+      helm:
+        releaseName: crowdsec
+        valueFiles:
+          - $homelab/k8s/crowdsec/values.yaml
+    # Source 2: Homelab repo reference for values
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    # Source 3: SealedSecret
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/crowdsec/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crowdsec
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
