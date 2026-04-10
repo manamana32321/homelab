@@ -93,6 +93,27 @@ spec:
             summary: "CRITICAL: Many reallocated sectors on {{ $labels.device }}"
             description: "{{ $labels.device }} has {{ $value }} reallocated sectors. Replace disk."
 
+    # CrowdSec IPS 알림
+    - name: crowdsec
+      rules:
+        - alert: CrowdSecHighBanRate
+          expr: increase(cs_active_decisions[5m]) > 50
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CrowdSec: 다수 IP 차단 중"
+            description: "5분간 {{ $value | humanize }}건의 차단 판단 발생."
+
+        - alert: CrowdSecLAPIDown
+          expr: up{job=~".*crowdsec-lapi.*"} == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CrowdSec LAPI 응답 없음"
+            description: "CrowdSec LAPI가 3분간 메트릭을 노출하지 않음. bouncer가 fail-open 상태."
+
     # 리소스 알림 (kube-prometheus-stack 기본 NodeMemory rule은 예측 기반이라 직관적이지 않음)
     - name: resources
       rules:

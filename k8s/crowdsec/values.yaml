@@ -14,6 +14,12 @@ agent:
     requests:
       cpu: 50m
       memory: 64Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
 
 lapi:
   env:
@@ -28,6 +34,12 @@ lapi:
     requests:
       cpu: 100m
       memory: 128Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus
   persistentVolume:
     data:
       enabled: true

@@ -8,3 +8,4 @@ resources:
   - namespace.yaml
   - health-hub-dashboard.yaml
   - factorio-dashboard.yaml
+  - crowdsec-dashboard.yaml
