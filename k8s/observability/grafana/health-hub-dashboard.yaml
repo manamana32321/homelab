@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: health-hub-dashboard
   namespace: observability
+  annotations:
+    grafana_folder: Apps
   labels:
     grafana_dashboard: "1"
 data:
