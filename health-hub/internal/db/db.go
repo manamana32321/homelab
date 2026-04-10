@@ -21,6 +21,9 @@ var migration003 string
 //go:embed migrations/004_health_notes.sql
 var migration004 string
 
+//go:embed migrations/005_body_composition.sql
+var migration005 string
+
 func Connect(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
@@ -51,6 +54,7 @@ func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 		{"002_unique_dedup", migration002},
 		{"003_nutrition_fields", migration003},
 		{"004_health_notes", migration004},
+		{"005_body_composition", migration005},
 	}
 
 	for _, m := range migrations {
