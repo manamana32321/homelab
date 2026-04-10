@@ -1,7 +1,8 @@
 # Seafile 백업 최적화 + 라이브러리 통합
 
 > Issue: [manamana32321/homelab#83](https://github.com/manamana32321/homelab/issues/83)
-> Date: 2026-04-10
+> Date: 2026-04-10 (최종 수정: 2026-04-11)
+> PRs: #89 (merged, 초기 전략), #96 (merged, 최종 전략)
 
 ## 배경
 
@@ -9,132 +10,76 @@
 
 3월 AWS 청구서 **$113.52** 중 S3 요청 비용이 **$99.75**.
 
-- rclone sync가 매일 Seafile 블록 파일 506K 오브젝트를 HEAD 요청으로 비교
+- rclone sync가 매일 Seafile 블록 파일 506K 오브젝트에 HEAD 요청
 - Glacier IR GET/HEAD 요청 단가: **$0.01/1K** (Standard의 25배)
-- 506K obj × 30일 = ~15M 요청 → $87.75 (GIR-Tier2) + $12 (GIR-Tier1)
+- `--fast-list`로도 HEAD 제거 불가 (실측 확인: 3/22 적용 후에도 비용 미감소)
 
-### 문제 2: 강의 영상 백업 불필요
+### 문제 2: Seafile 버전 히스토리 오브젝트 폭발
 
-LectureHub 라이브러리에 저장될 강의 영상은 LearningX에서 재다운로드 가능.
-수백GB가 될 수 있어 백업 대상에서 제외 필요.
+- 49만 오브젝트 중 46만이 commits/fs (버전 히스토리)
+- `keep_days=0` 설정으로 새 히스토리 방지 + 라이브러리 재생성으로 기존 히스토리 제거
 
-### 문제 3: 라이브러리 난립
+### 문제 3: 강의 영상 백업 불필요
 
-현재 4개 라이브러리가 용도 구분 없이 산재.
+LearningX에서 재다운로드 가능한 강의 영상을 S3에 백업할 필요 없음.
 
-| 라이브러리 | 용량 | 내용 |
-|-----------|------|------|
-| 내 라이브러리 | 18GB | Recordings/, 2026-1학기/, 건강/ |
-| Google Drive | 41GB | 구글 드라이브 마이그레이션 전체 |
-| LectureHub | 232KB | 2026-1/ 과목별 과제 파일 |
-| My Library Template | 0 | 빈 템플릿 |
+## 최종 설계
 
-## 설계
+### S3 스토리지 클래스: Intelligent-Tiering
 
-### 1. S3 Storage Class 전략 변경
+초기 전략(Standard→lifecycle→GIR)에서 변경. lifecycle 전환 후에도 GIR 오브젝트에 HEAD 요청 시 GIR 요금이 적용되므로 근본 해결이 안 됨.
 
-**원칙**: rclone은 Standard에 sync, lifecycle rule이 Glacier IR로 전환.
+IT 선택 이유:
+- HEAD 요청이 **Standard 요금** ($0.005/1K)
+- 90일 후 Archive Instant Access = **GIR과 동일 저장 비용** ($0.005/GB)
+- **복원 비용 $0** (GIR은 $0.01/GB)
+- 모니터링 비용: $0.0025/1K objects/월 (미미)
 
-#### rclone 변경
+### Seafile 라이브러리 구조 (PARA)
 
-Immich/Seafile media backup CronJob에서:
+| 라이브러리 | UUID | 용도 | 백업 |
+|-----------|------|------|------|
+| 내 라이브러리 | `66a1e14f-8c91-45c8-ace8-b3c7f03ac63e` | PARA 구조 개인 파일 | IT |
+| 녹음 | `32e4bb08-fc91-4ddd-992e-a6da1bb814fd` | 통화/음성 녹음 | IT |
+| 강의영상 | `07c9cf44-8874-491b-9767-ef8783d407f5` | 강의 영상 전용 | 제외 |
 
-```diff
-- storage_class = GLACIER_IR
-+ # storage_class 제거 — Standard default
+### rclone 설정
+
+**Seafile**: include 필터로 2개 라이브러리만 sync
+```
+storage_class = INTELLIGENT_TIERING
+--filter "+ seafile/seafile-data/storage/*/66a1e14f-.../**"
+--filter "+ seafile/seafile-data/storage/*/32e4bb08-.../**"
+--filter "- **"
 ```
 
-#### S3 Lifecycle Rule 추가
-
-각 백업 버킷에 media prefix 대상 lifecycle rule 추가:
-
-```hcl
-rule {
-  id     = "media-to-glacier-ir"
-  status = "Enabled"
-  filter { prefix = "media/" }
-  transition {
-    days          = 7
-    storage_class = "GLACIER_IR"
-  }
-}
+**Immich**: 기존 GIR + 새 파일 IT 혼합
+```
+storage_class = INTELLIGENT_TIERING
+--s3-no-head  (기존 GIR 오브젝트 HEAD 비용 방지)
 ```
 
-**기존 Glacier IR 오브젝트**: lifecycle은 이미 Glacier IR인 오브젝트를 다시 전환하지 않음.
-새 sync로 덮어쓰면 Standard로 올라가고, 7일 후 다시 Glacier IR로 전환됨.
+### 비용
 
-#### 비용 효과
+| | Before (3월) | After |
+|---|---|---|
+| 월간 | $113.52 | ~$2.50 |
 
-| | 요청 단가 (/1K) | 월 요청 비용 | 저장 비용 | 합계 |
-|---|---|---|---|---|
-| Before (GIR 직접) | $0.01 | ~$100 | ~$2.35 | **~$103** |
-| After (Standard→lifecycle) | $0.0004 | ~$6 | ~$2.50 | **~$8.50** |
+## 완료된 작업
 
-저장 비용 미세 증가 (7일간 Standard 단가), 요청 비용 94% 절감.
+- [x] Seafile `keep_days=0` 설정 (버전 히스토리 비활성화)
+- [x] 라이브러리 재생성 (히스토리 제거, 494K→60K 오브젝트)
+- [x] PARA 폴더 구조 정리
+- [x] 녹음 별도 라이브러리 분리
+- [x] Google Drive 중복 폴더 삭제
+- [x] S3 기존 Seafile 데이터 삭제
+- [x] Terraform lifecycle rule 제거
+- [x] CronJob rclone IT 설정 + include 필터
+- [x] terraform apply
+- [x] 디스크 고아 블록 정리
+- [x] CronJob suspend 해제
 
-### 2. 라이브러리 통합
+## 미완료
 
-수동 작업 (Seafile 웹UI):
-
-| Before | After | 작업 |
-|--------|-------|------|
-| 내 라이브러리 (18GB) | **내 라이브러리** — SSOT, 백업 대상 | 유지 |
-| Google Drive (41GB) | ↑ 내 라이브러리로 이동 | 파일 이동 후 라이브러리 삭제 |
-| LectureHub 과제 파일 | ↑ 내 라이브러리 `2026-1학기/`로 이동 | 파일 이동 |
-| LectureHub 강의 영상 | **LectureHub** — 강의 영상 전용 | 유지 |
-| My Library Template | 삭제 | 삭제 |
-
-통합 후:
-
-| 라이브러리 | 용도 | 예상 용량 | 백업 |
-|-----------|------|----------|------|
-| **내 라이브러리** | 개인 파일 전부 | ~59GB | Glacier IR (lifecycle) |
-| **LectureHub** | 강의 영상만 | 향후 수백GB | **제외** |
-
-### 3. LectureHub 백업 제외
-
-Seafile 내부 스토리지 구조:
-
-```
-storage/{blocks,commits,fs}/<repo-uuid>/
-```
-
-LectureHub repo ID: `07c9cf44-8874-491b-9767-ef8783d407f5`
-
-rclone sync에 exclude 추가:
-
-```bash
-rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
-  --exclude "storage/blocks/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
-  --exclude "storage/commits/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
-  --exclude "storage/fs/07c9cf44-8874-491b-9767-ef8783d407f5/**" \
-  ...
-```
-
-**주의**: 라이브러리 삭제 후 재생성하면 UUID 변경됨 → exclude 업데이트 필요.
-
-## 변경 대상 파일
-
-### Terraform (aws/)
-
-- `aws/s3.tf`: immich_backup, seafile_backup 버킷에 `media-to-glacier-ir` lifecycle rule 추가
-
-### K8s manifests
-
-- `k8s/immich/manifests/media-backup-cronjob.yaml`: rclone config에서 `storage_class = GLACIER_IR` 제거
-- `k8s/seafile/manifests/media-backup-cronjob.yaml`: 위와 동일 + LectureHub UUID exclude 추가
-
-## 작업 순서
-
-1. **Terraform**: lifecycle rule 추가 → `terraform plan` → `terraform apply`
-2. **K8s manifests**: rclone storage_class 제거 + exclude 추가
-3. **CronJob suspend 해제**: 4개 모두 unsuspend
-4. **검증**: 다음 날 CronJob 실행 로그 확인, S3 오브젝트가 Standard로 올라가는지 확인
-5. **라이브러리 통합**: 웹UI에서 수동 수행 (별도 시점)
-6. **통합 후**: seaf-gc 실행 (orphan 블록 정리), UUID 변경 있으면 exclude 업데이트
-
-## 미래 최적화 (이번 스코프 밖)
-
-- **옵션 2 (변경분만 sync)**: rclone `--max-age` 또는 Seafile 변경 이벤트 기반 sync
-- **homelab-terraform IAM user Terraform import**: 현재 수동 관리, IaC로 전환
-- **Factorio 백업 외부화**: 현재 클러스터 내 MinIO → 디스크 장애 시 같이 소실
+- [ ] 첫 sync 결과 확인
+- [ ] (2026-06-24 이후) Immich GIR→IT COPY 전환 ($0.42)
