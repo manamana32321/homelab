@@ -12,8 +12,6 @@ spec:
       access:
         enabled: true
         format: json
-    additionalArguments:
-      - "--entrypoints.websecure.http.middlewares=kube-system-crowdsec-bouncer@kubernetescrd"
     experimental:
       plugins:
         bouncer:
