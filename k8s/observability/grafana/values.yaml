@@ -188,7 +188,8 @@ grafana.ini:
   security:
     allow_embedding: true
   auth.anonymous:
-    enabled: false
+    enabled: true
+    org_role: Viewer
   users:
     allow_sign_up: true
     default_language: "ko-KR"
