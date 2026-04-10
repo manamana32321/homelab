@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: factorio-dashboard
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  factorio.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "uid": "factorio",
+      "title": "Factorio",
+      "tags": ["factorio"],
+      "timezone": "browser",
+      "time": { "from": "now-6h", "to": "now" },
+      "refresh": "30s",
+      "panels": [
+        {
+          "title": "SPM (Science Per Minute)",
+          "type": "timeseries",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 15,
+                "gradientMode": "scheme",
+                "showPoints": "never",
+                "spanNulls": true
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] }
+          },
+          "targets": [
+            {
+              "expr": "rate(factorio_item_consumption{name=~\".*-science-pack\"}[5m]) * 60",
+              "legendFormat": "{{name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Total SPM",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 10 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 1000 },
+                  { "color": "green", "value": 5000 }
+                ]
+              }
+            }
+          },
+          "options": { "graphMode": "area", "textMode": "value_and_name" },
+          "targets": [
+            {
+              "expr": "max(rate(factorio_item_consumption{name=~\".*-science-pack\"}[5m])) * 60",
+              "legendFormat": "SPM",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Research Progress",
+          "type": "gauge",
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 10 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "steps": [
+                  { "color": "purple", "value": null }
+                ]
+              }
+            }
+          },
+          "targets": [
+            {
+              "expr": "factorio_research_progress",
+              "legendFormat": "Progress",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Players Online",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 10 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "steps": [
+                  { "color": "text", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          },
+          "targets": [
+            {
+              "expr": "factorio_players",
+              "legendFormat": "Players",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Research Level",
+          "type": "stat",
+          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 10 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "steps": [
+                  { "color": "purple", "value": null }
+                ]
+              }
+            }
+          },
+          "targets": [
+            {
+              "expr": "factorio_research_level",
+              "legendFormat": "Level",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "연구 히스토리",
+          "type": "logs",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "options": {
+            "showTime": true,
+            "showLabels": false,
+            "showCommonLabels": false,
+            "wrapLogMessage": false,
+            "prettifyLogMessage": false,
+            "enableLogDetails": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none"
+          },
+          "targets": [
+            {
+              "expr": "{service_name=\"factorio-exporter\"} |= \"research_finished\" | json | event = \"research_finished\"",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "Item Production (Top 20)",
+          "type": "timeseries",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": true
+              }
+            }
+          },
+          "options": {
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] }
+          },
+          "targets": [
+            {
+              "expr": "topk(20, rate(factorio_item_production[5m]) * 60)",
+              "legendFormat": "{{name}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 39,
+      "version": 1
+    }

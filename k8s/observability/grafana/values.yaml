@@ -161,6 +161,11 @@ grafana.ini:
   server:
     domain: "grafana.json-server.win"
     root_url: "https://grafana.json-server.win"
+  security:
+    allow_embedding: true
+  auth.anonymous:
+    enabled: true
+    org_role: Viewer
   users:
     default_language: "ko-KR"
     default_locale: ko

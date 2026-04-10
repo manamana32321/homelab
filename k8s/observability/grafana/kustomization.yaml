@@ -7,3 +7,4 @@ resources:
   - github-credentials.yaml
   - namespace.yaml
   - health-hub-dashboard.yaml
+  - factorio-dashboard.yaml
