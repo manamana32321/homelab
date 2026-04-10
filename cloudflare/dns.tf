@@ -199,6 +199,15 @@ resource "cloudflare_record" "files" {
   comment = "Seafile file sync"
 }
 
+resource "cloudflare_record" "nightscout" {
+  zone_id = cloudflare_zone.main.id
+  name    = "nightscout"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Nightscout CGM monitor"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id

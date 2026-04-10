@@ -1,0 +1,61 @@
+# gabe565 Nightscout Helm chart
+# Chart: https://charts.gabe565.com/charts/nightscout/
+# Common library: https://github.com/bjw-s/helm-charts/blob/a081de5/charts/library/common/values.yaml
+
+env:
+  API_SECRET:
+    valueFrom:
+      secretKeyRef:
+        name: nightscout-secret
+        key: API_SECRET
+  DISPLAY_UNITS: mg/dl
+  TIME_FORMAT: 24
+  LANGUAGE: ko
+  ENABLE: careportal rawbg iob cob bwp cage sage iage bage
+  AUTH_DEFAULT_ROLES: denied
+  BASE_URL: https://nightscout.json-server.win
+
+ingress:
+  main:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-dns01
+      traefik.ingress.kubernetes.io/redirect-entry-point: https
+    hosts:
+      - host: nightscout.json-server.win
+        paths:
+          - path: /
+    tls:
+      - secretName: nightscout-tls
+        hosts:
+          - nightscout.json-server.win
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+mongodb:
+  enabled: true
+  useStatefulSet: true
+  auth:
+    existingSecret: nightscout-mongodb-secret
+    databases:
+      - nightscout
+    usernames:
+      - nightscout
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
