@@ -36,4 +36,4 @@ lapi:
     config:
       enabled: true
       storageClassName: longhorn-ssd
-      size: 100Mi
+      size: 512Mi
