@@ -8,3 +8,14 @@ spec:
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
+    logs:
+      access:
+        enabled: true
+        format: json
+    additionalArguments:
+      - "--entrypoints.websecure.http.middlewares=kube-system-crowdsec-bouncer@kubernetescrd"
+    experimental:
+      plugins:
+        bouncer:
+          moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+          version: v1.5.1
