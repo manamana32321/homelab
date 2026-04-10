@@ -52,7 +52,7 @@ spec:
                   ionice -c 3 rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
                     --filter "+ storage/*/26ff9347-bbca-4c73-af00-015e862a377f/**" \
                     --filter "+ storage/*/c6c9f519-1e30-42e0-b3c7-a05ab0428cc9/**" \
-                    --filter "- storage/*/*/**" \
+                    --filter "- **" \
                     --s3-no-check-bucket \
                     --fast-list \
                     --transfers 2 \
