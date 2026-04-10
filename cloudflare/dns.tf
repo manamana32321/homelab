@@ -257,6 +257,13 @@ resource "cloudflare_record" "vercel_verify" {
   content = "vc-domain-verify=amang.json-server.win,9fa5cbcbc9713e7db0c9,dc"
 }
 
+resource "cloudflare_record" "vercel_verify_sme_tour" {
+  zone_id = cloudflare_zone.main.id
+  name    = "_vercel"
+  type    = "TXT"
+  content = "vc-domain-verify=sme-tour.json-server.win,4959dd229491b907c367"
+}
+
 resource "cloudflare_record" "health" {
   zone_id = cloudflare_zone.main.id
   name    = "health"
@@ -301,4 +308,24 @@ resource "cloudflare_record" "opencampus_minio" {
   content = var.default_ip
   proxied = false
   comment = "OpenCampus MinIO Console (proxied=false for cert-manager)"
+}
+
+# SME Tour project
+# Convention: (service).sme-tour.json-server.win
+resource "cloudflare_record" "sme_tour_api" {
+  zone_id = cloudflare_zone.main.id
+  name    = "api.sme-tour"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "SME Tour engine API (proxied=false for 2-level subdomain TLS)"
+}
+
+resource "cloudflare_record" "sme_tour" {
+  zone_id = cloudflare_zone.main.id
+  name    = "sme-tour"
+  type    = "CNAME"
+  content = "cname.vercel-dns.com"
+  proxied = false
+  comment = "SME Tour frontend (Vercel, proxied=false for Vercel SSL)"
 }
