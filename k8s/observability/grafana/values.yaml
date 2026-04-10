@@ -97,6 +97,8 @@ sidecar:
     label: grafana_dashboard
     labelValue: "1"
     folderAnnotation: grafana_folder
+    provider:
+      foldersFromFilesStructure: true
 
 # Provisioned dashboards from https://grafana.com/grafana/dashboards/
 dashboardProviders:
