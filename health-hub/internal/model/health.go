@@ -64,10 +64,12 @@ type HealthNote struct {
 
 // BodyMeasurement represents weight and body composition.
 type BodyMeasurement struct {
-	Time       time.Time `json:"time"`
-	WeightKg   *float64  `json:"weight_kg,omitempty"`
-	BodyFatPct *float64  `json:"body_fat_pct,omitempty"`
-	LeanMassKg *float64  `json:"lean_mass_kg,omitempty"`
+	Time                 time.Time `json:"time"`
+	WeightKg             *float64  `json:"weight_kg,omitempty"`
+	BodyFatPct           *float64  `json:"body_fat_pct,omitempty"`
+	BodyFatMassKg        *float64  `json:"body_fat_mass_kg,omitempty"`
+	SkeletalMuscleMassKg *float64  `json:"skeletal_muscle_mass_kg,omitempty"`
+	LeanMassKg           *float64  `json:"lean_mass_kg,omitempty"`
 }
 
 // IngestPayload is the request body from Tasker.

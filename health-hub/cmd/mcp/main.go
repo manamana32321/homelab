@@ -381,12 +381,14 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 		},
 	)
 
-	// add_weight — 체중 수동 입력
+	// add_weight — 체중/체성분 수동 입력
 	s.AddTool(
 		mcp.NewTool("add_weight",
-			mcp.WithDescription("체중을 수동으로 기록합니다."),
+			mcp.WithDescription("체중 및 체성분을 수동으로 기록합니다."),
 			mcp.WithNumber("weight_kg", mcp.Description("체중 (kg). 필수."), mcp.Required()),
 			mcp.WithNumber("body_fat_pct", mcp.Description("체지방률 (%). 모르면 생략.")),
+			mcp.WithNumber("body_fat_mass_kg", mcp.Description("체지방량 (kg). 모르면 생략.")),
+			mcp.WithNumber("skeletal_muscle_mass_kg", mcp.Description("골격근량 (kg). 모르면 생략.")),
 			mcp.WithString("time", mcp.Description("측정 시간 (RFC3339). 생략하면 현재 시각.")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -403,6 +405,12 @@ func registerTools(s *server.MCPServer, repo *db.Repository) {
 
 			if v, ok := args["body_fat_pct"].(float64); ok {
 				bm.BodyFatPct = &v
+			}
+			if v, ok := args["body_fat_mass_kg"].(float64); ok {
+				bm.BodyFatMassKg = &v
+			}
+			if v, ok := args["skeletal_muscle_mass_kg"].(float64); ok {
+				bm.SkeletalMuscleMassKg = &v
 			}
 			if v := req.GetString("time", ""); v != "" {
 				if t, err := time.Parse(time.RFC3339, v); err == nil {

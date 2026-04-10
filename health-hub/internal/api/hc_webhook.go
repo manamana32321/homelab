@@ -32,6 +32,8 @@ type hcWebhookPayload struct {
 	BloodPressure    []hcBloodPressure   `json:"blood_pressure"`
 	BodyTemperature  []hcBodyTemp        `json:"body_temperature"`
 	RespiratoryRate  []hcRespiratoryRate `json:"respiratory_rate"`
+	BodyFat          []hcBodyFat         `json:"body_fat"`
+	LeanBodyMass     []hcLeanBodyMass    `json:"lean_body_mass"`
 }
 
 type hcSteps struct {
@@ -121,6 +123,16 @@ type hcBodyTemp struct {
 type hcRespiratoryRate struct {
 	Rate float64 `json:"rate"`
 	Time string  `json:"time"`
+}
+
+type hcBodyFat struct {
+	Percentage float64 `json:"percentage"`
+	Time       string  `json:"time"`
+}
+
+type hcLeanBodyMass struct {
+	Kilograms float64 `json:"kilograms"`
+	Time      string  `json:"time"`
 }
 
 func parseTime(s string) time.Time {
@@ -307,13 +319,27 @@ func (h *handler) hcWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	result.Nutrition = n
 
-	// Convert weight → body measurements
+	// Convert weight + body composition → body measurements
 	var body []model.BodyMeasurement
 	for _, wt := range payload.Weight {
 		kg := wt.Kilograms
 		body = append(body, model.BodyMeasurement{
 			Time:     parseTime(wt.Time),
 			WeightKg: &kg,
+		})
+	}
+	for _, bf := range payload.BodyFat {
+		pct := bf.Percentage
+		body = append(body, model.BodyMeasurement{
+			Time:       parseTime(bf.Time),
+			BodyFatPct: &pct,
+		})
+	}
+	for _, lm := range payload.LeanBodyMass {
+		kg := lm.Kilograms
+		body = append(body, model.BodyMeasurement{
+			Time:       parseTime(lm.Time),
+			LeanMassKg: &kg,
 		})
 	}
 	n, err = h.repo.InsertBodyMeasurements(ctx, body)
