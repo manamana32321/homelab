@@ -264,9 +264,15 @@ func (r *Repository) QueryNutritionByType(ctx context.Context, q model.TimeRange
 // InsertBodyMeasurement inserts a single body measurement and returns the time.
 func (r *Repository) InsertBodyMeasurement(ctx context.Context, m model.BodyMeasurement) error {
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (time) DO UPDATE SET weight_kg = EXCLUDED.weight_kg, body_fat_pct = EXCLUDED.body_fat_pct, lean_mass_kg = EXCLUDED.lean_mass_kg`,
-		m.Time, m.WeightKg, m.BodyFatPct, m.LeanMassKg)
+		`INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg, skeletal_muscle_mass_kg, body_fat_mass_kg)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (time) DO UPDATE SET
+			weight_kg = COALESCE(EXCLUDED.weight_kg, body_measurements.weight_kg),
+			body_fat_pct = COALESCE(EXCLUDED.body_fat_pct, body_measurements.body_fat_pct),
+			lean_mass_kg = COALESCE(EXCLUDED.lean_mass_kg, body_measurements.lean_mass_kg),
+			skeletal_muscle_mass_kg = COALESCE(EXCLUDED.skeletal_muscle_mass_kg, body_measurements.skeletal_muscle_mass_kg),
+			body_fat_mass_kg = COALESCE(EXCLUDED.body_fat_mass_kg, body_measurements.body_fat_mass_kg)`,
+		m.Time, m.WeightKg, m.BodyFatPct, m.LeanMassKg, m.SkeletalMuscleMassKg, m.BodyFatMassKg)
 	return err
 }
 
@@ -319,13 +325,18 @@ func (r *Repository) InsertBodyMeasurements(ctx context.Context, measurements []
 		return 0, nil
 	}
 
-	query := `INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (time) DO UPDATE SET weight_kg = EXCLUDED.weight_kg, body_fat_pct = EXCLUDED.body_fat_pct, lean_mass_kg = EXCLUDED.lean_mass_kg`
+	query := `INSERT INTO body_measurements (time, weight_kg, body_fat_pct, lean_mass_kg, skeletal_muscle_mass_kg, body_fat_mass_kg)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (time) DO UPDATE SET
+			weight_kg = COALESCE(EXCLUDED.weight_kg, body_measurements.weight_kg),
+			body_fat_pct = COALESCE(EXCLUDED.body_fat_pct, body_measurements.body_fat_pct),
+			lean_mass_kg = COALESCE(EXCLUDED.lean_mass_kg, body_measurements.lean_mass_kg),
+			skeletal_muscle_mass_kg = COALESCE(EXCLUDED.skeletal_muscle_mass_kg, body_measurements.skeletal_muscle_mass_kg),
+			body_fat_mass_kg = COALESCE(EXCLUDED.body_fat_mass_kg, body_measurements.body_fat_mass_kg)`
 
 	batch := &pgx.Batch{}
 	for _, m := range measurements {
-		batch.Queue(query, m.Time, m.WeightKg, m.BodyFatPct, m.LeanMassKg)
+		batch.Queue(query, m.Time, m.WeightKg, m.BodyFatPct, m.LeanMassKg, m.SkeletalMuscleMassKg, m.BodyFatMassKg)
 	}
 
 	br := r.pool.SendBatch(ctx, batch)
@@ -456,7 +467,7 @@ func (r *Repository) QueryNutritionRecords(ctx context.Context, q model.TimeRang
 // QueryBodyMeasurements returns body measurements in a time range.
 func (r *Repository) QueryBodyMeasurements(ctx context.Context, q model.TimeRangeQuery) ([]model.BodyMeasurement, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT time, weight_kg, body_fat_pct, lean_mass_kg
+		SELECT time, weight_kg, body_fat_pct, lean_mass_kg, skeletal_muscle_mass_kg, body_fat_mass_kg
 		FROM body_measurements
 		WHERE time >= $1 AND time < $2
 		ORDER BY time DESC`, q.From, q.To)
@@ -468,7 +479,7 @@ func (r *Repository) QueryBodyMeasurements(ctx context.Context, q model.TimeRang
 	var results []model.BodyMeasurement
 	for rows.Next() {
 		var m model.BodyMeasurement
-		if err := rows.Scan(&m.Time, &m.WeightKg, &m.BodyFatPct, &m.LeanMassKg); err != nil {
+		if err := rows.Scan(&m.Time, &m.WeightKg, &m.BodyFatPct, &m.LeanMassKg, &m.SkeletalMuscleMassKg, &m.BodyFatMassKg); err != nil {
 			return nil, fmt.Errorf("scan body: %w", err)
 		}
 		results = append(results, m)
