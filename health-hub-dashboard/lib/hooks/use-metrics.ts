@@ -15,8 +15,8 @@ export function useMetrics(
     queryFn: () =>
       apiFetch<AggregatedMetric[]>("/api/v1/metrics", {
         type,
-        from,
-        to,
+        start_date: from,
+        end_date: to,
         interval,
       }),
   });
