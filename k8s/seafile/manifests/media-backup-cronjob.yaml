@@ -50,8 +50,8 @@ spec:
                   # Sync only 내 라이브러리 + 녹음 libraries to S3
                   # ionice idle class: Seafile과 동일 디스크(Seagate 1TB) 경합 방지
                   ionice -c 3 rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
-                    --filter "+ storage/*/26ff9347-bbca-4c73-af00-015e862a377f/**" \
-                    --filter "+ storage/*/c6c9f519-1e30-42e0-b3c7-a05ab0428cc9/**" \
+                    --filter "+ seafile/seafile-data/storage/*/26ff9347-bbca-4c73-af00-015e862a377f/**" \
+                    --filter "+ seafile/seafile-data/storage/*/c6c9f519-1e30-42e0-b3c7-a05ab0428cc9/**" \
                     --filter "- **" \
                     --s3-no-check-bucket \
                     --fast-list \
