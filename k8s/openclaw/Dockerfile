@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # gws CLI — musl static binary to avoid glibc version mismatch (bookworm = 2.36, gnu build requires 2.39)
 ARG GWS_VERSION=0.22.5
 RUN curl -fsSL "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-x86_64-unknown-linux-musl.tar.gz" \
-  | tar xz -C /usr/local/bin gws \
+  | tar xz --strip-components=0 -C /usr/local/bin ./gws \
   && chmod +x /usr/local/bin/gws
 
 # kubectl for Jarvis K8s readonly access (#84)
