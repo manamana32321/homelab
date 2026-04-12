@@ -6,6 +6,11 @@ plugins:
 
 envFromSecret: grafana-github-oauth
 
+# grafana-pg-passwords SealedSecret에서 PG_HEALTHHUB_PASSWORD 환경변수 주입
+extraEnvFrom:
+  - secretRef:
+      name: grafana-pg-passwords
+
 replicas: 1
 autoscaling:
   enabled: false
@@ -87,7 +92,7 @@ datasources:
           postgresVersion: 1700
           timescaledb: true
         secureJsonData:
-          password: "kBXFGF9NNiLHedI5Mk27BpHP6O5QvJBH"
+          password: $PG_HEALTHHUB_PASSWORD
         editable: false
 
 # help grafana to detect provisioned dashboards
