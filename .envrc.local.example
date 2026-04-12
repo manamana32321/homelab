@@ -20,3 +20,9 @@ export AWS_REGION="ap-northeast-2"
 
 # GitHub MCP (gh CLI 토큰 재활용, gh auth login 필요)
 export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
+
+# Grafana MCP (https://grafana.json-server.win → Administration → Service accounts → Add service account token)
+# 설치: go install github.com/grafana/mcp-grafana/cmd/mcp-grafana@latest
+# TODO: 추후 MCP 전용 Service Account 분리 (현재는 개인 토큰 사용)
+export GRAFANA_URL="https://grafana.json-server.win"
+export GRAFANA_SERVICE_ACCOUNT_TOKEN=""
