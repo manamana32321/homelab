@@ -41,7 +41,7 @@ spec:
     - name: storage
       rules:
         - alert: PVCAlmostFull
-          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.85
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.80
           for: 5m
           labels:
             severity: warning
@@ -50,7 +50,7 @@ spec:
             description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
 
         - alert: NodeDiskAlmostFull
-          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 0.85
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 0.75
           for: 5m
           labels:
             severity: warning
