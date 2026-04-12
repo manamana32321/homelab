@@ -1,11 +1,13 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: factorio-admin-migrate
+  # generateName creates a unique Job name each sync, ensuring it always runs
+  generateName: factorio-admin-migrate-
   namespace: factorio
   annotations:
     argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   backoffLimit: 3
   template:
