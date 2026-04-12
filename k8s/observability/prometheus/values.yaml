@@ -55,7 +55,7 @@ alertmanager:
 
 prometheus:
   prometheusSpec:
-    retention: 30d
+    retention: 15d
     storageSpec:
       volumeClaimTemplate:
         spec:
