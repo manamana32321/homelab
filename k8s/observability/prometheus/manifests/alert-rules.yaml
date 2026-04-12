@@ -97,13 +97,14 @@ spec:
     - name: crowdsec
       rules:
         - alert: CrowdSecHighBanRate
-          expr: increase(cs_active_decisions[5m]) > 50
+          # CAPI(커뮤니티 블록리스트) 제외 — 2시간마다 ~15K건 벌크 동기화로 false positive 발생
+          expr: increase(cs_active_decisions{origin!="CAPI"}[5m]) > 50
           for: 2m
           labels:
             severity: warning
           annotations:
-            summary: "CrowdSec: 다수 IP 차단 중"
-            description: "5분간 {{ $value | humanize }}건의 차단 판단 발생."
+            summary: "CrowdSec: 다수 IP 차단 중 (로컬 탐지)"
+            description: "5분간 {{ $value | humanize }}건의 로컬 차단 판단 발생."
 
         - alert: CrowdSecLAPIDown
           expr: up{job=~".*crowdsec-lapi.*"} == 0
