@@ -6,10 +6,15 @@ plugins:
 
 envFromSecret: grafana-github-oauth
 
-# grafana-pg-passwords SealedSecret에서 PG_HEALTHHUB_PASSWORD 환경변수 주입
+# SealedSecret에서 Postgres datasource 비밀번호 환경변수 주입
+#   - grafana-pg-passwords.PG_HEALTHHUB_PASSWORD (Health Hub TimescaleDB)
+#   - grafana-ro-credentials.GRAFANA_RO_PASSWORD (AMANG Postgres read-only,
+#     reflector로 amang-db-production에서 자동 반영)
 extraEnvFrom:
   - secretRef:
       name: grafana-pg-passwords
+  - secretRef:
+      name: grafana-ro-credentials
 
 replicas: 1
 autoscaling:
@@ -93,6 +98,25 @@ datasources:
           timescaledb: true
         secureJsonData:
           password: $PG_HEALTHHUB_PASSWORD
+        editable: false
+      # AMANG 프로덕션 DB (read-only, grafana_ro 전용 유저)
+      # 권한: public 스키마 SELECT만. UPDATE/DELETE/DDL은 DB 레벨 거부됨
+      - name: amang-prod
+        type: postgres
+        access: proxy
+        url: postgres-svc.amang-db-production.svc.cluster.local:5432
+        user: grafana_ro
+        jsonData:
+          database: amang
+          user: grafana_ro
+          sslmode: disable
+          maxOpenConns: 10
+          maxIdleConns: 2
+          maxIdleConnsAuto: true
+          connMaxLifetime: 14400
+          postgresVersion: 1600
+        secureJsonData:
+          password: $GRAFANA_RO_PASSWORD
         editable: false
 
 # help grafana to detect provisioned dashboards
