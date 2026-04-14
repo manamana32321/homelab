@@ -10,11 +10,11 @@ envFromSecret: grafana-github-oauth
 #   - grafana-pg-passwords.PG_HEALTHHUB_PASSWORD (Health Hub TimescaleDB)
 #   - grafana-ro-credentials.GRAFANA_RO_PASSWORD (AMANG Postgres read-only,
 #     reflector로 amang-db-production에서 자동 반영)
-extraEnvFrom:
-  - secretRef:
-      name: grafana-pg-passwords
-  - secretRef:
-      name: grafana-ro-credentials
+# NOTE: Grafana Helm chart 실제 필드는 `envFromSecrets`(배열).
+# `extraEnvFrom`은 Bitnami chart 이름이라 공식 Grafana 차트에선 무시됨.
+envFromSecrets:
+  - name: grafana-pg-passwords
+  - name: grafana-ro-credentials
 
 replicas: 1
 autoscaling:
