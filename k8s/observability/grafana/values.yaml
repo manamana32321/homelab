@@ -107,7 +107,7 @@ datasources:
         url: postgres-svc.amang-db-production.svc.cluster.local:5432
         user: grafana_ro
         jsonData:
-          database: amang
+          database: amang_db
           user: grafana_ro
           sslmode: disable
           maxOpenConns: 10
