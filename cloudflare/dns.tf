@@ -68,41 +68,6 @@ resource "cloudflare_record" "db" {
   comment = "CloudBeaver DB admin"
 }
 
-resource "cloudflare_record" "factorio_admin" {
-  zone_id = cloudflare_zone.main.id
-  name    = "factorio-admin"
-  type    = "A"
-  content = var.default_ip
-  proxied = true
-}
-
-resource "cloudflare_record" "factorio" {
-  zone_id = cloudflare_zone.main.id
-  name    = "factorio"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-}
-
-resource "cloudflare_record" "factorio_rcon" {
-  zone_id = cloudflare_zone.main.id
-  name    = "factorio-rcon"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Factorio RCON (TCP 30100)"
-}
-
-# Factorio project - wildcard subdomain
-resource "cloudflare_record" "wildcard_factorio" {
-  zone_id = cloudflare_zone.main.id
-  name    = "*.factorio"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Factorio services (minio.factorio)"
-}
-
 resource "cloudflare_record" "minecraft" {
   zone_id = cloudflare_zone.main.id
   name    = "mc"

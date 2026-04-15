@@ -7,6 +7,5 @@ resources:
   - github-credentials.yaml
   - namespace.yaml
   - health-hub-dashboard.yaml
-  - factorio-dashboard.yaml
   - crowdsec-dashboard.yaml
   - sealed-secret-pg-passwords.yaml
