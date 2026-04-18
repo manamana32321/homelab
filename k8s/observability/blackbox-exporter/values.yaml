@@ -90,9 +90,6 @@ serviceMonitor:
     - name: home-assistant
       url: http://home-assistant.home-assistant.svc.cluster.local:8080
       module: http_2xx_no_tls
-    - name: openclaw
-      url: http://openclaw.openclaw.svc.cluster.local:18789
-      module: http_2xx_no_tls
     - name: k8s-dashboard
       url: http://headlamp.headlamp.svc.cluster.local
       module: http_2xx_no_tls
