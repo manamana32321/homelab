@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: blueprint-cloudbeaver
+  name: blueprint-forward-auth
   namespace: authentik
 data:
-  cloudbeaver.yaml: |
+  forward-auth.yaml: |
     version: 1
     metadata:
-      name: "CloudBeaver Forward Auth"
+      name: "Forward Auth Providers"
     entries:
       - model: authentik_providers_proxy.proxyprovider
         state: present
