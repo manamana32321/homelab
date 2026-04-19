@@ -110,15 +110,6 @@ resource "cloudflare_record" "otel" {
 }
 
 
-resource "cloudflare_record" "windmill" {
-  zone_id = cloudflare_zone.main.id
-  name    = "windmill"
-  type    = "A"
-  content = var.default_ip
-  proxied = true
-  comment = "Windmill workflow platform"
-}
-
 resource "cloudflare_record" "longhorn" {
   zone_id = cloudflare_zone.main.id
   name    = "longhorn"

@@ -117,6 +117,3 @@ serviceMonitor:
     - name: sme-tour-engine
       url: http://sme-tour-engine.sme-tour.svc.cluster.local/healthz
       module: http_2xx_no_tls
-    - name: windmill
-      url: http://windmill-app.windmill.svc.cluster.local:8000/api/version
-      module: http_2xx_no_tls
