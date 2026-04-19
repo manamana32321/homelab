@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: essentia-minio-api
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - s3.essentia.json-server.win
+      secretName: essentia-minio-api-tls
+  rules:
+    - host: s3.essentia.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-hl
+                port:
+                  number: 9000
