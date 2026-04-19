@@ -1,0 +1,32 @@
+# Windmill MCP 엔드포인트용 별도 Ingress.
+# 기존 Windmill Ingress는 Authentik forward auth 적용 (UI 보호).
+# MCP 경로는 token 기반 인증이라 Authentik 우회 필요 — Claude Desktop MCP client가
+# OAuth cookie 없이 Authorization header(or query token)로 접근.
+#
+# 보안: /api/mcp/* 는 Windmill 자체 token 인증 (`?token=...` 또는 Authorization: Bearer).
+# Authentik 이중 방어 → Windmill 단일 방어로 축소되나 token 누출 시 scope 제한.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: windmill-mcp
+  namespace: windmill
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: windmill.json-server.win
+      http:
+        paths:
+          - path: /api/mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: windmill-app
+                port:
+                  number: 8000
+  tls:
+    - secretName: windmill-tls
+      hosts:
+        - windmill.json-server.win
