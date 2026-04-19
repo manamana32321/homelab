@@ -110,13 +110,13 @@ resource "cloudflare_record" "otel" {
 }
 
 
-resource "cloudflare_record" "claw" {
+resource "cloudflare_record" "windmill" {
   zone_id = cloudflare_zone.main.id
-  name    = "claw"
+  name    = "windmill"
   type    = "A"
   content = var.default_ip
   proxied = true
-  comment = "OpenClaw AI Agent"
+  comment = "Windmill workflow platform"
 }
 
 resource "cloudflare_record" "longhorn" {
