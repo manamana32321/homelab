@@ -1,0 +1,76 @@
+# Windmill Helm values
+# Chart: windmill-labs/windmill v4.0.134+
+# Docs: https://github.com/windmill-labs/windmill-helm-charts
+
+postgresql:
+  enabled: true
+  resources:
+    limits:
+      memory: "512Mi"
+  auth:
+    postgresUser: postgres
+    # 내부 cluster 통신 전용. 외부 노출 없음 (Service ClusterIP).
+    postgresPassword: "windmill-cluster-internal-2026"
+    database: windmill
+  persistence:
+    enabled: true
+    storageClass: longhorn-ssd
+    accessMode: ReadWriteOnce
+    size: 5Gi
+
+# MinIO 번들 비활성 (필요 시 별도)
+minio:
+  enabled: false
+
+windmill:
+  # Helm이 chart appVersion에서 이미지 tag 자동 선택
+  tag: ""
+  image: ""
+
+  # Replica 최소화 (홈랩 리소스 절약)
+  appReplicas: 1
+  extraReplicas: 0        # LSP/Multiplayer 비활성 — 에디터 부가 기능만, 필수 아님
+
+  databaseUrl: "postgres://postgres:windmill-cluster-internal-2026@windmill-postgresql/windmill?sslmode=disable"
+
+  # 도메인 + 프로토콜
+  baseDomain: "windmill.json-server.win"
+  baseProtocol: "https"
+
+  rustLog: info
+
+  # 기본 worker group 단순화 (3 replicas → 1)
+  workerGroups:
+    - name: "default"
+      controller: "Deployment"
+      replicas: 1
+      terminationGracePeriodSeconds: 300
+      privileged: true
+      podSecurityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+      resources:
+        limits:
+          memory: "1Gi"
+      mode: "worker"
+      extraEnv:
+        - name: HOME
+          value: "/tmp"
+
+    - name: "native"
+      controller: "Deployment"
+      replicas: 1
+      terminationGracePeriodSeconds: 60
+      privileged: false
+      resources:
+        limits:
+          memory: "256Mi"
+      mode: "worker"
+      # native mode: Python/TS inline 실행 (bash 제외) — 가벼운 워크로드
+      extraEnv:
+        - name: HOME
+          value: "/tmp"
+
+# Ingress는 별도 manifest로 관리 (Authentik forward auth 주입 위해)
+ingress:
+  enabled: false
