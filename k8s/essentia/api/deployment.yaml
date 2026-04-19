@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: essentia-api
+  namespace: essentia
+  labels:
+    app: essentia-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: essentia-api
+  template:
+    metadata:
+      labels:
+        app: essentia-api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-essentia
+      containers:
+        - name: api
+          image: ghcr.io/essentia-edu/api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: essentia-api-secrets
+            - configMapRef:
+                name: essentia-api-config
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m

@@ -229,14 +229,52 @@ resource "cloudflare_record" "health" {
   comment = "Health Hub dashboard"
 }
 
-# Saemate project (rebranded from OpenCampus)
+# Essentia project (rebranded from Saemate, 2026-04-19)
+resource "cloudflare_record" "essentia" {
+  zone_id = cloudflare_zone.main.id
+  name    = "essentia"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Essentia frontend"
+}
+
+resource "cloudflare_record" "essentia_api" {
+  zone_id = cloudflare_zone.main.id
+  name    = "api.essentia"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Essentia API (proxied=false for 2-level subdomain TLS)"
+}
+
+resource "cloudflare_record" "essentia_s3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3.essentia"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Essentia MinIO S3 (proxied=false for cert-manager)"
+}
+
+resource "cloudflare_record" "essentia_minio" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio.essentia"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Essentia MinIO Console (proxied=false for cert-manager)"
+}
+
+# Saemate records retained during Phase 8 cutover. Remove after data migration + smoke verification.
+# See: https://github.com/essentia-edu/essentia/issues/14
 resource "cloudflare_record" "saemate" {
   zone_id = cloudflare_zone.main.id
   name    = "saemate"
   type    = "A"
   content = var.default_ip
   proxied = true
-  comment = "Saemate frontend"
+  comment = "Saemate frontend (legacy, remove after cutover)"
 }
 
 resource "cloudflare_record" "saemate_api" {
@@ -245,7 +283,7 @@ resource "cloudflare_record" "saemate_api" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "Saemate API (proxied=false for 2-level subdomain TLS)"
+  comment = "Saemate API legacy (remove after cutover)"
 }
 
 resource "cloudflare_record" "saemate_s3" {
@@ -254,7 +292,7 @@ resource "cloudflare_record" "saemate_s3" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "Saemate MinIO S3 (proxied=false for cert-manager)"
+  comment = "Saemate MinIO S3 legacy (remove after cutover)"
 }
 
 resource "cloudflare_record" "saemate_minio" {
@@ -263,7 +301,7 @@ resource "cloudflare_record" "saemate_minio" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "Saemate MinIO Console (proxied=false for cert-manager)"
+  comment = "Saemate MinIO Console legacy (remove after cutover)"
 }
 
 # SME Tour project
