@@ -83,8 +83,11 @@ spec:
                   key: DB_PASSWORD
             - name: LISTEN_ADDR
               value: ":8081"
-            - name: BASE_URL
-              value: "http://health-hub.health-hub.svc.cluster.local:8081"
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: health-hub-secret
+                  key: MCP_AUTH_TOKEN
           resources:
             requests:
               cpu: 25m
