@@ -266,43 +266,6 @@ resource "cloudflare_record" "saemate_minio" {
   comment = "Saemate MinIO Console (proxied=false for cert-manager)"
 }
 
-# OpenCampus project (legacy — retained during migration, remove after Phase 5)
-resource "cloudflare_record" "opencampus" {
-  zone_id = cloudflare_zone.main.id
-  name    = "opencampus"
-  type    = "A"
-  content = var.default_ip
-  proxied = true
-  comment = "OpenCampus frontend (legacy)"
-}
-
-resource "cloudflare_record" "opencampus_api" {
-  zone_id = cloudflare_zone.main.id
-  name    = "api.opencampus"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "OpenCampus API (legacy)"
-}
-
-resource "cloudflare_record" "opencampus_s3" {
-  zone_id = cloudflare_zone.main.id
-  name    = "s3.opencampus"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "OpenCampus MinIO S3 (legacy)"
-}
-
-resource "cloudflare_record" "opencampus_minio" {
-  zone_id = cloudflare_zone.main.id
-  name    = "minio.opencampus"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "OpenCampus MinIO Console (legacy)"
-}
-
 # SME Tour project
 # Convention: (service).sme-tour.json-server.win
 resource "cloudflare_record" "sme_tour_api" {
