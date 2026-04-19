@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://helm.windmill.dev
+    - repoURL: https://windmill-labs.github.io/windmill-helm-charts/
       chart: windmill
       targetRevision: '4.0.134'
       helm:
