@@ -83,6 +83,8 @@ spec:
                   key: DB_PASSWORD
             - name: LISTEN_ADDR
               value: ":8081"
+            - name: DEFAULT_TIMEZONE
+              value: Asia/Seoul
             - name: MCP_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
