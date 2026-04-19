@@ -41,6 +41,8 @@ spec:
                   key: API_TOKEN
             - name: LISTEN_ADDR
               value: ":8080"
+            - name: DEFAULT_TIMEZONE
+              value: Asia/Seoul
           resources:
             requests:
               cpu: 50m
