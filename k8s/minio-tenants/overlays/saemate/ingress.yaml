@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: saemate-minio-api
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - s3.saemate.json-server.win
+      secretName: saemate-minio-api-tls
+  rules:
+    - host: s3.saemate.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-hl
+                port:
+                  number: 9000
