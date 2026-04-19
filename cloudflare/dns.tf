@@ -229,14 +229,51 @@ resource "cloudflare_record" "health" {
   comment = "Health Hub dashboard"
 }
 
-# OpenCampus project
+# Saemate project (rebranded from OpenCampus)
+resource "cloudflare_record" "saemate" {
+  zone_id = cloudflare_zone.main.id
+  name    = "saemate"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Saemate frontend"
+}
+
+resource "cloudflare_record" "saemate_api" {
+  zone_id = cloudflare_zone.main.id
+  name    = "api.saemate"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Saemate API (proxied=false for 2-level subdomain TLS)"
+}
+
+resource "cloudflare_record" "saemate_s3" {
+  zone_id = cloudflare_zone.main.id
+  name    = "s3.saemate"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Saemate MinIO S3 (proxied=false for cert-manager)"
+}
+
+resource "cloudflare_record" "saemate_minio" {
+  zone_id = cloudflare_zone.main.id
+  name    = "minio.saemate"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "Saemate MinIO Console (proxied=false for cert-manager)"
+}
+
+# OpenCampus project (legacy — retained during migration, remove after Phase 5)
 resource "cloudflare_record" "opencampus" {
   zone_id = cloudflare_zone.main.id
   name    = "opencampus"
   type    = "A"
   content = var.default_ip
   proxied = true
-  comment = "OpenCampus frontend"
+  comment = "OpenCampus frontend (legacy)"
 }
 
 resource "cloudflare_record" "opencampus_api" {
@@ -245,7 +282,7 @@ resource "cloudflare_record" "opencampus_api" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "OpenCampus API (proxied=false for 2-level subdomain TLS)"
+  comment = "OpenCampus API (legacy)"
 }
 
 resource "cloudflare_record" "opencampus_s3" {
@@ -254,7 +291,7 @@ resource "cloudflare_record" "opencampus_s3" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "OpenCampus MinIO S3 (proxied=false for cert-manager)"
+  comment = "OpenCampus MinIO S3 (legacy)"
 }
 
 resource "cloudflare_record" "opencampus_minio" {
@@ -263,7 +300,7 @@ resource "cloudflare_record" "opencampus_minio" {
   type    = "A"
   content = var.default_ip
   proxied = false
-  comment = "OpenCampus MinIO Console (proxied=false for cert-manager)"
+  comment = "OpenCampus MinIO Console (legacy)"
 }
 
 # SME Tour project

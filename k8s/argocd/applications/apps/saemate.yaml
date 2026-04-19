@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saemate
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/saemate/api:latest, web=ghcr.io/saemate/web:latest
+    argocd-image-updater.argoproj.io/api.update-strategy: digest
+    argocd-image-updater.argoproj.io/web.update-strategy: digest
+    argocd-image-updater.argoproj.io/api.force-update: "true"
+    argocd-image-updater.argoproj.io/web.force-update: "true"
+    argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:saemate/ghcr-saemate
+    argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:saemate/ghcr-saemate
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/saemate
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: saemate
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
