@@ -12,8 +12,6 @@ spec:
     metadata:
       labels:
         app: health-hub
-      annotations:
-        homelab.json-server.win/rollout-trigger: "2026-04-19-exercise-type-mapping"
     spec:
       containers:
         - name: health-hub
