@@ -266,44 +266,6 @@ resource "cloudflare_record" "essentia_minio" {
   comment = "Essentia MinIO Console (proxied=false for cert-manager)"
 }
 
-# Saemate records retained during Phase 8 cutover. Remove after data migration + smoke verification.
-# See: https://github.com/essentia-edu/essentia/issues/14
-resource "cloudflare_record" "saemate" {
-  zone_id = cloudflare_zone.main.id
-  name    = "saemate"
-  type    = "A"
-  content = var.default_ip
-  proxied = true
-  comment = "Saemate frontend (legacy, remove after cutover)"
-}
-
-resource "cloudflare_record" "saemate_api" {
-  zone_id = cloudflare_zone.main.id
-  name    = "api.saemate"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Saemate API legacy (remove after cutover)"
-}
-
-resource "cloudflare_record" "saemate_s3" {
-  zone_id = cloudflare_zone.main.id
-  name    = "s3.saemate"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Saemate MinIO S3 legacy (remove after cutover)"
-}
-
-resource "cloudflare_record" "saemate_minio" {
-  zone_id = cloudflare_zone.main.id
-  name    = "minio.saemate"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Saemate MinIO Console legacy (remove after cutover)"
-}
-
 # SME Tour project
 # Convention: (service).sme-tour.json-server.win
 resource "cloudflare_record" "sme_tour_api" {
