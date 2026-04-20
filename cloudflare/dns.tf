@@ -155,6 +155,15 @@ resource "cloudflare_record" "files" {
   comment = "Seafile file sync"
 }
 
+resource "cloudflare_record" "habits" {
+  zone_id = cloudflare_zone.main.id
+  name    = "habits"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Loop — Habit Hub"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id

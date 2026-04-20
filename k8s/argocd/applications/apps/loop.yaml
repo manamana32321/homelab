@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loop
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/manamana32321/loop-api:latest, web=ghcr.io/manamana32321/loop-web:latest
+    argocd-image-updater.argoproj.io/api.update-strategy: digest
+    argocd-image-updater.argoproj.io/api.force-update: "true"
+    argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:loop/ghcr-pull
+    argocd-image-updater.argoproj.io/web.update-strategy: digest
+    argocd-image-updater.argoproj.io/web.force-update: "true"
+    argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:loop/ghcr-pull
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/loop
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loop
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
