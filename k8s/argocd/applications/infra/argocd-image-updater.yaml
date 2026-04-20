@@ -20,6 +20,38 @@ spec:
               prefix: ghcr.io
               api_url: https://ghcr.io
               default: true
+
+        # Image Updater가 각 앱 namespace의 imagePullSecret을 읽어
+        # GHCR private registry 질의 시 credential로 사용할 수 있도록
+        # secrets get/list 권한 부여. Helm chart 기본 ClusterRole은
+        # applications + events만 허용하여 private 이미지 auto-update 실패함.
+        #
+        # 영향 범위: loop, essentia, health-hub, sme-tour-engine 등
+        # imagePullSecret(pullsecret:...) annotation 쓰는 모든 app.
+        #
+        # Scope: 전체 namespace의 secret get/list — Image Updater가 이미
+        # Application 수정 권한을 가지므로 추가 보안 영향 미미.
+        extraObjects:
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: argocd-image-updater-secrets-read
+            rules:
+              - apiGroups: [""]
+                resources: ["secrets"]
+                verbs: ["get", "list"]
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: argocd-image-updater-secrets-read
+            subjects:
+              - kind: ServiceAccount
+                name: argocd-image-updater
+                namespace: argocd
+            roleRef:
+              kind: ClusterRole
+              name: argocd-image-updater-secrets-read
+              apiGroup: rbac.authorization.k8s.io
   destination:
     namespace: argocd
     server: https://kubernetes.default.svc
