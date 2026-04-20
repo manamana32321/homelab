@@ -4,10 +4,10 @@ metadata:
   name: sme-tour-engine
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: engine=ghcr.io/manamana32321/sme-tour-engine
+    argocd-image-updater.argoproj.io/image-list: engine=ghcr.io/manamana32321/sme-tour-engine:latest
     argocd-image-updater.argoproj.io/engine.update-strategy: digest
-    argocd-image-updater.argoproj.io/engine.allow-tags: regexp:^latest$
-    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/engine.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
 spec:
   project: default
   source:
