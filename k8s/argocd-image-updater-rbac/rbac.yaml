@@ -1,0 +1,32 @@
+# argocd-image-updater에 cluster-wide secrets get/list 권한 부여.
+#
+# 왜 Helm chart 바깥인가: argocd-image-updater Helm chart v0.12.0은
+# rendered output에 임의 리소스를 삽입하는 values 필드(extraObjects / extraDeploy)를
+# 지원하지 않음. 따라서 Helm application과 분리된 별도 Application으로 관리.
+#
+# 왜 필요한가: 각 앱(loop·essentia·health-hub 등)이
+# `argocd-image-updater.argoproj.io/<alias>.pull-secret: pullsecret:<ns>/<secret-name>`
+# annotation으로 imagePullSecret 재활용을 요청하는데, 기본 ClusterRole은
+# applications + events만 허용 → secrets get 실패 → private registry digest 질의 실패.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-image-updater-secrets-read
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-image-updater-secrets-read
+subjects:
+  - kind: ServiceAccount
+    name: argocd-image-updater
+    namespace: argocd
+roleRef:
+  kind: ClusterRole
+  name: argocd-image-updater-secrets-read
+  apiGroup: rbac.authorization.k8s.io
