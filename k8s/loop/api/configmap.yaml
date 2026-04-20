@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loop-api-config
+  namespace: loop
+data:
+  NODE_ENV: production
+  API_PORT: "3001"

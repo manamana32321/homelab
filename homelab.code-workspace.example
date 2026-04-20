@@ -24,6 +24,10 @@
       "name": "팩토리오 어드민 · main",
       "path": "../../factorio-admin",
     },
+    {
+      "name": "Loop · main",
+      "path": "../../loop-worktrees/main",
+    },
   ],
   "extensions": {
     "recommendations": [
