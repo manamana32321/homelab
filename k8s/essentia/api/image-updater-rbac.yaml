@@ -1,0 +1,34 @@
+---
+# Grants argocd-image-updater (SA in argocd ns) read access to the
+# ghcr-essentia pull secret in this namespace, so it can fetch
+# registry credentials and pick up new digests. Without this, the
+# updater logs "could not fetch secret 'ghcr-essentia'" every cycle
+# and the Application's Image Updater annotations silently don't
+# trigger rolling updates.
+#
+# Scope is the minimum viable: get-only on one named secret.
+# See: https://github.com/manamana32321/homelab/issues/131
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: image-updater-pullsecret
+  namespace: essentia
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ghcr-essentia"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: image-updater-pullsecret
+  namespace: essentia
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: image-updater-pullsecret
+subjects:
+  - kind: ServiceAccount
+    name: argocd-image-updater
+    namespace: argocd
