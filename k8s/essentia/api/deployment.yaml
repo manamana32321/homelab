@@ -30,8 +30,8 @@ spec:
                 name: essentia-api-config
           resources:
             requests:
-              memory: 384Mi
+              memory: 512Mi
               cpu: 100m
             limits:
-              memory: 1Gi
-              cpu: 500m
+              memory: 2Gi
+              cpu: 1000m
