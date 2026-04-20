@@ -14,43 +14,37 @@ k8s/loop/
 └── web/                              # Next.js — Deployment + Service + Ingress(habits.json-server.win + Authentik)
 ```
 
-## 최초 배포 절차 (수동 단계)
+## 자동 초기화 · 마이그레이션
 
-ArgoCD가 리소스를 배포하면 Postgres만 올라오고 스키마·hypertable·seed는 비어 있음.
-API 이미지에 Prisma CLI/tsx가 devDependency라서 자동 초기화 Job은 별도 PR로 분리 예정.
-첫 배포 시 로컬에서 한 번 다음을 실행:
+`migrate-job.yaml` (ArgoCD PostSync hook)이 sync마다 실행:
+
+1. `prisma migrate deploy` — 미적용 migration 전부 apply (hypertable SQL 포함, Loop#8)
+2. `pnpm db:seed` — roles · domains · habits · devices upsert
+
+모든 단계 idempotent. sync 반복 실행 안전.
+
+### 수동 재실행
 
 ```bash
-# 1. 로컬에서 클러스터로 port-forward
-kubectl -n loop port-forward svc/loop-postgres 5433:5432 &
+kubectl -n loop delete job loop-migrate
+kubectl -n argocd patch app loop --type merge -p '{"operation":{"sync":{}}}'
+# 또는 템플릿에서 새 Job 생성
+kubectl -n loop create job --from=job/loop-migrate loop-migrate-$(date +%s)
+```
 
-# 2. Loop 레포 루트에서
-cd ~/loop-worktrees/main
+### Job 로그 확인
 
-# 3. DB URL 지정 (패스워드는 loop-api-secrets SealedSecret에서 조회)
-PG_PASS=$(kubectl -n loop get secret loop-api-secrets -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)
-export DATABASE_URL="postgresql://loop:${PG_PASS}@localhost:5433/loop?schema=public"
-
-# 4. Prisma migration
-pnpm --filter @loop/db exec prisma migrate deploy
-
-# 5. TimescaleDB hypertable
-psql "$DATABASE_URL" -f packages/db/prisma/post-migration/01_timescale_hypertable.sql
-
-# 6. Seed
-pnpm db:seed
-
-# 7. 정리
-kill %1
-unset DATABASE_URL
+```bash
+kubectl -n loop logs job/loop-migrate --all-containers --tail=200
 ```
 
 ## 스키마 변경 시
 
-1. Loop 레포에서 `prisma/schema.prisma` 수정 → `prisma migrate dev --name <desc>` 로 migration 생성·커밋
-2. CI/CD가 api 이미지 재빌드
-3. ArgoCD Image Updater가 새 digest 감지 → 배포
-4. (현재는 수동) 위 port-forward + `prisma migrate deploy` 로 DB 스키마 적용
+1. Loop 레포 워크트리에서 `prisma/schema.prisma` 수정
+2. `pnpm --filter @loop/db exec prisma migrate dev --name <desc>` → migration 생성·커밋·Loop PR 셀프 머지
+3. GitHub Actions build-push → GHCR에 새 이미지
+4. ArgoCD Image Updater가 digest 감지 → Deployment + Job 둘 다 새 이미지
+5. Job 실행 → `prisma migrate deploy` 가 신규 migration 자동 apply
 
 ## TLS / 접근
 
