@@ -1,0 +1,76 @@
+# Loop 자동 초기화·마이그레이션 Job
+#
+# ArgoCD PostSync hook으로 sync마다 실행.
+# 전부 idempotent — prisma migrate deploy는 적용 안 된 migration만 실행,
+# hypertable SQL은 IF NOT EXISTS, seed는 upsert.
+#
+# 수동 재실행: kubectl -n loop delete job loop-migrate && kubectl -n argocd patch app loop ...
+# 또는: kubectl -n loop create job --from=job/loop-migrate loop-migrate-$(date +%s)
+#
+# Migrate Job은 Image Updater가 spec.source.kustomize.images 에 쓴
+# digest 오버라이드를 받으려면 ArgoCD가 Job 템플릿을 재생성할 때 같이
+# kustomize image transformer를 적용하는 kind여야. Deployment와 동일
+# 이미지 경로(ghcr.io/manamana32321/loop-api)를 쓰므로 kustomize image
+# 치환이 자동 적용됨.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loop-migrate
+  namespace: loop
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app: loop-migrate
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: loop-migrate
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: ghcr-pull
+      initContainers:
+        - name: wait-for-db
+          image: timescale/timescaledb:2.17.2-pg17
+          command:
+            - sh
+            - -c
+            - |
+              echo "waiting for loop-postgres..."
+              until pg_isready -h loop-postgres -U loop -d loop; do sleep 2; done
+              echo "postgres ready"
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+      containers:
+        - name: migrate
+          image: ghcr.io/manamana32321/loop-api:latest
+          imagePullPolicy: Always
+          workingDir: /app
+          envFrom:
+            - secretRef:
+                name: loop-api-secrets
+          command:
+            - sh
+            - -c
+            - |
+              set -eo pipefail
+
+              echo "--- 1) prisma migrate deploy (schema + hypertable 통합 migration) ---"
+              pnpm --filter @loop/db exec prisma migrate deploy
+
+              echo "--- 2) seed (roles / domains / user habits & devices, upsert) ---"
+              pnpm --filter @loop/db run seed
+
+              echo "--- migrate complete ---"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

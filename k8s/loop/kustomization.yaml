@@ -11,3 +11,4 @@ resources:
   - web/service.yaml
   - web/deployment.yaml
   - web/ingress.yaml
+  - migrate-job.yaml
