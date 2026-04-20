@@ -7,8 +7,17 @@ resources:
   - api/ingress.yaml
   - api/sealed-secret.yaml
   - api/service.yaml
+  - api/image-updater-rbac.yaml
   - postgres/postgres.yaml
   - web/deployment.yaml
   - web/ingress.yaml
   - web/service.yaml
   - ghcr-pull-sealed-secret.yaml
+
+# argocd-image-updater writes the resolved digest back here on each
+# successful pull-metadata cycle (post homelab#131 RBAC fix). This way
+# every ArgoCD sync produces the same canonical image ref instead of
+# flapping between :latest and whatever digest kubelet happened to pull.
+images:
+  - name: ghcr.io/essentia-edu/api
+    digest: sha256:e74b091cdfda2e593e41422215930fdbac3c3ff9925f389b64d3d8bf08846e00
