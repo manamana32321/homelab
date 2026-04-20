@@ -8,4 +8,5 @@ resources:
   - namespace.yaml
   - health-hub-dashboard.yaml
   - crowdsec-dashboard.yaml
+  - loop-dashboard.yaml
   - sealed-secret-pg-passwords.yaml

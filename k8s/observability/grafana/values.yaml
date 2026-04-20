@@ -118,6 +118,25 @@ datasources:
         secureJsonData:
           password: $GRAFANA_RO_PASSWORD
         editable: false
+      - name: Loop
+        uid: Loop
+        type: postgres
+        access: proxy
+        url: loop-postgres.loop.svc.cluster.local:5432
+        user: loop
+        jsonData:
+          database: loop
+          user: loop
+          sslmode: disable
+          maxOpenConns: 50
+          maxIdleConns: 50
+          maxIdleConnsAuto: true
+          connMaxLifetime: 14400
+          postgresVersion: 1700
+          timescaledb: true
+        secureJsonData:
+          password: $PG_LOOP_PASSWORD
+        editable: false
 
 # help grafana to detect provisioned dashboards
 sidecar:

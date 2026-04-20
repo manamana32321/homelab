@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loop-dashboard
+  namespace: observability
+  annotations:
+    grafana_folder: Apps
+  labels:
+    grafana_dashboard: "1"
+data:
+  loop.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "graphTooltip": 1,
+      "title": "Loop — Habits",
+      "uid": "loop-habits",
+      "schemaVersion": 39,
+      "timezone": "Asia/Seoul",
+      "time": { "from": "now-90d", "to": "now" },
+      "refresh": "1m",
+      "panels": [
+        {
+          "title": "일별 총 이벤트",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "bars",
+                "barAlignment": 0,
+                "lineWidth": 0,
+                "fillOpacity": 80
+              },
+              "color": { "mode": "palette-classic" }
+            }
+          },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('1 day', time) AS time, count(*)::bigint AS events FROM habit_events WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }]
+        },
+        {
+          "title": "Habit × 요일 히트맵 (최근 90일)",
+          "type": "heatmap",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "options": {
+            "calculate": false,
+            "color": { "mode": "scheme", "scheme": "Plasma", "steps": 64, "reverse": false },
+            "cellGap": 1,
+            "yAxis": { "axisLabel": "Habit" }
+          },
+          "fieldConfig": {
+            "defaults": { "custom": { "scaleDistribution": { "type": "linear" } } }
+          },
+          "targets": [{
+            "rawSql": "SELECT time_bucket('1 day', e.time) AS time, h.name AS metric, count(*)::bigint AS value FROM habit_events e JOIN habits h ON h.id = e.habit_id WHERE $__timeFilter(e.time) GROUP BY 1, h.name ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }]
+        },
+        {
+          "title": "Habit 별 이벤트 수 (90일)",
+          "type": "bargauge",
+          "gridPos": { "h": 10, "w": 12, "x": 0, "y": 18 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "options": {
+            "orientation": "horizontal",
+            "displayMode": "gradient",
+            "valueMode": "color",
+            "showUnfilled": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "orange", "value": 5 },
+                  { "color": "green", "value": 20 }
+                ]
+              }
+            }
+          },
+          "targets": [{
+            "rawSql": "SELECT h.name AS metric, count(e.*)::bigint AS value FROM habits h LEFT JOIN habit_events e ON e.habit_id = h.id AND e.time >= NOW() - INTERVAL '90 days' WHERE h.status = 'active' GROUP BY h.name ORDER BY value DESC",
+            "format": "table",
+            "refId": "A"
+          }]
+        },
+        {
+          "title": "Domain × Role Category 커버리지",
+          "type": "table",
+          "gridPos": { "h": 10, "w": 12, "x": 12, "y": 18 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "align": "auto", "displayMode": "auto" }
+            }
+          },
+          "targets": [{
+            "rawSql": "SELECT d.name AS domain, r.category AS category, count(DISTINCT hd.habit_id)::bigint AS habits, count(*)::bigint AS connections FROM habit_devices hd JOIN habits h ON h.id = hd.habit_id JOIN domains d ON d.id = h.domain_id JOIN roles r ON r.id = hd.role_id GROUP BY d.name, r.category ORDER BY d.name, r.category",
+            "format": "table",
+            "refId": "A"
+          }]
+        },
+        {
+          "title": "최근 이벤트 (50)",
+          "type": "table",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "targets": [{
+            "rawSql": "SELECT e.time AT TIME ZONE 'Asia/Seoul' AS time, h.name AS habit, d.name AS domain, e.source, e.value FROM habit_events e JOIN habits h ON h.id = e.habit_id JOIN domains d ON d.id = h.domain_id ORDER BY e.time DESC LIMIT 50",
+            "format": "table",
+            "refId": "A"
+          }]
+        },
+        {
+          "title": "연락 주기 초과 People",
+          "type": "table",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 38 },
+          "datasource": { "type": "postgres", "uid": "Loop" },
+          "targets": [{
+            "rawSql": "SELECT name AS person, relationship, last_contact_at AT TIME ZONE 'Asia/Seoul' AS last_contact, contact_cadence AS cadence_days, EXTRACT(EPOCH FROM (NOW() - last_contact_at))/86400 AS days_since FROM people WHERE contact_cadence IS NOT NULL AND (last_contact_at IS NULL OR NOW() - last_contact_at > (contact_cadence || ' days')::interval) ORDER BY last_contact_at NULLS FIRST",
+            "format": "table",
+            "refId": "A"
+          }]
+        }
+      ]
+    }
