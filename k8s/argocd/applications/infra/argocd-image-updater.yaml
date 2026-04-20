@@ -31,7 +31,7 @@ spec:
         #
         # Scope: 전체 namespace의 secret get/list — Image Updater가 이미
         # Application 수정 권한을 가지므로 추가 보안 영향 미미.
-        extraObjects:
+        extraDeploy:
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: ClusterRole
             metadata:
