@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sme-tour-engine
+  namespace: sme-tour
+  labels:
+    app: sme-tour-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sme-tour-engine
+  template:
+    metadata:
+      labels:
+        app: sme-tour-engine
+    spec:
+      containers:
+        - name: engine
+          image: ghcr.io/manamana32321/sme-tour-engine:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CORS_ALLOWED_ORIGINS
+              value: "https://sme-tour.json-server.win,https://*.vercel.app,http://localhost:3000"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi

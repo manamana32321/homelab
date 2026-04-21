@@ -11,9 +11,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/manamana32321/sme-tour
+    repoURL: https://github.com/manamana32321/homelab
     targetRevision: main
-    path: k8s
+    path: k8s/sme-tour-engine
   destination:
     server: https://kubernetes.default.svc
     namespace: sme-tour

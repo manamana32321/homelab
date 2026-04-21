@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sme-tour-engine
+  namespace: sme-tour
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - api.sme-tour.json-server.win
+      secretName: sme-tour-engine-tls
+  rules:
+    - host: api.sme-tour.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sme-tour-engine
+                port:
+                  number: 80
