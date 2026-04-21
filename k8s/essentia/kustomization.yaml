@@ -20,4 +20,4 @@ resources:
 # flapping between :latest and whatever digest kubelet happened to pull.
 images:
   - name: ghcr.io/essentia-edu/api
-    digest: sha256:e74b091cdfda2e593e41422215930fdbac3c3ff9925f389b64d3d8bf08846e00
+    digest: sha256:1c30ed47e532f84b3a791e23a782baa45878b79a9d32d18b6712a9d39518b67a
