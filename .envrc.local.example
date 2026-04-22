@@ -4,6 +4,10 @@ export NOTION_TOKEN=""
 # Cloudflare API Token (for Terraform)
 export TF_VAR_cloudflare_api_token=""
 
+# Vercel API Token (for Terraform — vercel/ 디렉토리)
+# https://vercel.com/account/tokens → Create Token → Full Account scope
+export TF_VAR_vercel_api_token=""
+
 # Default IP for A records (dynamic IP)
 export TF_VAR_default_ip=""
 
