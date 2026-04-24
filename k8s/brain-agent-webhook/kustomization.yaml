@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# SealedSecret 없음 — brain-agent-tokens (자매 dir) 와
+# health-hub-secret (Reflector로 health-hub ns에서 자동 복제) 공유.
+
+resources:
+  - deployment.yaml
+  - ingress.yaml
+
+configMapGenerator:
+  - name: brain-agent-webhook-script
+    files:
+      - webhook.py
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -40,11 +40,12 @@ spec:
                   value: "https://health.json-server.win"
                 - name: TZ
                   value: "Asia/Seoul"
+                # health-hub-secret은 Reflector로 health-hub ns에서 자동 복제됨
                 - name: HEALTH_HUB_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: brain-agent-tokens
-                      key: HEALTH_HUB_TOKEN
+                      name: health-hub-secret
+                      key: API_TOKEN
                 - name: CANVAS_BASE_URL
                   valueFrom:
                     secretKeyRef:

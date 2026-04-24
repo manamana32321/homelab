@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: brain-agent-webhook
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: automation
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/homelab.git
+    targetRevision: main
+    path: k8s/brain-agent-webhook
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: automation
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
