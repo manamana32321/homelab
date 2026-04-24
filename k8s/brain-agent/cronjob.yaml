@@ -45,6 +45,16 @@ spec:
                     secretKeyRef:
                       name: brain-agent-tokens
                       key: HEALTH_HUB_TOKEN
+                - name: CANVAS_BASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: CANVAS_BASE_URL
+                - name: CANVAS_ACCESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: CANVAS_ACCESS_TOKEN
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
