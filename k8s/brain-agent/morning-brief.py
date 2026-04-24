@@ -72,10 +72,41 @@ def canvas_get(path: str, params: dict = None) -> Any:
 
 
 def fetch_active_courses() -> list[dict]:
-    return canvas_get(
+    """현재 학기 강의만 반환.
+
+    Canvas 'active enrollment'는 과거 학기도 포함되어 30+개 반환됨.
+    정규 학기(비정규·법정의무교육 제외) 중 start_at 가장 최근인 term만 필터.
+    """
+    all_courses = canvas_get(
         "/api/v1/courses",
-        {"enrollment_state": "active", "per_page": 30, "include[]": ["term"]},
+        {"enrollment_state": "active", "per_page": 50, "include[]": ["term"]},
     )
+
+    regular = [
+        c for c in all_courses
+        if (term := c.get("term") or {}).get("name")
+        and "비정규" not in term["name"]
+        and term.get("start_at")
+    ]
+
+    if not regular:
+        print("  [warn] 정규 학기 course 없음, 전체 반환", file=sys.stderr)
+        return all_courses
+
+    latest_term_name = max(
+        regular, key=lambda c: c["term"]["start_at"]
+    )["term"]["name"]
+
+    current = [
+        c for c in all_courses
+        if (c.get("term") or {}).get("name") == latest_term_name
+    ]
+
+    print(
+        f"  Current term: '{latest_term_name}' "
+        f"({len(current)}/{len(all_courses)} courses)"
+    )
+    return current
 
 
 def fetch_upcoming_assignments(course_ids: list[int]) -> list[dict]:
