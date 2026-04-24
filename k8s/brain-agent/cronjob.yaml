@@ -1,0 +1,83 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: brain-agent-morning
+  namespace: automation
+  labels:
+    app: brain-agent
+    job-type: morning-brief
+spec:
+  # 07:30 KST = 22:30 UTC (previous day)
+  schedule: "30 22 * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 1
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            app: brain-agent
+            job-type: morning-brief
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: brain-agent
+              image: python:3.12-slim
+              command:
+                - sh
+                - -c
+                - |
+                  set -eo pipefail
+                  pip install --quiet --no-cache-dir openai==1.109.1 httpx==0.28.1
+                  python /scripts/morning-brief.py
+              env:
+                - name: HEALTH_HUB_URL
+                  value: "https://health.json-server.win/mcp"
+                - name: TZ
+                  value: "Asia/Seoul"
+                - name: HEALTH_HUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: HEALTH_HUB_TOKEN
+                - name: OPENAI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: OPENAI_API_KEY
+                - name: TELEGRAM_BOT_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: TELEGRAM_BOT_TOKEN
+                - name: TELEGRAM_CHAT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: TELEGRAM_CHAT_ID
+                - name: TELEGRAM_THREAD_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: brain-agent-tokens
+                      key: TELEGRAM_THREAD_ID
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: script
+              configMap:
+                name: brain-agent-script
+                defaultMode: 0555
