@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """
-Brain Agent — Morning Brief (v2: meta-summarizer)
+Brain Agent — Morning Brief (v2.1: REST direct)
 
 매일 07:30 KST 실행. 철학: Compiled AI / Crystallization
-  - 각 소스 데이터 수집 = 결정론 (MCP/REST → Python template)
-  - LLM 메타 레이어 1회 호출 = 다중 소스 종합 "오늘 주목할 것" 판단
+  - 데이터 수집·포맷팅 = 결정론 (REST 직접 호출, MCP 경유 X)
+  - LLM 메타 레이어 1회 호출만 = 다중 소스 종합 "오늘 한 줄"
 
-Sources (v2):
-  1. health-hub MCP — 어제 건강 요약
+Sources (v2.1):
+  1. health-hub REST — https://health.json-server.win/api/v1/summary
   2. Canvas REST — 7일 내 과제 + 최근 24h 공지
   3. (v3 예정) Google Calendar, Google Tasks, brain git log
+
+MCP는 LLM agent의 tool selection 용 프로토콜.
+결정론 cron엔 REST 직접이 정답 (세션 handshake 3회 → 1회 요청).
 """
 import datetime
 import json
@@ -28,7 +31,7 @@ TODAY = NOW.date()
 YESTERDAY = TODAY - datetime.timedelta(days=1)
 WEEKDAY_KR = "월화수목금토일"[TODAY.weekday()]
 
-HEALTH_HUB_URL = os.environ.get("HEALTH_HUB_URL", "https://health.json-server.win/mcp")
+HEALTH_HUB_URL = os.environ.get("HEALTH_HUB_URL", "https://health.json-server.win").rstrip("/")
 HEALTH_HUB_TOKEN = os.environ["HEALTH_HUB_TOKEN"]
 CANVAS_BASE_URL = os.environ["CANVAS_BASE_URL"].rstrip("/")
 CANVAS_ACCESS_TOKEN = os.environ["CANVAS_ACCESS_TOKEN"]
@@ -40,78 +43,17 @@ DRY_RUN = os.environ.get("BRAIN_AGENT_DRY_RUN") == "1"
 
 
 # =====================
-# Source 1: health-hub MCP (Streamable HTTP)
+# Source 1: health-hub REST (direct)
 # =====================
-def call_mcp_tool(url: str, token: str, tool_name: str, arguments: dict) -> dict:
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream",
-    }
-    with httpx.Client(timeout=30.0) as client:
-        init_resp = client.post(
-            url,
-            headers=headers,
-            json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": {},
-                    "clientInfo": {"name": "brain-agent", "version": "2.0"},
-                },
-            },
-        )
-        init_resp.raise_for_status()
-        session_id = init_resp.headers.get("mcp-session-id")
-
-        auth_headers = dict(headers)
-        if session_id:
-            auth_headers["mcp-session-id"] = session_id
-
-        client.post(
-            url,
-            headers=auth_headers,
-            json={"jsonrpc": "2.0", "method": "notifications/initialized"},
-        )
-
-        call_resp = client.post(
-            url,
-            headers=auth_headers,
-            json={
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "tools/call",
-                "params": {"name": tool_name, "arguments": arguments},
-            },
-        )
-        call_resp.raise_for_status()
-
-        body = call_resp.text.strip()
-        if body.startswith("event:"):
-            for line in body.split("\n"):
-                if line.startswith("data: "):
-                    return json.loads(line[6:])
-        return call_resp.json()
-
-
 def fetch_health() -> dict:
-    result = call_mcp_tool(
-        HEALTH_HUB_URL,
-        HEALTH_HUB_TOKEN,
-        "get_daily_summary",
-        {"date": YESTERDAY.isoformat(), "timezone": "Asia/Seoul"},
+    resp = httpx.get(
+        f"{HEALTH_HUB_URL}/api/v1/summary",
+        params={"date": YESTERDAY.isoformat(), "tz": "Asia/Seoul"},
+        headers={"Authorization": f"Bearer {HEALTH_HUB_TOKEN}"},
+        timeout=30.0,
     )
-    r = result.get("result", result)
-    if isinstance(r, dict) and isinstance(r.get("content"), list):
-        for item in r["content"]:
-            if item.get("type") == "text":
-                try:
-                    return json.loads(item["text"])
-                except json.JSONDecodeError:
-                    return {"raw": item["text"]}
-    return r if isinstance(r, dict) else {}
+    resp.raise_for_status()
+    return resp.json()
 
 
 # =====================
@@ -198,20 +140,32 @@ def fetch_recent_announcements(course_ids: list[int]) -> list[dict]:
 def format_health(data: dict) -> str:
     lines = [f"*어제 건강 ({YESTERDAY})*"]
 
-    sleep_min = data.get("sleep_minutes") or data.get("total_sleep_minutes")
-    if sleep_min:
-        lines.append(f"🛏 수면: {sleep_min // 60}h {sleep_min % 60}m")
+    sleep = data.get("sleep") or {}
+    if (dur := sleep.get("duration_m")):
+        h, m = dur // 60, dur % 60
+        lines.append(f"🛏 수면: {h}h {m}m")
 
-    if (steps := data.get("steps")):
+    if (steps := data.get("total_steps")):
         lines.append(f"👟 걸음: {steps:,}보")
-    if (hr := data.get("heart_rate_avg") or data.get("heart_rate")):
-        lines.append(f"❤️ 심박 평균: {hr} bpm")
-    if (weight := data.get("weight_kg") or data.get("weight")):
-        lines.append(f"⚖️ 체중: {weight}kg")
-    if (cal := data.get("active_calories")):
-        lines.append(f"🔥 활동 칼로리: {cal} kcal")
-    if (spo2 := data.get("spo2")):
+
+    if (hr := data.get("avg_heart_rate")):
+        lines.append(f"❤️ 심박 평균: {hr:.0f} bpm")
+
+    if (dist := data.get("total_distance_m")):
+        km = dist / 1000
+        lines.append(f"🗺 이동: {km:.2f} km")
+
+    if (cal := data.get("total_calories")):
+        lines.append(f"🔥 칼로리: {cal} kcal")
+
+    if (spo2 := data.get("avg_spo2")):
         lines.append(f"🫁 SpO2: {spo2}%")
+
+    exercises = data.get("exercises") or []
+    if exercises:
+        total_min = sum(e.get("duration_m", 0) for e in exercises)
+        types = {e.get("exercise_type_name", "?") for e in exercises}
+        lines.append(f"🏃 운동: {len(exercises)}회 · 총 {total_min}분 ({', '.join(sorted(types))})")
 
     if len(lines) == 1:
         lines.append("_데이터 없음 (기기 미착용?)_")

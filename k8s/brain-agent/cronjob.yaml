@@ -37,7 +37,7 @@ spec:
                   python /scripts/morning-brief.py
               env:
                 - name: HEALTH_HUB_URL
-                  value: "https://health.json-server.win/mcp"
+                  value: "https://health.json-server.win"
                 - name: TZ
                   value: "Asia/Seoul"
                 - name: HEALTH_HUB_TOKEN
