@@ -94,6 +94,9 @@ cert는 30일마다 로테이션. 만료 시 VPN 연결 + `kubeseal --fetch-cert
 
 ## DNS 레코드 관리 — 항상 Terraform
 
+> 참조 파일: [`cloudflare/dns.tf`](../cloudflare/dns.tf) (homelab repo 루트 기준).
+> 기존 레코드 패턴·컨벤션은 이 파일에서 읽을 것.
+
 ### 핵심 원칙
 
 > **모든 DNS 레코드는 `cloudflare/dns.tf`에 등록. Cloudflare 웹 UI 직접 추가 금지.**
