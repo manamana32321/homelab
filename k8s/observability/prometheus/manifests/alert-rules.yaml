@@ -140,7 +140,8 @@ spec:
             description: "coral-1 blackbox-exporter 2분 이상 응답 없음. 외부 경로 (DNS/Cloudflare/ingress) 시야 손실. host 점검 필요."
 
         - alert: CoralHighTemp
-          expr: node_hwmon_temp_celsius{instance="coral-1"} > 75
+          # i.MX8MQ는 hwmon 미사용 → thermal_zone 메트릭으로 노출 (type=cpu-thermal)
+          expr: node_thermal_zone_temp{instance="coral-1",type="cpu-thermal"} > 75
           for: 5m
           labels:
             severity: warning
