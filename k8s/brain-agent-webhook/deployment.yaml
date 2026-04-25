@@ -36,33 +36,35 @@ spec:
               value: "Asia/Seoul"
             - name: HEALTH_HUB_URL
               value: "https://health.json-server.win"
-            # health-hub-secret은 Reflector로 health-hub ns에서 자동 복제됨
+            # health-hub-api-token: health-hub ns에서 reflect됨
             - name: HEALTH_HUB_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: health-hub-secret
+                  name: health-hub-api-token
                   key: API_TOKEN
-            # brain-agent-tokens는 brain-agent CronJob과 공유 (같은 ns)
+            # alertmanager-telegram: observability ns에서 reflect됨
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-telegram
+                  key: bot-token
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-telegram
+                  key: chat-id
+            - name: TELEGRAM_THREAD_ID
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-telegram
+                  key: message-thread-id
+            # brain-agent-tokens: automation 자체 보유
+            # OPENAI = LLM consumer hub, WEBHOOK_SECRET = 본 앱 자체 발행
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: brain-agent-tokens
                   key: OPENAI_API_KEY
-            - name: TELEGRAM_BOT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: brain-agent-tokens
-                  key: TELEGRAM_BOT_TOKEN
-            - name: TELEGRAM_CHAT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: brain-agent-tokens
-                  key: TELEGRAM_CHAT_ID
-            - name: TELEGRAM_THREAD_ID
-              valueFrom:
-                secretKeyRef:
-                  name: brain-agent-tokens
-                  key: TELEGRAM_THREAD_ID
             - name: WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:

@@ -40,42 +40,43 @@ spec:
                   value: "https://health.json-server.win"
                 - name: TZ
                   value: "Asia/Seoul"
-                # health-hub-secret은 Reflector로 health-hub ns에서 자동 복제됨
+                # CANVAS_BASE_URL은 sensitive 아님 — env value로
+                - name: CANVAS_BASE_URL
+                  value: "https://canvas.skku.edu"
+                # health-hub-api-token: health-hub ns에서 reflect됨
                 - name: HEALTH_HUB_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: health-hub-secret
+                      name: health-hub-api-token
                       key: API_TOKEN
-                - name: CANVAS_BASE_URL
-                  valueFrom:
-                    secretKeyRef:
-                      name: brain-agent-tokens
-                      key: CANVAS_BASE_URL
+                # canvas-credentials: essentia ns에서 reflect됨
                 - name: CANVAS_ACCESS_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: brain-agent-tokens
+                      name: canvas-credentials
                       key: CANVAS_ACCESS_TOKEN
+                # alertmanager-telegram: observability ns에서 reflect됨
+                - name: TELEGRAM_BOT_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: alertmanager-telegram
+                      key: bot-token
+                - name: TELEGRAM_CHAT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: alertmanager-telegram
+                      key: chat-id
+                - name: TELEGRAM_THREAD_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: alertmanager-telegram
+                      key: message-thread-id
+                # brain-agent-tokens: automation 자체 보유 (consumer hub for LLM keys)
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
                       name: brain-agent-tokens
                       key: OPENAI_API_KEY
-                - name: TELEGRAM_BOT_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: brain-agent-tokens
-                      key: TELEGRAM_BOT_TOKEN
-                - name: TELEGRAM_CHAT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      name: brain-agent-tokens
-                      key: TELEGRAM_CHAT_ID
-                - name: TELEGRAM_THREAD_ID
-                  valueFrom:
-                    secretKeyRef:
-                      name: brain-agent-tokens
-                      key: TELEGRAM_THREAD_ID
               volumeMounts:
                 - name: script
                   mountPath: /scripts
