@@ -7,7 +7,7 @@ Telegram 양방향 HTTP 서버 — 장수님 텔레그램 메시지를 수신해
 | 입력 | 동작 |
 |---|---|
 | 텍스트 메시지 | `POST /api/v1/notes` (category: `tg-text`) |
-| 사진 메시지 | Claude Sonnet 4 Vision 분석 → inline button 확인 → `POST /api/v1/meals` |
+| 사진 메시지 | OpenAI gpt-4o Vision 분석 → inline button 확인 → `POST /api/v1/meals` |
 | `/ping` | pong |
 
 ## 아키텍처
@@ -17,7 +17,7 @@ Telegram 양방향 HTTP 서버 — 장수님 텔레그램 메시지를 수신해
                                               ↓
                                      FastAPI (automation ns)
                                               ↓
-                                  Claude Sonnet 4 Vision (사진 분석)
+                                  OpenAI gpt-4o Vision (사진 분석)
                                               ↓
                          health-hub REST (/api/v1/notes, /api/v1/meals)
                                               ↓
@@ -36,11 +36,9 @@ callback_data 형식: `action|k=v|k=v` (Telegram 64 byte 제한)
 ### 1. Telegram setWebhook 호출
 
 ```bash
-# .envrc.local에서 값 로드
-source ~/.envrc.local
 BOT_TOKEN=$(kubectl get secret alertmanager-telegram -n observability \
   -o jsonpath='{.data.bot-token}' | base64 -d)
-SECRET=$(kubectl get secret brain-agent-webhook-tokens -n automation \
+SECRET=$(kubectl get secret brain-agent-tokens -n automation \
   -o jsonpath='{.data.WEBHOOK_SECRET}' | base64 -d)
 
 curl -sG -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
@@ -65,20 +63,21 @@ curl -s https://brain-agent.json-server.win/healthz
 
 ## 환경변수
 
-| 이름 | 의미 |
-|---|---|
-| `TELEGRAM_BOT_TOKEN` | Bot API 토큰 (alertmanager-telegram에서 가져옴) |
-| `TELEGRAM_CHAT_ID` | 허용된 채팅 ID (그 외 무시) |
-| `TELEGRAM_THREAD_ID` | 선택 — 포럼 스레드 ID (206) |
-| `WEBHOOK_SECRET` | Telegram이 X-Telegram-Bot-Api-Secret-Token 헤더로 보냄 |
-| `ANTHROPIC_API_KEY` | Claude Sonnet Vision |
-| `HEALTH_HUB_URL` | `https://health.json-server.win` |
-| `HEALTH_HUB_TOKEN` | health-hub REST API_TOKEN |
+| 이름 | 의미 | 출처 |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Bot API 토큰 | observability/alertmanager-telegram (Reflector) |
+| `TELEGRAM_CHAT_ID` | 허용된 채팅 ID | observability/alertmanager-telegram (Reflector) |
+| `TELEGRAM_THREAD_ID` | 포럼 스레드 ID (206) | observability/alertmanager-telegram (Reflector) |
+| `WEBHOOK_SECRET` | Telegram X-Telegram-Bot-Api-Secret-Token 검증 | automation/brain-agent-tokens |
+| `OPENAI_API_KEY` | OpenAI gpt-4o Vision | automation/brain-agent-tokens |
+| `OPENAI_VISION_MODEL` | 모델 (기본 `gpt-4o`, 환경변수로 override 가능) | env value |
+| `HEALTH_HUB_URL` | `https://health.json-server.win` | env value |
+| `HEALTH_HUB_TOKEN` | health-hub REST API_TOKEN | health-hub/health-hub-api-token (Reflector) |
 
 ## 비용 예측
 
-- 사진 분석 (Sonnet 4.6 Vision): ~$0.01/장
-- 하루 2장 × 30일 = ~$0.60/월
+- 사진 분석 (gpt-4o Vision): ~$0.006/장
+- 하루 2장 × 30일 = ~$0.33/월
 - 텍스트·callback 처리: $0
 
 ## 향후 확장
@@ -86,4 +85,4 @@ curl -s https://brain-agent.json-server.win/healthz
 - 저녁 컨디션 체크인 CronJob (예: 22시에 질문 → 사용자 답변 수신)
 - `/query` 명령어로 brain 검색 (gbrain MCP 경유)
 - 수정 (edit_meal) 기능 v2
-- 이미지 재시도 (gpt-4o fallback)
+- 품질 부족 시 Claude Sonnet Vision 옵션 추가 (현재 비용 30배 차이로 미사용)
