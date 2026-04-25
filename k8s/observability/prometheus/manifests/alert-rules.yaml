@@ -50,12 +50,23 @@ spec:
             description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
 
         - alert: NodeDiskAlmostFull
-          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) > 0.75
+          # SSD(`/`): 90% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"} / node_filesystem_size_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"}) > 0.9
           for: 5m
           labels:
             severity: warning
           annotations:
             summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
+            description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+
+        - alert: HDDAlmostFull
+          # HDD(`/mnt/hdd-*`): 75% — 미디어 누적이라 회수 불가, 일찍 경고해 정리/확장 시간 확보.
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs",mountpoint=~"/mnt/hdd-.*"} / node_filesystem_size_bytes{fstype=~"ext4|xfs",mountpoint=~"/mnt/hdd-.*"}) > 0.75
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HDD almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
             description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
 
     # SMART 디스크 건강 알림 (ATA HDD 특화 — NVMe 기본 알림은 smartctl-exporter chart에 내장)
