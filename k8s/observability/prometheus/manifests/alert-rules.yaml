@@ -126,3 +126,33 @@ spec:
           annotations:
             summary: "High memory: {{ $labels.instance }}"
             description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
+
+    # Coral Dev Board (K3s 외부, standalone Docker). 외부 관측점이므로 다운 시 critical
+    - name: coral
+      rules:
+        - alert: CoralExternalProbeDown
+          expr: up{job="coral-blackbox-http"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "외부 관측점 coral 다운"
+            description: "coral-1 blackbox-exporter 2분 이상 응답 없음. 외부 경로 (DNS/Cloudflare/ingress) 시야 손실. host 점검 필요."
+
+        - alert: CoralHighTemp
+          expr: node_hwmon_temp_celsius{instance="coral-1"} > 75
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Coral CPU 온도 {{ $value }}°C"
+            description: "coral-1 CPU 온도 5분 이상 75°C 초과. i.MX8MQ thermal throttle 임박."
+
+        - alert: CoralLoadHigh
+          expr: node_load5{instance="coral-1"} > 4
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Coral 부하 {{ $value | printf \"%.1f\" }}"
+            description: "coral-1 5분 평균 load가 10분 이상 4 초과 (4-core 포화)."
