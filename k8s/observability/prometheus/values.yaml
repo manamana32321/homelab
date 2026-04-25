@@ -85,6 +85,14 @@ prometheus:
           - target_label: __address__
             replacement: 192.168.0.44:9115
 
+      # Coral Dev Board host metrics (CPU/load/temp/memory). K3s 외부 노드라 직접 scrape
+      - job_name: coral-node
+        static_configs:
+          - targets: [192.168.0.44:9100]
+            labels:
+              source: coral
+              instance: coral-1
+
   ingress:
     enabled: true
     hosts:
