@@ -15,6 +15,7 @@ MCP는 LLM agent의 tool selection 용 프로토콜.
 결정론 cron엔 REST 직접이 정답 (세션 handshake 3회 → 1회 요청).
 """
 import datetime
+import html
 import json
 import os
 import sys
@@ -168,8 +169,13 @@ def fetch_recent_announcements(course_ids: list[int]) -> list[dict]:
 # =====================
 # Deterministic formatters
 # =====================
+def _esc(s: Any) -> str:
+    """Telegram HTML mode: escape user-supplied content (<, >, &)."""
+    return html.escape(str(s), quote=False)
+
+
 def format_health(data: dict) -> str:
-    lines = [f"*어제 건강 ({YESTERDAY})*"]
+    lines = [f"<b>어제 건강 ({YESTERDAY})</b>"]
 
     sleep = data.get("sleep") or {}
     if (dur := sleep.get("duration_m")):
@@ -195,11 +201,14 @@ def format_health(data: dict) -> str:
     exercises = data.get("exercises") or []
     if exercises:
         total_min = sum(e.get("duration_m", 0) for e in exercises)
-        types = {e.get("exercise_type_name", "?") for e in exercises}
-        lines.append(f"🏃 운동: {len(exercises)}회 · 총 {total_min}분 ({', '.join(sorted(types))})")
+        types = sorted({e.get("exercise_type_name", "?") for e in exercises})
+        lines.append(
+            f"🏃 운동: {len(exercises)}회 · 총 {total_min}분 "
+            f"({_esc(', '.join(types))})"
+        )
 
     if len(lines) == 1:
-        lines.append("_데이터 없음 (기기 미착용?)_")
+        lines.append("<i>데이터 없음 (기기 미착용?)</i>")
     return "\n".join(lines)
 
 
@@ -212,24 +221,24 @@ def format_icampus(
         c["id"]: c.get("course_code") or c.get("name", f"course{c['id']}")
         for c in courses
     }
-    lines = ["*🎓 아이캠퍼스*"]
+    lines = ["<b>🎓 아이캠퍼스</b>"]
 
     if announcements:
         lines.append("")
-        lines.append("_최근 24h 공지:_")
+        lines.append("<i>최근 24h 공지:</i>")
         for a in announcements[:5]:
             code = a.get("context_code", "").replace("course_", "")
             try:
                 code_name = course_map.get(int(code), code)
             except ValueError:
                 code_name = code
-            lines.append(f"• \\[{code_name}] {a['title']}")
+            lines.append(f"• [{_esc(code_name)}] {_esc(a['title'])}")
     else:
-        lines.append("_최근 공지 없음_")
+        lines.append("<i>최근 공지 없음</i>")
 
     if assignments:
         lines.append("")
-        lines.append("_7일 내 과제:_")
+        lines.append("<i>7일 내 과제:</i>")
         for a in assignments[:10]:
             due = datetime.datetime.fromisoformat(
                 a["due_at"].replace("Z", "+00:00")
@@ -238,12 +247,12 @@ def format_icampus(
             marker = "🚨" if days_left == 0 else ("⏰" if days_left <= 2 else "📅")
             course_name = course_map.get(a["course_id"], f"c{a['course_id']}")
             lines.append(
-                f"{marker} \\[{course_name}] {a['name']} — "
+                f"{marker} [{_esc(course_name)}] {_esc(a['name'])} — "
                 f"{due.strftime('%m/%d %H:%M')} (D-{days_left})"
             )
     else:
         lines.append("")
-        lines.append("_7일 내 제출 과제 없음_")
+        lines.append("<i>7일 내 제출 과제 없음</i>")
 
     return "\n".join(lines)
 
@@ -288,7 +297,7 @@ def send_telegram(text: str) -> None:
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",
+        "parse_mode": "HTML",
     }
     if TELEGRAM_THREAD_ID:
         payload["message_thread_id"] = int(TELEGRAM_THREAD_ID)
@@ -327,10 +336,10 @@ def main() -> int:
 
         brief = "\n\n".join(
             [
-                f"🌅 *Morning Brief — {TODAY} ({WEEKDAY_KR})*",
+                f"🌅 <b>Morning Brief — {TODAY} ({WEEKDAY_KR})</b>",
                 sections["health"],
                 sections["icampus"],
-                f"*✨ 오늘 한 줄*\n{meta}",
+                f"<b>✨ 오늘 한 줄</b>\n{_esc(meta)}",
             ]
         )
         send_telegram(brief)
@@ -339,8 +348,8 @@ def main() -> int:
 
     except Exception as e:
         err = (
-            f"⚠️ brain-agent FAILED: {type(e).__name__}: {e}\n\n"
-            f"```\n{traceback.format_exc()[:1000]}\n```"
+            f"⚠️ brain-agent FAILED: {_esc(type(e).__name__)}: {_esc(e)}\n\n"
+            f"<pre>{_esc(traceback.format_exc()[:1000])}</pre>"
         )
         print(err, file=sys.stderr)
         try:
