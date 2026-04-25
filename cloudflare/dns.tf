@@ -164,6 +164,15 @@ resource "cloudflare_record" "habits" {
   comment = "Loop — Habit Hub"
 }
 
+resource "cloudflare_record" "brain_agent" {
+  zone_id = cloudflare_zone.main.id
+  name    = "brain-agent"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "brain-agent webhook (Telegram → health-hub) — proxied=false for cert-manager DNS-01"
+}
+
 # CNAME Records
 resource "cloudflare_record" "amang" {
   zone_id = cloudflare_zone.main.id
