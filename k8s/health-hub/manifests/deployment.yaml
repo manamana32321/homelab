@@ -37,7 +37,7 @@ spec:
             - name: API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: health-hub-secret
+                  name: health-hub-api-token
                   key: API_TOKEN
             - name: LISTEN_ADDR
               value: ":8080"

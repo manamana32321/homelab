@@ -13,6 +13,7 @@ resources:
   - web/ingress.yaml
   - web/service.yaml
   - ghcr-pull-sealed-secret.yaml
+  - canvas-credentials.yaml
 
 # argocd-image-updater writes the resolved digest back here on each
 # successful pull-metadata cycle (post homelab#131 RBAC fix). This way

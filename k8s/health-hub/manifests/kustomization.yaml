@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - sealed-secret.yaml
+  - sealed-secret-api-token.yaml
   - sealed-secret-backup.yaml
   - timescaledb-statefulset.yaml
   - deployment.yaml

@@ -1,6 +1,13 @@
 resource "cloudflare_zone" "main" {
   account_id = var.cloudflare_account_id
   zone       = var.zone_name
+
+  # Provider v4의 account_id는 Cloudflare API GET 응답에 없어서 refresh 시 null로
+  # drift 발생. zone ownership은 생성 후 변경 불가하므로 무시해도 안전.
+  # v5 업그레이드 시 제거 필요 (homelab#153).
+  lifecycle {
+    ignore_changes = [account_id]
+  }
 }
 
 resource "cloudflare_record" "root" {
@@ -162,6 +169,15 @@ resource "cloudflare_record" "habits" {
   content = var.default_ip
   proxied = true
   comment = "Loop — Habit Hub"
+}
+
+resource "cloudflare_record" "brain_agent" {
+  zone_id = cloudflare_zone.main.id
+  name    = "brain-agent"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "brain-agent webhook (Telegram → health-hub) — proxied=false for cert-manager DNS-01"
 }
 
 # CNAME Records

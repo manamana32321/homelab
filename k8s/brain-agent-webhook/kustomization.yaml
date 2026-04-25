@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# SealedSecret 없음 — 다음 secret을 consume:
+#   - brain-agent-tokens (자매 dir k8s/brain-agent/, 같은 automation ns)
+#   - health-hub-api-token (health-hub ns에서 Reflector로 자동 복제)
+#   - alertmanager-telegram (observability ns에서 Reflector로 자동 복제)
+
+resources:
+  - deployment.yaml
+  - ingress.yaml
+
+configMapGenerator:
+  - name: brain-agent-webhook-script
+    files:
+      - webhook.py
+
+generatorOptions:
+  disableNameSuffixHash: true
