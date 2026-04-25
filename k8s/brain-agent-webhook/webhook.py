@@ -32,6 +32,7 @@ from openai import OpenAI
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 TELEGRAM_THREAD_ID = os.environ.get("TELEGRAM_THREAD_ID")
+TELEGRAM_USER_ID = os.environ.get("TELEGRAM_USER_ID")
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 OPENAI_VISION_MODEL = os.environ.get("OPENAI_VISION_MODEL", "gpt-4o")
 HEALTH_HUB_URL = os.environ.get(
@@ -195,6 +196,20 @@ def extract_meal_name_from_message(text: str) -> str:
 # =====================
 # Handlers
 # =====================
+def _authorized(from_user: dict | None, message: dict | None) -> bool:
+    """Accept messages from configured user (any chat) OR from configured group thread."""
+    if TELEGRAM_USER_ID and from_user and str(from_user.get("id")) == TELEGRAM_USER_ID:
+        return True
+    if not message:
+        return False
+    chat_id = str((message.get("chat") or {}).get("id"))
+    if chat_id != TELEGRAM_CHAT_ID:
+        return False
+    if TELEGRAM_THREAD_ID:
+        return str(message.get("message_thread_id")) == TELEGRAM_THREAD_ID
+    return True
+
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
@@ -214,6 +229,8 @@ async def telegram_webhook(
         raise HTTPException(status_code=400, detail="invalid json")
 
     if cbq := update.get("callback_query"):
+        if not _authorized(cbq.get("from"), cbq.get("message")):
+            return {"ok": True}
         try:
             await handle_callback(cbq)
         except Exception:
@@ -228,14 +245,8 @@ async def telegram_webhook(
     if not message:
         return {"ok": True}
 
-    chat_id = str(message.get("chat", {}).get("id"))
-    if chat_id != TELEGRAM_CHAT_ID:
+    if not _authorized(message.get("from"), message):
         return {"ok": True}
-
-    if TELEGRAM_THREAD_ID:
-        thread_id = message.get("message_thread_id")
-        if str(thread_id) != TELEGRAM_THREAD_ID:
-            return {"ok": True}
 
     try:
         if "photo" in message:
