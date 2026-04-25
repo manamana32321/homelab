@@ -18,6 +18,7 @@ Stateless 설계:
 """
 import base64
 import datetime
+import html
 import json
 import os
 import re
@@ -48,6 +49,11 @@ app = FastAPI(title="brain-agent-webhook")
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 
+def _esc(s) -> str:
+    """HTML mode escape for user-supplied content (<, >, &)."""
+    return html.escape(str(s), quote=False)
+
+
 # =====================
 # Telegram helpers
 # =====================
@@ -60,15 +66,22 @@ async def tg_request(method: str, payload: dict) -> dict:
 
 async def tg_send_message(
     text: str,
+    *,
+    chat_id: int | str | None = None,
+    thread_id: int | str | None = None,
     reply_markup: dict | None = None,
     reply_to: int | None = None,
 ) -> dict:
+    """`chat_id`/`thread_id` 명시 시 그쪽으로 — 미명시면 기본 그룹 thread."""
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": chat_id if chat_id is not None else TELEGRAM_CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",
+        "parse_mode": "HTML",
     }
-    if TELEGRAM_THREAD_ID:
+    if thread_id is not None:
+        payload["message_thread_id"] = int(thread_id)
+    elif chat_id is None and TELEGRAM_THREAD_ID:
+        # default group target inherits configured thread
         payload["message_thread_id"] = int(TELEGRAM_THREAD_ID)
     if reply_markup:
         payload["reply_markup"] = reply_markup
@@ -84,7 +97,7 @@ async def tg_edit_message(chat_id: int, message_id: int, text: str) -> dict:
             "chat_id": chat_id,
             "message_id": message_id,
             "text": text,
-            "parse_mode": "Markdown",
+            "parse_mode": "HTML",
         },
     )
 
@@ -105,6 +118,14 @@ async def tg_download_photo(file_id: str) -> bytes:
         resp = await c.get(f"{TELEGRAM_FILE_API}/{file_path}")
         resp.raise_for_status()
         return resp.content
+
+
+def _msg_context(msg: dict) -> dict:
+    """수신 메시지에서 응답 destination context 추출."""
+    return {
+        "chat_id": msg["chat"]["id"],
+        "thread_id": msg.get("message_thread_id"),
+    }
 
 
 # =====================
@@ -248,6 +269,7 @@ async def telegram_webhook(
     if not _authorized(message.get("from"), message):
         return {"ok": True}
 
+    ctx = _msg_context(message)
     try:
         if "photo" in message:
             await handle_photo(message)
@@ -256,7 +278,10 @@ async def telegram_webhook(
     except Exception as e:
         traceback.print_exc()
         try:
-            await tg_send_message(f"❌ 처리 실패: {type(e).__name__}: {e}")
+            await tg_send_message(
+                f"❌ 처리 실패: {_esc(type(e).__name__)}: {_esc(e)}",
+                **ctx,
+            )
         except Exception:
             pass
 
@@ -265,14 +290,16 @@ async def telegram_webhook(
 
 async def handle_text(msg: dict):
     text = msg["text"]
+    ctx = _msg_context(msg)
 
     if text.startswith("/"):
         if text == "/ping":
-            await tg_send_message("pong", reply_to=msg["message_id"])
+            await tg_send_message("pong", reply_to=msg["message_id"], **ctx)
         else:
             await tg_send_message(
                 "사용법:\n- 텍스트 → notes 저장\n- 사진 → 식사 분석\n- /ping",
                 reply_to=msg["message_id"],
+                **ctx,
             )
         return
 
@@ -284,28 +311,29 @@ async def handle_text(msg: dict):
             "text": text,
         },
     )
-    await tg_send_message("✅ 노트 저장됨", reply_to=msg["message_id"])
+    await tg_send_message("✅ 노트 저장됨", reply_to=msg["message_id"], **ctx)
 
 
 async def handle_photo(msg: dict):
+    ctx = _msg_context(msg)
     photos = msg["photo"]
     largest = max(photos, key=lambda p: p.get("width", 0) * p.get("height", 0))
     file_id = largest["file_id"]
 
-    await tg_send_message("🔍 분석 중...", reply_to=msg["message_id"])
+    await tg_send_message("🔍 분석 중...", reply_to=msg["message_id"], **ctx)
 
     image = await tg_download_photo(file_id)
     meal = analyze_meal_image(image)
 
     lines = [
-        f"🍜 {meal['name']}",
+        f"🍜 {_esc(meal['name'])}",
         f"- 칼로리: {meal.get('calories', '?')} kcal",
         f"- 단백질: {meal.get('protein_g', '?')}g",
         f"- 탄수: {meal.get('carbs_g', '?')}g",
         f"- 지방: {meal.get('fat_g', '?')}g",
     ]
     if note := meal.get("note"):
-        lines.append(f"_{note}_")
+        lines.append(f"<i>{_esc(note)}</i>")
     reply_text = "\n".join(lines)
 
     cb_save = encode_callback(
@@ -329,7 +357,7 @@ async def handle_photo(msg: dict):
     }
 
     await tg_send_message(
-        reply_text, reply_markup=keyboard, reply_to=msg["message_id"]
+        reply_text, reply_markup=keyboard, reply_to=msg["message_id"], **ctx
     )
 
 
@@ -366,14 +394,16 @@ async def handle_callback(cbq: dict):
                 },
             )
             await tg_edit_message(
-                chat_id, message_id, msg["text"] + "\n\n✅ 저장됨"
+                chat_id, message_id, _esc(msg["text"]) + "\n\n✅ 저장됨"
             )
             await tg_answer_callback(cbq_id, "저장 완료")
         except Exception as e:
             await tg_answer_callback(cbq_id, f"실패: {type(e).__name__}")
             raise
     elif action == "cancel_meal":
-        await tg_edit_message(chat_id, message_id, msg["text"] + "\n\n❌ 취소됨")
+        await tg_edit_message(
+            chat_id, message_id, _esc(msg["text"]) + "\n\n❌ 취소됨"
+        )
         await tg_answer_callback(cbq_id, "취소")
     else:
         await tg_answer_callback(cbq_id, f"unknown: {action}")
