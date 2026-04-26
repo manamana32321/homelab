@@ -1,0 +1,51 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":timezone(Asia/Seoul)",
+    "schedule:weekly",
+    "group:allNonMajor",
+  ],
+
+  // Single rolling Dependency Dashboard issue summarizing pending updates.
+  dependencyDashboardTitle: "Dependency Dashboard (Renovate)",
+
+  labels: ["dependencies"],
+  prHourlyLimit: 5,
+  prConcurrentLimit: 10,
+
+  // ArgoCD Application targetRevision (Helm chart versions).
+  argocd: {
+    fileMatch: ["^k8s/argocd/applications/.*\\.ya?ml$"],
+  },
+
+  // Image tags inside raw K8s manifests under k8s/.
+  kubernetes: {
+    fileMatch: ["^k8s/.*\\.ya?ml$"],
+  },
+
+  packageRules: [
+    {
+      // GitHub Actions minor/patch — auto-merge after CI passes.
+      // Major bumps still require manual review.
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
+    },
+    {
+      // Major bumps surface in dashboard with extra label, never auto-merged.
+      matchUpdateTypes: ["major"],
+      addLabels: ["major"],
+    },
+    {
+      // Argo CD itself is a critical dep — manual review even for minor.
+      matchManagers: ["argocd"],
+      matchPackageNames: ["argo-cd", "argo-helm"],
+      automerge: false,
+    },
+  ],
+}
