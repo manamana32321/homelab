@@ -29,6 +29,10 @@ WORKDIR /brain
 # Default port for mcp-proxy SSE transport
 EXPOSE 8080
 
-# mcp-proxy spawns `gbrain serve` (stdio MCP) and exposes it as SSE on :8080
-# Bearer auth handled by Ingress/sidecar (out of scope here)
-ENTRYPOINT ["mcp-proxy", "--sse-port", "8080", "--sse-host", "0.0.0.0", "--", "gbrain", "serve"]
+# mcp-proxy spawns `gbrain serve` (stdio MCP) and exposes it as SSE on :8080.
+# Bearer auth handled by caddy sidecar (see manifests/caddy-configmap.yaml).
+# --pass-environment: forward GBRAIN_DATABASE_URL etc. to the spawned subprocess
+# (mcp-proxy strips env by default, treating stdio servers as untrusted).
+# --port/--host: deprecated aliases --sse-port/--sse-host bind to port 0 in
+# current mcp-proxy versions; use the canonical flags.
+ENTRYPOINT ["mcp-proxy", "--pass-environment", "--port", "8080", "--host", "0.0.0.0", "--", "gbrain", "serve"]
