@@ -19,3 +19,18 @@ spec:
         bouncer:
           moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
           version: v1.5.1
+    # Mount crowdsec-bouncer-key (reflected from crowdsec ns) so the
+    # bouncer plugin can read the LAPI key from a file path instead of
+    # inlining the plaintext in the Middleware CRD.
+    deployment:
+      additionalVolumes:
+        - name: crowdsec-bouncer-key
+          secret:
+            secretName: crowdsec-bouncer-key
+            items:
+              - key: BOUNCER_KEY_traefik
+                path: lapi-key
+    additionalVolumeMounts:
+      - name: crowdsec-bouncer-key
+        mountPath: /run/secrets/crowdsec
+        readOnly: true

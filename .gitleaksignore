@@ -1,0 +1,20 @@
+# Historical secret leaks. Format: <commit>:<file>:<rule>:<line>
+# git history is immutable; these findings remain even after remediation.
+# Each entry has been audited and superseded by a fix in current main.
+
+# CrowdSec LAPI key — superseded by file-mount migration (#167 fix PR).
+# Internal-only LAPI (ClusterIP), accepted residual risk for git-history
+# exposure. Rotation deferred to a follow-up if the threat model changes.
+7bd385d36ce8967af19008bc093be820e3206871:k8s/traefik/manifests/middleware-crowdsec.yaml:generic-api-key:15
+a7af13053be7cd6a4235b0291911135d6e8ef410:k8s/traefik/manifests/middleware-crowdsec.yaml:generic-api-key:15
+
+# Grafana values.yaml — old plaintext password, replaced with $VAR refs.
+bff0e48be96f804d4edbf187573d94f44fd033fc:k8s/observability/grafana/values.yaml:generic-api-key:84
+84daa94bd6f0e1cda6dec749874cc67946685255:k8s/observability/grafana/values.yaml:generic-api-key:75
+
+# Health Hub Grafana datasource — file removed entirely.
+9fd145dc7febe09ede4cb47a94724486a948f1b8:k8s/health-hub/manifests/grafana-datasource.yaml:generic-api-key:22
+
+# Seafile registry credentials — file removed entirely.
+7408eca104e5912acb54b09212c02337af602ecf:k8s/seafile/manifests/regcred.yaml:kubernetes-secret-yaml:2
+4d651884d3cc86ea9a4da18d75a74d322e56230d:k8s/seafile/manifests/regcred.yaml:kubernetes-secret-yaml:2
