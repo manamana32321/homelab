@@ -1,0 +1,75 @@
+name: argocd diff preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "k8s/**"
+      - ".github/workflows/argocd-diff-preview.yaml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: pull-request
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Generate Argo CD diff
+        run: |
+          mkdir -p output
+          # --diff-ignore: filter Helm checksum/* annotations that re-hash on
+          # every render (sha256sum of secret/configmap content is non-stable
+          # across runs and produces phantom diffs on no-op PRs).
+          docker run --rm \
+            --network=host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd)/main:/base-branch" \
+            -v "$(pwd)/pull-request:/target-branch" \
+            -v "$(pwd)/output:/output" \
+            -e TARGET_BRANCH="refs/pull/${{ github.event.number }}/merge" \
+            -e REPO="${{ github.repository }}" \
+            dagandersen/argocd-diff-preview:v0.2.4 \
+            --diff-ignore 'checksum/.*: [a-f0-9]+'
+
+      - name: Upload raw diff as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: argocd-diff
+          path: output/
+          retention-days: 14
+
+      - name: Post diff as PR comment
+        if: always() && hashFiles('output/diff.md') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GitHub PR comment cap is 65,536 chars; truncate gracefully.
+          MAX=60000
+          if [ "$(wc -c < output/diff.md)" -gt "$MAX" ]; then
+            head -c "$MAX" output/diff.md > output/diff.trimmed.md
+            printf '\n\n---\n_Diff truncated at %s chars. Full output in workflow artifacts._\n' "$MAX" >> output/diff.trimmed.md
+            BODY=output/diff.trimmed.md
+          else
+            BODY=output/diff.md
+          fi
+
+          # Edit existing bot comment if present, else create new.
+          gh pr comment "${{ github.event.number }}" \
+            --repo "${{ github.repository }}" \
+            --body-file "$BODY" --edit-last 2>/dev/null \
+          || gh pr comment "${{ github.event.number }}" \
+              --repo "${{ github.repository }}" \
+              --body-file "$BODY"
