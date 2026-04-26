@@ -1,0 +1,52 @@
+name: kube-linter
+
+on:
+  pull_request:
+    paths:
+      - "k8s/**"
+      - ".kube-linter.yaml"
+      - ".github/workflows/kube-linter.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "k8s/**"
+      - ".kube-linter.yaml"
+      - ".github/workflows/kube-linter.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kustomize
+        run: |
+          curl -sLo /tmp/kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_linux_amd64.tar.gz"
+          tar -xzf /tmp/kustomize.tar.gz -C /tmp
+          sudo mv /tmp/kustomize /usr/local/bin/
+
+      - name: Install kube-linter
+        run: |
+          curl -sL https://github.com/stackrox/kube-linter/releases/latest/download/kube-linter-linux.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/kube-linter /usr/local/bin/
+          kube-linter version
+
+      - name: Render Kustomize roots
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rendered
+          while IFS= read -r kfile; do
+            dir="$(dirname "$kfile")"
+            name="$(echo "$dir" | sed 's|k8s/||' | tr '/' '-')"
+            kustomize build "$dir" > "/tmp/rendered/${name}.yaml"
+          done < <(find k8s -name 'kustomization.yaml' | sort)
+          echo "Rendered $(ls /tmp/rendered/ | wc -l) Kustomize roots."
+
+      - name: Run kube-linter (strict)
+        run: |
+          kube-linter lint --config=.kube-linter.yaml /tmp/rendered/
