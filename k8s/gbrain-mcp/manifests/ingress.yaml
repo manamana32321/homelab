@@ -1,0 +1,28 @@
+---
+# Bearer auth handled by caddy sidecar (Authorization: Bearer <MCP_AUTH_TOKEN>)
+# TLS via cert-manager DNS01 (Cloudflare API)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gbrain-mcp
+  namespace: gbrain
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: gbrain.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gbrain-mcp
+                port:
+                  number: 80
+  tls:
+    - secretName: gbrain-mcp-tls
+      hosts:
+        - gbrain.json-server.win

@@ -1,0 +1,60 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gbrain-sync
+  namespace: gbrain
+spec:
+  schedule: "*/5 * * * *"          # every 5 minutes
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid         # never overlap
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              image: ghcr.io/manamana32321/gbrain-mcp:latest
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eo pipefail
+                  rm -rf /tmp/brain
+                  git clone --depth 1 \
+                    "https://x-access-token:${GH_PAT}@github.com/manamana32321/brain.git" \
+                    /tmp/brain
+                  gbrain sync --repo /tmp/brain
+              env:
+                - name: GH_PAT
+                  valueFrom:
+                    secretKeyRef:
+                      name: gbrain-github-credentials
+                      key: GH_PAT
+                # POSTGRES_PASSWORD must come before PG_URL so $(VAR) interpolation resolves
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: gbrain-postgres-secrets
+                      key: POSTGRES_PASSWORD
+                - name: PG_URL
+                  value: postgresql://gbrain:$(POSTGRES_PASSWORD)@gbrain-postgres.gbrain.svc.cluster.local:5432/gbrain
+                - name: OPENAI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: gbrain-api-keys
+                      key: OPENAI_API_KEY
+                - name: ANTHROPIC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: gbrain-api-keys
+                      key: ANTHROPIC_API_KEY
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: 100m
+                limits:
+                  memory: 512Mi
+                  cpu: 500m

@@ -310,3 +310,13 @@ resource "cloudflare_record" "sme_tour" {
   proxied = false
   comment = "SME Tour frontend (Vercel, proxied=false for Vercel SSL)"
 }
+
+# gbrain MCP (HTTP MCP server for Claude custom connector)
+resource "cloudflare_record" "gbrain" {
+  zone_id = cloudflare_zone.main.id
+  name    = "gbrain"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "gbrain HTTP MCP — Bearer auth (caddy sidecar), Cloudflare proxied"
+}

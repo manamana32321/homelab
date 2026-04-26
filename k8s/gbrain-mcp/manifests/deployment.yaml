@@ -1,0 +1,119 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbrain-mcp
+  namespace: gbrain
+  labels:
+    app: gbrain-mcp
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gbrain-mcp
+  template:
+    metadata:
+      labels:
+        app: gbrain-mcp
+    spec:
+      initContainers:
+        # Clone brain repo (private) into shared volume
+        - name: git-clone
+          image: alpine/git:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              if [ -d /brain/.git ]; then
+                cd /brain && git pull --ff-only
+              else
+                rm -rf /brain/* /brain/.[!.]* 2>/dev/null || true
+                git clone --depth 1 \
+                  "https://x-access-token:${GH_PAT}@github.com/manamana32321/brain.git" \
+                  /brain
+              fi
+          env:
+            - name: GH_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-github-credentials
+                  key: GH_PAT
+          volumeMounts:
+            - name: brain
+              mountPath: /brain
+
+      containers:
+        # Main: gbrain stdio MCP wrapped via mcp-proxy → SSE :8080
+        - name: gbrain-mcp
+          image: ghcr.io/manamana32321/gbrain-mcp:latest
+          imagePullPolicy: Always
+          workingDir: /brain
+          env:
+            # POSTGRES_PASSWORD must come before PG_URL so $(VAR) interpolation resolves
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-postgres-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PG_URL
+              value: postgresql://gbrain:$(POSTGRES_PASSWORD)@gbrain-postgres.gbrain.svc.cluster.local:5432/gbrain
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-api-keys
+                  key: OPENAI_API_KEY
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-api-keys
+                  key: ANTHROPIC_API_KEY
+          ports:
+            - containerPort: 8080
+              name: sse
+          volumeMounts:
+            - name: brain
+              mountPath: /brain
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+
+        # Sidecar: caddy reverse proxy with Bearer auth
+        - name: caddy
+          image: caddy:2-alpine
+          command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+          env:
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-postgres-secrets
+                  key: MCP_AUTH_TOKEN
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /etc/caddy
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 30
+
+      volumes:
+        - name: brain
+          emptyDir: {}
+        - name: caddy-config
+          configMap:
+            name: gbrain-mcp-caddy

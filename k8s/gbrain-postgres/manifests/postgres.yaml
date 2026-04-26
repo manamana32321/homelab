@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gbrain-postgres-data
+  namespace: gbrain
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn-ssd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbrain-postgres
+  namespace: gbrain
+  labels:
+    app: gbrain-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gbrain-postgres
+  template:
+    metadata:
+      labels:
+        app: gbrain-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: gbrain
+            - name: POSTGRES_USER
+              value: gbrain
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gbrain-postgres-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "gbrain", "-d", "gbrain"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "gbrain", "-d", "gbrain"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gbrain-postgres-data
+        - name: init
+          configMap:
+            name: gbrain-postgres-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gbrain-postgres
+  namespace: gbrain
+spec:
+  selector:
+    app: gbrain-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
