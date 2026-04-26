@@ -22,3 +22,5 @@ resources:
 images:
   - name: ghcr.io/essentia-edu/api
     digest: sha256:1c30ed47e532f84b3a791e23a782baa45878b79a9d32d18b6712a9d39518b67a
+  - name: ghcr.io/essentia-edu/web
+    digest: sha256:02433a63a0a7abd9cb1867eebe69c1942dfc4de1a95a2e0814bd879e87d02749

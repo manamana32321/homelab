@@ -11,4 +11,9 @@ resources:
   - sync-cronjob.yaml
 images:
   - name: ghcr.io/manamana32321/gbrain-mcp
-    newTag: latest
+    digest: sha256:a0aa3b400bfa83da4c1106f6aafc68a73aca71a2a988314e1acfb270eb25ae6f
+  # Pinned to current digest. Public alpine/git base image not subject to
+  # ArgoCD Image Updater (only ghcr.io/* in app annotations); update via
+  # Renovate or manual digest bump.
+  - name: alpine/git
+    digest: sha256:d453f54c83320412aa89c391b076930bd8569bc1012285e8c68ce2d4435826a3

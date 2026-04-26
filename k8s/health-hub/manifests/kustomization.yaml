@@ -11,3 +11,11 @@ resources:
   - service.yaml
   - ingress.yaml
   - backup-cronjob.yaml
+
+# Pinned digests, kept fresh by argocd-image-updater (annotations on the
+# Argo CD Application in k8s/argocd/applications/apps/health-hub.yaml).
+images:
+  - name: ghcr.io/manamana32321/health-hub
+    digest: sha256:c5bc4b017de06a18b1c4d1d24dcacecf9a567723792ad6e0b9915ae9d9ad20b0
+  - name: ghcr.io/manamana32321/health-hub-dashboard
+    digest: sha256:8ca104d22c234606f5fe3367b89ff4f112fa0be640f6b363dbea9c8e96aa27aa

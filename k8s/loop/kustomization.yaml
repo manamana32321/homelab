@@ -12,3 +12,12 @@ resources:
   - web/deployment.yaml
   - web/ingress.yaml
   - migrate-job.yaml
+
+# Pinned digests, kept fresh by argocd-image-updater (annotations on the
+# Argo CD Application in k8s/argocd/applications/apps/loop.yaml).
+# loop-api digest is shared by the migrate Job (same image).
+images:
+  - name: ghcr.io/manamana32321/loop-api
+    digest: sha256:ae02c9ce6b1a99fb32b4deddb2da88f03bcf40ec990dafce06e93ceeb9557890
+  - name: ghcr.io/manamana32321/loop-web
+    digest: sha256:27c9e3893f8ba2131532c9ba7040e69ce03f513b366d120640a0ac8993b74091

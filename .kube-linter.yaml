@@ -19,8 +19,3 @@ checks:
     # 19 violations. Tracked in #169 — many apps need writable mounts for
     # runtime caches (bun, python pip), requires emptyDir tmpfs additions.
     - no-read-only-root-fs
-
-    # 10 violations. Tracked in #169 — most are our own apps using :latest
-    # with ArgoCD Image Updater for digest pinning. Migration to tagged
-    # images requires Image Updater config rework.
-    - latest-tag
