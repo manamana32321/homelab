@@ -33,15 +33,12 @@ spec:
                     secretKeyRef:
                       name: gbrain-github-credentials
                       key: GH_PAT
-                # POSTGRES_PASSWORD must come before GBRAIN_DATABASE_URL so $(VAR) interpolation resolves
-                - name: POSTGRES_PASSWORD
+                # Full URL stored in SealedSecret (no $(VAR) interpolation)
+                - name: GBRAIN_DATABASE_URL
                   valueFrom:
                     secretKeyRef:
                       name: gbrain-postgres-secrets
-                      key: POSTGRES_PASSWORD
-                # gbrain reads GBRAIN_DATABASE_URL (or DATABASE_URL) per core/config.ts loadConfig
-                - name: GBRAIN_DATABASE_URL
-                  value: postgresql://gbrain:$(POSTGRES_PASSWORD)@gbrain-postgres.gbrain.svc.cluster.local:5432/gbrain
+                      key: GBRAIN_DATABASE_URL
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
