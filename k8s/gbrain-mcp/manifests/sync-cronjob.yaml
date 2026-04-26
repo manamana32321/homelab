@@ -33,13 +33,14 @@ spec:
                     secretKeyRef:
                       name: gbrain-github-credentials
                       key: GH_PAT
-                - name: PG_URL
-                  value: postgresql://gbrain:$(POSTGRES_PASSWORD)@gbrain-postgres.gbrain.svc.cluster.local:5432/gbrain
+                # POSTGRES_PASSWORD must come before PG_URL so $(VAR) interpolation resolves
                 - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: gbrain-postgres-secrets
                       key: POSTGRES_PASSWORD
+                - name: PG_URL
+                  value: postgresql://gbrain:$(POSTGRES_PASSWORD)@gbrain-postgres.gbrain.svc.cluster.local:5432/gbrain
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:

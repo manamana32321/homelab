@@ -117,3 +117,6 @@ serviceMonitor:
     - name: sme-tour-engine
       url: http://sme-tour-engine.sme-tour.svc.cluster.local/healthz
       module: http_2xx_no_tls
+    - name: gbrain-mcp
+      url: http://gbrain-mcp.gbrain.svc.cluster.local/healthz
+      module: http_2xx_no_tls
