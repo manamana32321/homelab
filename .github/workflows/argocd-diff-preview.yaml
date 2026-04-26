@@ -29,6 +29,9 @@ jobs:
       - name: Generate Argo CD diff
         run: |
           mkdir -p output
+          # --diff-ignore: filter Helm checksum/* annotations that re-hash on
+          # every render (sha256sum of secret/configmap content is non-stable
+          # across runs and produces phantom diffs on no-op PRs).
           docker run --rm \
             --network=host \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -37,7 +40,8 @@ jobs:
             -v "$(pwd)/output:/output" \
             -e TARGET_BRANCH="refs/pull/${{ github.event.number }}/merge" \
             -e REPO="${{ github.repository }}" \
-            dagandersen/argocd-diff-preview:v0.2.4
+            dagandersen/argocd-diff-preview:v0.2.4 \
+            --diff-ignore 'checksum/.*: [a-f0-9]+'
 
       - name: Upload raw diff as artifact
         if: always()
