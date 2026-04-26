@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gbrain-mcp-caddy
+  namespace: gbrain
+data:
+  Caddyfile: |
+    {
+      auto_https off
+      admin off
+    }
+
+    :80 {
+      handle /healthz {
+        respond "ok" 200
+      }
+
+      @authorized header Authorization "Bearer {env.MCP_AUTH_TOKEN}"
+      handle @authorized {
+        reverse_proxy localhost:8080 {
+          flush_interval -1
+          transport http {
+            read_timeout 24h
+          }
+        }
+      }
+
+      handle {
+        respond "unauthorized" 401
+      }
+    }
