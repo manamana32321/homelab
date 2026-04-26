@@ -1,0 +1,26 @@
+---
+# kube-linter configuration for homelab K8s manifests.
+#
+# Strategy: enable all built-in default checks, then explicitly exclude
+# checks we have outstanding tech debt against. Each exclusion is tracked
+# in a GitHub issue — graduating an item out of this list = closing that
+# tracking item.
+#
+# When fixing an excluded check across all violators, remove it from
+# `exclude` here in the same PR.
+
+checks:
+  exclude:
+    # 19 violations across loop/health-hub/gbrain-mcp/essentia/brain-agent.
+    # Tracked in #169 — requires per-app securityContext audit (some
+    # workloads like postgres need specific UIDs).
+    - run-as-non-root
+
+    # 19 violations. Tracked in #169 — many apps need writable mounts for
+    # runtime caches (bun, python pip), requires emptyDir tmpfs additions.
+    - no-read-only-root-fs
+
+    # 10 violations. Tracked in #169 — most are our own apps using :latest
+    # with ArgoCD Image Updater for digest pinning. Migration to tagged
+    # images requires Image Updater config rework.
+    - latest-tag
