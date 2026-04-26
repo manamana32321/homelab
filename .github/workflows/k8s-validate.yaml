@@ -1,0 +1,91 @@
+name: k8s validate
+
+on:
+  pull_request:
+    paths:
+      - "k8s/**"
+      - ".github/workflows/k8s-validate.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "k8s/**"
+      - ".github/workflows/k8s-validate.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install kustomize
+        run: |
+          curl -sLo /tmp/kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_linux_amd64.tar.gz"
+          tar -xzf /tmp/kustomize.tar.gz -C /tmp
+          sudo mv /tmp/kustomize /usr/local/bin/
+          kustomize version
+
+      - name: Install kubeconform
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/kubeconform /usr/local/bin/
+          kubeconform -v
+
+      - name: Render and validate Kustomize roots
+        run: |
+          set -uo pipefail
+          fail=0
+          shopt -s nullglob
+
+          while IFS= read -r kfile; do
+            dir="$(dirname "$kfile")"
+            echo "::group::kustomize build $dir"
+            if ! kustomize build "$dir" 2>/tmp/kust.err \
+                | kubeconform -strict -ignore-missing-schemas \
+                    -schema-location default \
+                    -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+                    -summary -output text; then
+              echo "::error file=$kfile::Kustomize render or schema validation failed for $dir"
+              cat /tmp/kust.err >&2 || true
+              fail=1
+            fi
+            echo "::endgroup::"
+          done < <(find k8s -name 'kustomization.yaml' | sort)
+
+          exit "$fail"
+
+      - name: Validate Argo CD Application / ApplicationSet manifests
+        run: |
+          set -uo pipefail
+          # Argo CD Applications are raw YAML (not behind a kustomization).
+          # Validate them directly so PRs that only touch app definitions still gate.
+          find k8s/argocd -name '*.yaml' -not -name 'values*.yaml' \
+            -not -name 'kustomization.yaml' \
+            -print0 \
+          | xargs -0 kubeconform -strict -ignore-missing-schemas \
+              -schema-location default \
+              -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+              -summary -output text
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    # Manual dispatch would do a full-history scan; skip to avoid noise from
+    # known historical findings tracked separately.
+    if: github.event_name != 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: true
