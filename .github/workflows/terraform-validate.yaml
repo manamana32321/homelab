@@ -1,0 +1,54 @@
+name: terraform validate
+
+on:
+  pull_request:
+    paths:
+      - "cloudflare/**"
+      - "aws/**"
+      - ".github/workflows/terraform-validate.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "cloudflare/**"
+      - "aws/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [cloudflare, aws]
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.10
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -diff -recursive
+
+      # -backend=false skips state read so no AWS credentials required.
+      # Plan with real state (which would catch drift) is tracked in #172.
+      - name: terraform init (no backend)
+        run: terraform init -backend=false -input=false
+
+      - name: terraform validate
+        run: terraform validate -no-color
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: tflint
+        run: |
+          tflint --init
+          tflint --recursive --color
