@@ -9,7 +9,7 @@ spec:
       enabled: true
       crowdsecMode: stream
       crowdsecLapiScheme: http
-      crowdsecLapiHost: crowdsec-lapi.crowdsec.svc.cluster.local:8080
+      crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
       # LAPI key read from file — secret mounted by Traefik HelmChartConfig
       # (k8s/traefik/manifests/helmchartconfig.yaml) from the
       # crowdsec-bouncer-key Secret reflected from the crowdsec namespace.
