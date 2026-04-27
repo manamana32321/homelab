@@ -20,7 +20,15 @@ checks:
     # runtime caches (bun, python pip), requires emptyDir tmpfs additions.
     - no-read-only-root-fs
 
-    # 10 violations. Tracked in #169 — most are our own apps using :latest
-    # with ArgoCD Image Updater for digest pinning. Migration to tagged
-    # images requires Image Updater config rework.
+    # Permanently excluded — not tech debt.
+    #
+    # The check is a static-intent rule: it flags any `image: foo:latest`
+    # in source manifests. Our own GHCR apps deliberately use `:latest`
+    # in source because ArgoCD Image Updater (write-back-method=argocd)
+    # rewrites the Application CR's spec.source.kustomize.images at sync
+    # time, pinning the resolved digest at runtime.
+    #
+    # Source intent ≠ runtime image. The kube-linter premise doesn't fit
+    # this deployment model, so we silence the rule rather than pretend
+    # to "graduate" it.
     - latest-tag
