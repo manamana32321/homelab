@@ -1,0 +1,19 @@
+# Extend default rules with project-specific allowlist for SealedSecret
+# ciphertext, which is intentionally high-entropy and triggers
+# generic-api-key false positives.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SealedSecret encryptedData ciphertext (Bitnami AgA/AgB/AgC prefix)"
+regexes = [
+  '''Ag[A-Z][A-Za-z0-9+/=]{40,}''',
+]
+
+[[allowlists]]
+description = "SealedSecret manifest files — entire file is encrypted by design"
+paths = [
+  '''.*sealed-?secret.*\.ya?ml$''',
+  '''.*sealedsecret.*\.ya?ml$''',
+]
