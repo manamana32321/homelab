@@ -39,16 +39,13 @@ spec:
                     secretKeyRef:
                       name: gbrain-postgres-secrets
                       key: GBRAIN_DATABASE_URL
+                # OPENAI_API_KEY: reflected from automation/brain-agent-tokens
+                # (single SOT for LLM keys, per k8s/CLAUDE.md).
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: gbrain-api-keys
+                      name: brain-agent-tokens
                       key: OPENAI_API_KEY
-                - name: ANTHROPIC_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: gbrain-api-keys
-                      key: ANTHROPIC_API_KEY
               resources:
                 requests:
                   memory: 256Mi
