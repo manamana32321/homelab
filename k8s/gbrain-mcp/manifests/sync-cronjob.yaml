@@ -39,16 +39,12 @@ spec:
                     secretKeyRef:
                       name: gbrain-postgres-secrets
                       key: GBRAIN_DATABASE_URL
+                # OPENAI_API_KEY: Reflected from shared-secrets/llm-api-keys.
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: gbrain-api-keys
+                      name: llm-api-keys
                       key: OPENAI_API_KEY
-                - name: ANTHROPIC_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: gbrain-api-keys
-                      key: ANTHROPIC_API_KEY
               resources:
                 requests:
                   memory: 256Mi

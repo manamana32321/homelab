@@ -70,11 +70,12 @@ spec:
                     secretKeyRef:
                       name: alertmanager-telegram
                       key: message-thread-id
-                # brain-agent-tokens: automation 자체 보유 (consumer hub for LLM keys)
+                # OPENAI_API_KEY: Reflected from shared-secrets/llm-api-keys
+                # (single SOT for cross-domain LLM keys, per k8s/CLAUDE.md).
                 - name: OPENAI_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: brain-agent-tokens
+                      name: llm-api-keys
                       key: OPENAI_API_KEY
               volumeMounts:
                 - name: script

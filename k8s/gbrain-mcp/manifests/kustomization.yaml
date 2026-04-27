@@ -5,7 +5,6 @@ resources:
   - caddy-configmap.yaml
   - deployment.yaml
   - ingress.yaml
-  - sealed-secret-api-keys.yaml
   - sealed-secret-github.yaml
   - service.yaml
   - sync-cronjob.yaml
