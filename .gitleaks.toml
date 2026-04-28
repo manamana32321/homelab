@@ -5,15 +5,14 @@
 [extend]
 useDefault = true
 
-[[allowlists]]
-description = "SealedSecret encryptedData ciphertext (Bitnami AgA/AgB/AgC prefix)"
+[allowlist]
+description = "SealedSecret encryptedData and manifest files — encrypted by design"
 regexes = [
+  # Bitnami SealedSecret ciphertext: AgA/AgB/AgC magic prefix + base64.
   '''Ag[A-Z][A-Za-z0-9+/=]{40,}''',
 ]
-
-[[allowlists]]
-description = "SealedSecret manifest files — entire file is encrypted by design"
 paths = [
+  # Whole-file allowlist for SealedSecret manifests.
   '''.*sealed-?secret.*\.ya?ml$''',
   '''.*sealedsecret.*\.ya?ml$''',
 ]
