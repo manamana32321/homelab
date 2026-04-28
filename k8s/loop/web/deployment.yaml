@@ -17,10 +17,22 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: web
           image: ghcr.io/manamana32321/loop-web:latest
           imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           ports:
             - containerPort: 3000
           env:
