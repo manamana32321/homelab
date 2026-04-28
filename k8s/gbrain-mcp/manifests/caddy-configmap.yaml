@@ -11,7 +11,7 @@ data:
       admin off
     }
 
-    :80 {
+    :8081 {
       handle /healthz {
         respond "ok" 200
       }

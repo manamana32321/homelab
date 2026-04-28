@@ -18,6 +18,13 @@ spec:
       labels:
         app: gbrain-mcp
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         # Clone brain repo (private) into shared volume
         - name: git-clone
@@ -41,9 +48,19 @@ spec:
                 secretKeyRef:
                   name: gbrain-github-credentials
                   key: GH_PAT
+            # alpine/git as UID 1000 has no real $HOME; redirect to writable /tmp.
+            - name: HOME
+              value: /tmp
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: brain
               mountPath: /brain
+            - name: git-tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
@@ -73,12 +90,27 @@ spec:
                 secretKeyRef:
                   name: llm-api-keys
                   key: OPENAI_API_KEY
+            # Disable .pyc generation so mcp-proxy doesn't try to write
+            # __pycache__ into the read-only image layer.
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
           ports:
             - containerPort: 8080
               name: sse
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: brain
               mountPath: /brain
+            - name: gbrain-tmp
+              mountPath: /tmp
+            - name: bun-cache
+              mountPath: /home/bun/.bun
           resources:
             requests:
               memory: 256Mi
@@ -87,7 +119,8 @@ spec:
               memory: 1Gi
               cpu: 1000m
 
-        # Sidecar: caddy reverse proxy with Bearer auth
+        # Sidecar: caddy reverse proxy with Bearer auth (listens on :8080
+        # so it can run as non-root without NET_BIND_SERVICE).
         - name: caddy
           image: caddy:2-alpine
           command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
@@ -97,21 +130,33 @@ spec:
                 secretKeyRef:
                   name: gbrain-postgres-secrets
                   key: MCP_AUTH_TOKEN
+            # Caddy expects writable XDG dirs; redirect into mounted tmpfs.
+            - name: XDG_DATA_HOME
+              value: /tmp/caddy-data
+            - name: XDG_CONFIG_HOME
+              value: /tmp/caddy-config
           ports:
-            - containerPort: 80
+            - containerPort: 8081
               name: http
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: caddy-config
               mountPath: /etc/caddy
+            - name: caddy-tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 80
+              port: 8081
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 80
+              port: 8081
             periodSeconds: 30
           resources:
             requests:
@@ -127,3 +172,12 @@ spec:
         - name: caddy-config
           configMap:
             name: gbrain-mcp-caddy
+        # Writable tmpfs-style emptyDir per container (RO root fs).
+        - name: git-tmp
+          emptyDir: {}
+        - name: gbrain-tmp
+          emptyDir: {}
+        - name: bun-cache
+          emptyDir: {}
+        - name: caddy-tmp
+          emptyDir: {}
