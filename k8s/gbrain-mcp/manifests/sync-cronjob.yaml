@@ -14,13 +14,6 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            fsGroup: 1000
-            seccompProfile:
-              type: RuntimeDefault
           containers:
             - name: sync
               image: ghcr.io/manamana32321/gbrain-mcp:latest
@@ -52,23 +45,6 @@ spec:
                     secretKeyRef:
                       name: llm-api-keys
                       key: OPENAI_API_KEY
-                - name: PYTHONDONTWRITEBYTECODE
-                  value: "1"
-                - name: PYTHONUNBUFFERED
-                  value: "1"
-                # alpine git etc need a writable HOME; redirect into /tmp emptyDir.
-                - name: HOME
-                  value: /tmp
-              securityContext:
-                readOnlyRootFilesystem: true
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: [ALL]
-              volumeMounts:
-                - name: tmp
-                  mountPath: /tmp
-                - name: bun-cache
-                  mountPath: /home/bun/.bun
               resources:
                 requests:
                   memory: 256Mi
@@ -76,8 +52,3 @@ spec:
                 limits:
                   memory: 512Mi
                   cpu: 500m
-          volumes:
-            - name: tmp
-              emptyDir: {}
-            - name: bun-cache
-              emptyDir: {}
