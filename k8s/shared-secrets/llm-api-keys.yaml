@@ -1,0 +1,22 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: llm-api-keys
+  namespace: shared-secrets
+spec:
+  encryptedData:
+    OPENAI_API_KEY: AgArj6rxX9HYBHtRaDpD1SSExPvBJ5+clKt5bBf6XPwoYoUeKSRRK1a5Q5pWFej4/U/kdgzjkiOuf9e9SySnNqVxkTiOy/zILqoS9L1/8L+z4wizn92BQVzMpKmYoSNVhneAsm7XtqKJJLoBl4rcF7gc45aqWbwo65HvdC4QZySNUwCRz0F3fx5Fh70ykkgEFbXyUnImKtYU21mIZzFY7Xcn5sObtUUbQ163yc6lWgo8sjcoRcHia/hjmNmQS4FpqC8tTGaNcFu1pJigr3F02+TQr6P5v8QBdsEgPSMx8Gmma07WwiOVAr/EwqYD5dbGLCv+2WUAayBlnkSpLKAgeA3Ab6eKkR5fl0qFjBMBolLBxQXhrb4729zplRo/AdBMf2+1woe+l05jFBn+3Mabf7VLdShxpY52pr+soKCgL+rJ6qGyG2m7eaL0iWCYttmrelrE8YvNzfV+Ryf1Ttodcj6N+Tw6TsePza1UZNN6jCUoaAvM0w+7MuofS7cJdL0rWbDr0JlrFSRxBoT9wgDD9ZN0LhPbdztDVpgC0OuXTfKtQbIWDvwR3t6KnfOq6/1qwXcQX3cN8Qv8nE3OxWbWHNlDXWcH8KLhSqwwDCBfM5saoXnknHrhq61nv0GiDAsWAV3ngxGk5OEA9J9B727AqdYDkUuZf+cOnFLXzm/vsrf6HmyJCAkjt4sVUqYtJeO6qrBHmFRAXaOlmMDoVynBSxEerZoWRDTbq83AXDGAGa374eUj5x3TBOo/yVug6gm385M0yTqCEu1K/P6pT+M6Y9MDxq2eWv7K5fCwWb9gy1SBVCd2IwTU/AdY9g97KyTfAUDFg2Km+KxnPCYznZwQjNydLHKQ2CIbNxjZroiGMKaJDgA0hQ8LVIfbdChP/RJYz7PGJB46VjDvoebwag5EF8u5d/oCNw==
+  template:
+    metadata:
+      name: llm-api-keys
+      namespace: shared-secrets
+      annotations:
+        # Cross-domain LLM credentials — replicate to consumer namespaces.
+        # Allowlist is explicit (no auto-broadcast) so adding a new consumer
+        # is a deliberate change reviewed in a PR.
+        reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "automation,gbrain"
+        reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+        reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "automation,gbrain"
+    type: Opaque

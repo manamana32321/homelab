@@ -1,0 +1,18 @@
+# Extend default rules with project-specific allowlist for SealedSecret
+# ciphertext, which is intentionally high-entropy and triggers
+# generic-api-key false positives.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "SealedSecret encryptedData and manifest files — encrypted by design"
+regexes = [
+  # Bitnami SealedSecret ciphertext: AgA/AgB/AgC magic prefix + base64.
+  '''Ag[A-Z][A-Za-z0-9+/=]{40,}''',
+]
+paths = [
+  # Whole-file allowlist for SealedSecret manifests.
+  '''.*sealed-?secret.*\.ya?ml$''',
+  '''.*sealedsecret.*\.ya?ml$''',
+]
