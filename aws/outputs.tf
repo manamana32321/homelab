@@ -47,3 +47,15 @@ output "health_backup_bucket" {
   description = "S3 bucket name for Health Hub backups"
   value       = aws_s3_bucket.health_backup.bucket
 }
+
+# Probe user (read-only diagnostics)
+output "probe_access_key_id" {
+  description = "Access Key ID for homelab-probe IAM user (read-only diagnostics)"
+  value       = aws_iam_access_key.probe.id
+}
+
+output "probe_secret_access_key" {
+  description = "Secret Access Key for homelab-probe IAM user"
+  value       = aws_iam_access_key.probe.secret
+  sensitive   = true
+}

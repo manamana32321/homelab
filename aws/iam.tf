@@ -104,3 +104,19 @@ resource "aws_iam_user_policy_attachment" "health_backup" {
 resource "aws_iam_access_key" "health_backup" {
   user = aws_iam_user.health_backup.name
 }
+
+# Read-only probe user — for ad-hoc cost/usage inspection across services.
+# Uses AWS-managed ReadOnlyAccess so future diagnostics (Lambda, ECS, IAM
+# audits, etc.) work without policy churn.
+resource "aws_iam_user" "probe" {
+  name = "homelab-probe"
+}
+
+resource "aws_iam_user_policy_attachment" "probe_readonly" {
+  user       = aws_iam_user.probe.name
+  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+}
+
+resource "aws_iam_access_key" "probe" {
+  user = aws_iam_user.probe.name
+}
