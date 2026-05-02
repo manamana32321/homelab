@@ -49,7 +49,11 @@ spec:
 
                   # Sync library to S3
                   # ionice idle class: Seafile과 동일 디스크(Seagate 1TB) 경합 방지
+                  # --size-only: 객체별 HEAD(mtime metadata read) 생략. 사진/영상은
+                  # immutable이라 size 일치 = 동일 파일. 빠진 경우 GIR-tier HEAD가
+                  # 객체수 × sync 횟수만큼 청구되어 월 $23 수준 폭발 (cf. PR #185 조사)
                   ionice -c 3 rclone sync /library s3:immich-backup-json-server/media/ \
+                    --size-only \
                     --s3-no-head \
                     --s3-no-check-bucket \
                     --fast-list \
