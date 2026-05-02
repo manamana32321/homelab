@@ -49,12 +49,16 @@ spec:
                   CONF
 
                   # Sync only 내 라이브러리 + 녹음 libraries to S3
-                  # --s3-no-head 불필요: S3 기존 데이터 삭제 후 전부 IT 오브젝트 (HEAD $0.005/1K)
+                  # --size-only: 객체별 HEAD(mtime read) 생략. Seafile fs object는
+                  # content-addressed(SHA1)라 한 번 쓰이면 immutable → size 일치 =
+                  # 동일 파일. 매일 sync × 객체수만큼 GIR HEAD 청구되는 패턴 차단
+                  # (cf. immich-backup PR #185 조사)
                   # ionice idle class: Seafile과 동일 디스크(Seagate 1TB) 경합 방지
                   ionice -c 3 rclone sync /seafile-data s3:seafile-backup-json-server/media/ \
                     --filter "+ seafile/seafile-data/storage/*/66a1e14f-8c91-45c8-ace8-b3c7f03ac63e/**" \
                     --filter "+ seafile/seafile-data/storage/*/32e4bb08-fc91-4ddd-992e-a6da1bb814fd/**" \
                     --filter "- **" \
+                    --size-only \
                     --s3-no-check-bucket \
                     --fast-list \
                     --transfers 2 \
