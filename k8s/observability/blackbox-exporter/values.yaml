@@ -102,6 +102,12 @@ serviceMonitor:
     - name: amang-api-staging
       url: http://api-server.amang-api-staging.svc.cluster.local:8000/health
       module: http_2xx_no_tls
+    - name: amang-redis
+      url: redis.amang-redis-production.svc.cluster.local:6379
+      module: tcp_connect
+    - name: amang-redis-staging
+      url: redis.amang-redis-staging.svc.cluster.local:6379
+      module: tcp_connect
     - name: loki
       url: http://loki.observability.svc.cluster.local:3100/ready
       module: http_2xx_no_tls

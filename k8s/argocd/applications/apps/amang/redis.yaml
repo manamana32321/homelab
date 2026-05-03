@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: amang-redis
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: production
+            branch: main
+          - env: staging
+            branch: main
+  template:
+    metadata:
+      name: redis-{{env}}
+      namespace: amang-redis-{{env}}
+    spec:
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: amang-redis-{{env}}
+      source:
+        path: 'infra/k8s/redis/overlays/{{env}}'
+        repoURL: https://github.com/skku-amang/main
+        targetRevision: '{{branch}}'
+        directory:
+          recurse: false
+      project: default
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
