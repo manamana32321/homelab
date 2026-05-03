@@ -9,3 +9,4 @@ client_secret*.json
 .claude/settings.local.json
 .tmp/
 health-hub/mcp
+.gstack/
