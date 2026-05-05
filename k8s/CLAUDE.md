@@ -338,17 +338,36 @@ kubectl get all -A -l app.kubernetes.io/part-of=automation
 - **`digest`** 권장 — immutable pin
 - **`semver`** 필요 시 (Helm chart release tracking)
 
+### Write-back mode: **`argocd` 모드 사용** (git 모드 비선호)
+
+annotation: `argocd-image-updater.argoproj.io/write-back-method: argocd`
+
+| 모드 | 동작 | 채택? |
+|---|---|---|
+| **argocd** (현 사용) | digest override를 ArgoCD Application CR의 `spec.source.helm.parameters` 또는 `spec.source.kustomize.images`에 직접 박음. **git push 안 함** | ✅ 모든 앱 |
+| git | repo의 `kustomization.yaml`에 commit/push | ❌ 사용 안 함 |
+
+**왜 argocd 모드인가**:
+- Image Updater가 repo PAT token 갱신할 일 없음 → silent failure 한 종류 제거
+- ArgoCD API 호출만 하면 끝. 빠르고 단순
+- Trade-off: digest 변경 이력이 git log 아닌 etcd에만 남음 (audit trail 약함). 홈랩 환경에선 수용 가능
+
 ### 패턴
 
 1. 앱 소스 repo GitHub Actions: 이미지 빌드 → GHCR push (digest tag)
-2. Image Updater가 pull metadata 확인
-3. homelab repo의 `kustomization.yaml`에 **digest write-back**
-   ```yaml
-   images:
-     - name: ghcr.io/manamana32321/essentia-api
-       digest: sha256:1c30ed47e532f...
-   ```
-4. ArgoCD sync가 그 digest로 배포 → 다음 sync까지 pin
+2. Image Updater가 GHCR 폴링 (default 2m) → 새 digest 감지
+3. ArgoCD API 호출로 Application CR 수정 (override 추가)
+4. ArgoCD가 spec 변경 감지 → sync → rollout
+
+**ArgoCD Application annotation 예시** (essentia):
+```yaml
+metadata:
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "api=ghcr.io/essentia-edu/api:latest, web=ghcr.io/essentia-edu/web:latest"
+    argocd-image-updater.argoproj.io/api.update-strategy: digest
+    argocd-image-updater.argoproj.io/api.pull-secret: "pullsecret:essentia/ghcr-essentia"
+    argocd-image-updater.argoproj.io/write-back-method: argocd  # ← 명시 필수
+```
 
 **관련 이슈**: Image Updater가 private GHCR pullSecret을 읽으려면 RBAC 필요 — [homelab#139](https://github.com/manamana32321/homelab/pull/139)에서 해결됨.
 
