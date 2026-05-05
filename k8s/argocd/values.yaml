@@ -97,6 +97,37 @@ controller:
       enabled: true
       additionalLabels:
         release: prometheus
+    # chart 기본 PrometheusRule (commented examples 그대로 사용).
+    # 추가 도메인 알림은 homelab-alerts.argocd 그룹에서 관리.
+    rules:
+      enabled: true
+      additionalLabels:
+        release: prometheus
+      spec:
+        - alert: ArgoAppMissing
+          expr: |
+            absent(argocd_app_info) == 1
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "[Argo CD] No reported applications"
+            description: >
+              Argo CD has not reported any applications data for the past 15 minutes which
+              means that it must be down or not functioning properly.  This needs to be
+              resolved for this cloud to continue to maintain state.
+        - alert: ArgoAppNotSynced
+          expr: |
+            argocd_app_info{sync_status!="Synced"} == 1
+          for: 12h
+          labels:
+            severity: warning
+          annotations:
+            summary: "[{{`{{$labels.name}}`}}] Application not synchronized"
+            description: >
+              The application [{{`{{$labels.name}}`}} has not been synchronized for over
+              12 hours which means that the state of this cloud has drifted away from the
+              state inside Git.
 
 ## Dex
 dex:

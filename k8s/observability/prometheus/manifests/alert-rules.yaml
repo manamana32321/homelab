@@ -182,3 +182,19 @@ spec:
           annotations:
             summary: "Coral 부하 {{ $value | printf \"%.1f\" }}"
             description: "coral-1 5분 평균 load가 10분 이상 4 초과 (4-core 포화)."
+
+    # ArgoCD 앱 health — chart의 ArgoAppMissing/ArgoAppNotSynced로는 못 잡는
+    # Degraded/Missing/Unknown 상태를 12h 기다리지 않고 catch.
+    # Healthy/Progressing/Suspended는 의도적 정상 상태이므로 제외.
+    # ArgoAppMissing(controller 침묵), ArgoAppNotSynced(12h drift)는
+    # argo-cd chart values의 controller.metrics.rules에서 관리.
+    - name: argocd
+      rules:
+        - alert: ArgoAppDegraded
+          expr: argocd_app_info{health_status=~"Degraded|Missing|Unknown"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ArgoCD app degraded: {{ $labels.name }} ({{ $labels.health_status }})"
+            description: "Application {{ $labels.name }} (ns: {{ $labels.dest_namespace }}) is in {{ $labels.health_status }} state for 10+ minutes. argocd.json-server.win에서 상세 확인."
