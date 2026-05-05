@@ -20,6 +20,14 @@ spec:
               prefix: ghcr.io
               api_url: https://ghcr.io
               default: true
+        # silent CD failure 감지를 위한 메트릭 노출 (port 8081).
+        # 알림 룰은 후속 PR에서 추가 예정.
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            additionalLabels:
+              release: prometheus
         # 추가 ClusterRole/RoleBinding으로 secrets 권한 부여하는 건
         # 별도 Application argocd-image-updater-rbac (k8s/argocd-image-updater-rbac/)
         # 에서 관리. 이 chart는 extraObjects/extraDeploy를 지원하지 않음.
