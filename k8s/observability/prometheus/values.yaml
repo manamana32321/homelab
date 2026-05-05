@@ -1,10 +1,13 @@
-# K3s는 controller-manager, scheduler, proxy가 k3s server에 내장되어
+# K3s는 controller-manager, scheduler, proxy, etcd가 k3s server에 내장되어
 # 별도 metrics endpoint를 노출하지 않음 → 스크랩/rule 비활성화
 kubeControllerManager:
   enabled: false
 kubeScheduler:
   enabled: false
 kubeProxy:
+  enabled: false
+# K3s embedded etcd는 :2381 metrics endpoint 미노출. 룰 15개가 dead weight였음
+kubeEtcd:
   enabled: false
 
 prometheus-node-exporter:
