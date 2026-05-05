@@ -104,6 +104,20 @@ spec:
             summary: "CRITICAL: Many reallocated sectors on {{ $labels.device }}"
             description: "{{ $labels.device }} has {{ $value }} reallocated sectors. Replace disk."
 
+        # SMART overall verdict — 벤더 normalized threshold가 깨질 때 발화.
+        # reallocation 외의 실패 모드(spin-up 열화, read error rate, retry count 등)도
+        # 잡아냄. 어떤 attribute가 원인인지는 smartctl -A로 별도 확인 필요.
+        # smartctl-exporter chart의 smartCTLDeviceStatus 룰은 메트릭명 버그로
+        # (smartctl_device_status, 미존재) 작동하지 않아 직접 정의함.
+        - alert: DiskSmartFailed
+          expr: smartctl_device_smart_status != 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "SMART overall FAILED: {{ $labels.device }} ({{ $labels.instance }})"
+            description: "{{ $labels.device }} SMART overall-health 판정이 FAIL. 즉시 디스크 교체 준비. `smartctl -A /dev/{{ $labels.device }}`로 어떤 attribute가 threshold를 넘었는지 확인."
+
     # CrowdSec IPS 알림
     - name: crowdsec
       rules:
