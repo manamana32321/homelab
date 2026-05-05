@@ -198,3 +198,42 @@ spec:
           annotations:
             summary: "ArgoCD app degraded: {{ $labels.name }} ({{ $labels.health_status }})"
             description: "Application {{ $labels.name }} (ns: {{ $labels.dest_namespace }}) is in {{ $labels.health_status }} state for 10+ minutes. argocd.json-server.win에서 상세 확인."
+
+    # Image Updater silent CD failure 감지.
+    # 정책상 모든 커스텀 앱이 Image Updater에 의존하므로 (k8s/CLAUDE.md 참조),
+    # 이게 silent fail하면 "왜 새 commit이 배포 안 되지?" 디버깅 헛수고로 이어짐.
+    # 메트릭 출처: argocd-image-updater chart 0.12.0+
+    - name: argocd-image-updater
+      rules:
+        # ArgoCD API write 실패 — argocd 모드에서 digest override를 Application CR에
+        # 박지 못함. 새 image 빌드돼도 배포 안 되는 가장 silent한 critical 시나리오.
+        - alert: ImageUpdaterArgoApiErrors
+          expr: increase(argocd_image_updater_k8s_api_errors_total[15m]) >= 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Image Updater: ArgoCD API write 실패 누적"
+            description: "15분간 {{ $value | humanize }}건의 ArgoCD API 에러. digest override write-back 실패 가능 → 새 image 빌드돼도 배포 안 됨. ServiceAccount RBAC/token 점검 필요."
+
+        # per-app 처리 에러 sustained — registry pull-secret 만료, annotation 오타,
+        # GHCR 일시 장애 등. application 라벨로 어느 앱이 문제인지 분리해서 알림.
+        - alert: ImageUpdaterImageErrors
+          expr: increase(argocd_image_updater_images_errors_total[30m]) >= 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Image Updater errors: {{ $labels.application }}"
+            description: "{{ $labels.application }}에서 30분간 {{ $value | humanize }}건의 처리 에러. annotation/pull-secret/GHCR 접근 점검 필요."
+
+        # pod up이지만 폴링 멈춤 — 내부 hang, config 오류, network 문제.
+        # 정상 시 7개 app × 2분 폴링 = ~210 요청/h이므로 15분간 0이면 명백히 stuck.
+        - alert: ImageUpdaterStuck
+          expr: rate(argocd_image_updater_registry_requests_total[15m]) == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Image Updater stuck: registry 폴링 멈춤"
+            description: "{{ $labels.registry }}에 대한 폴링이 15분 이상 0건. pod up이지만 내부 stuck 가능. `kubectl logs -n argocd -l app.kubernetes.io/name=argocd-image-updater` 확인."
