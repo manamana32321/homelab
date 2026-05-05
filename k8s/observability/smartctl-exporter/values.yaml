@@ -22,14 +22,18 @@ prometheusRules:
   extraLabels:
     release: prometheus
   rules:
+    # NVMe 전용 메트릭 — SATA HDD 환경에선 metric 자체가 없어 발화 불가
     smartCTLDeviceMediaErrors:
-      enabled: true
+      enabled: false
     smartCTLDeviceCriticalWarning:
-      enabled: true
+      enabled: false
     smartCTLDeviceAvailableSpareUnderThreshold:
-      enabled: true
+      enabled: false
+    # chart 버그: expr이 `smartctl_device_status`(미존재) 참조.
+    # 실제 메트릭명은 `smartctl_device_smart_status` →
+    # homelab-alerts의 DiskSmartFailed 룰로 대체
     smartCTLDeviceStatus:
-      enabled: true
+      enabled: false
     smartCTLDInterfaceSlow:
       enabled: false
     smartCTLDDeviceTemperature:
