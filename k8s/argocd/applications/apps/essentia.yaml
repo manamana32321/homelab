@@ -4,11 +4,13 @@ metadata:
   name: essentia
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/essentia-edu/api:latest, web=ghcr.io/essentia-edu/web:latest
+    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/essentia-edu/api:latest, web=ghcr.io/essentia-edu/web:latest, telegram-relay=ghcr.io/manamana32321/essentia-telegram-relay:latest
     argocd-image-updater.argoproj.io/api.update-strategy: digest
     argocd-image-updater.argoproj.io/web.update-strategy: digest
+    argocd-image-updater.argoproj.io/telegram-relay.update-strategy: digest
     argocd-image-updater.argoproj.io/api.force-update: "true"
     argocd-image-updater.argoproj.io/web.force-update: "true"
+    argocd-image-updater.argoproj.io/telegram-relay.force-update: "true"
     argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:essentia/ghcr-essentia
     argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:essentia/ghcr-essentia
     argocd-image-updater.argoproj.io/write-back-method: argocd
