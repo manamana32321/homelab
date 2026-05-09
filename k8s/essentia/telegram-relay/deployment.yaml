@@ -50,5 +50,10 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             runAsNonRoot: true
+            # node:22-alpine declares `USER node` (named). kubelet cannot
+            # verify runAsNonRoot against a named user — must pin numeric.
+            # node user is UID 1000 in the alpine image.
+            runAsUser: 1000
+            runAsGroup: 1000
             capabilities:
               drop: ["ALL"]
