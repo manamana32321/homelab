@@ -21,7 +21,7 @@ persistence:
 minecraftServer:
   eula: "TRUE"
   type: "PAPER"
-  version: "1.21.4"
+  version: "26.1.2"
   memory: "1G"
   difficulty: "normal"
   gameMode: "survival"
