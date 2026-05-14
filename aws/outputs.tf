@@ -48,6 +48,23 @@ output "health_backup_bucket" {
   value       = aws_s3_bucket.health_backup.bucket
 }
 
+# Minecraft backup
+output "minecraft_backup_access_key_id" {
+  description = "Access Key ID for minecraft-backup IAM user"
+  value       = aws_iam_access_key.minecraft_backup.id
+}
+
+output "minecraft_backup_secret_access_key" {
+  description = "Secret Access Key for minecraft-backup IAM user"
+  value       = aws_iam_access_key.minecraft_backup.secret
+  sensitive   = true
+}
+
+output "minecraft_backup_bucket" {
+  description = "S3 bucket name for Minecraft backups"
+  value       = aws_s3_bucket.minecraft_backup.bucket
+}
+
 # Probe user (read-only diagnostics)
 output "probe_access_key_id" {
   description = "Access Key ID for homelab-probe IAM user (read-only diagnostics)"

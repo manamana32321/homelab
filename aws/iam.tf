@@ -105,6 +105,42 @@ resource "aws_iam_access_key" "health_backup" {
   user = aws_iam_user.health_backup.name
 }
 
+# Minecraft backup
+resource "aws_iam_user" "minecraft_backup" {
+  name = "minecraft-backup"
+}
+
+resource "aws_iam_policy" "minecraft_backup" {
+  name        = "minecraft-backup-s3"
+  description = "Allow Minecraft mc-backup sidecar (restic) to back up to S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject",
+      ]
+      Resource = [
+        aws_s3_bucket.minecraft_backup.arn,
+        "${aws_s3_bucket.minecraft_backup.arn}/*",
+      ]
+    }]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "minecraft_backup" {
+  user       = aws_iam_user.minecraft_backup.name
+  policy_arn = aws_iam_policy.minecraft_backup.arn
+}
+
+resource "aws_iam_access_key" "minecraft_backup" {
+  user = aws_iam_user.minecraft_backup.name
+}
+
 # Read-only probe user — for ad-hoc cost/usage inspection across services.
 # Uses AWS-managed ReadOnlyAccess so future diagnostics (Lambda, ECS, IAM
 # audits, etc.) work without policy churn.
