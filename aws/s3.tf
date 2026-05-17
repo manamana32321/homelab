@@ -94,3 +94,20 @@ resource "aws_s3_bucket_public_access_block" "health_backup" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# Minecraft backup
+# No lifecycle rule — restic manages its own retention via `restic forget/prune`
+# (pruneResticRetention in k8s/minecraft/values.yaml). Storage class: Standard
+# (default) — backup dataset is small, IT per-object monitoring cost not worth it.
+resource "aws_s3_bucket" "minecraft_backup" {
+  bucket = "minecraft-backup-json-server"
+}
+
+resource "aws_s3_bucket_public_access_block" "minecraft_backup" {
+  bucket = aws_s3_bucket.minecraft_backup.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
