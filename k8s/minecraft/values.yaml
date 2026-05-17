@@ -42,3 +42,29 @@ livenessProbe:
 readinessProbe:
   initialDelaySeconds: 60
   periodSeconds: 15
+
+# 월드 백업 사이드카 — itzg/mc-backup, restic 백엔드 → S3
+# 설계: docs/superpowers/specs/2026-05-14-minecraft-backup-design.md
+# 시크릿: k8s/minecraft/manifests/sealed-secret-mcbackup.yaml
+mcbackup:
+  enabled: true
+  backupMethod: restic
+  # 고정 필수 — pod 재생성마다 hostname 바뀌면 restic prune이 이전 호스트 스냅샷을 못 정리
+  resticHostname: minecraft-homelab
+  backupInterval: 24h
+  # 플레이어 활동 없으면 스냅샷 생략 (불필요한 스냅샷 누적 방지)
+  pauseIfNoPlayers: "true"
+  # 1개월 히스토리 — 친구 서버 규모에 적정
+  pruneResticRetention: "--keep-daily 7 --keep-weekly 4"
+  # SealedSecret minecraft-mcbackup에서 주입:
+  # RESTIC_PASSWORD, RESTIC_REPOSITORY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+  envFrom:
+    - secretRef:
+        name: minecraft-mcbackup
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
