@@ -1,0 +1,38 @@
+# sladkoff minecraft-prometheus-exporter v3.1.2 config 강제 주입.
+# 이 버전은 env var override 미지원 (소스 확인: master HEAD에만 있음).
+# 따라서 config.yml 자체를 ConfigMap으로 마운트해 host: 0.0.0.0 강제.
+# Kubernetes 클러스터에서 Prometheus 스크레이프하려면 localhost가 아닌 모든 인터페이스에 바인드 필요.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minecraft-prometheus-exporter-config
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: metrics
+data:
+  config.yml: |
+    # 클러스터 외부(Prometheus)에서 스크레이프 가능하도록 모든 인터페이스 바인드
+    host: 0.0.0.0
+    port: 9940
+    # 메트릭 활성화 — 플러그인 기본값 그대로 (성능 영향 있는 것만 false)
+    enable_metrics:
+      jvm_threads: true
+      jvm_gc: true
+      players_total: true
+      whitelisted_players: true
+      entities_total: true
+      living_entities_total: true
+      loaded_chunks_total: true
+      jvm_memory: true
+      players_online_total: true
+      tps: true
+      tick_duration_average: true
+      tick_duration_median: true
+      tick_duration_min: false
+      tick_duration_max: true
+      # 플레이어별 온/오프 게이지 (라벨 name+uid). 한 사람당 시계열 1개라 친구 그룹 규모엔 무해.
+      # mc_player_online{name="alice"} 1 — sladkoff player dashboard 가 이걸 사용.
+      player_online: true
+      # player_statistic: 플레이어 × 통계(~300개) 곱셈으로 카디널리티 폭발 → 비활성 유지
+      player_statistic: false
