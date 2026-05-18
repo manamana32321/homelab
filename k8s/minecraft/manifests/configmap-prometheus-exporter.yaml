@@ -31,6 +31,8 @@ data:
       tick_duration_median: true
       tick_duration_min: false
       tick_duration_max: true
-      # player_online / player_statistic: 플레이어별 시계열 — 카디널리티 폭발 위험으로 비활성
-      player_online: false
+      # 플레이어별 온/오프 게이지 (라벨 name+uid). 한 사람당 시계열 1개라 친구 그룹 규모엔 무해.
+      # mc_player_online{name="alice"} 1 — sladkoff player dashboard 가 이걸 사용.
+      player_online: true
+      # player_statistic: 플레이어 × 통계(~300개) 곱셈으로 카디널리티 폭발 → 비활성 유지
       player_statistic: false
