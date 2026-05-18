@@ -1,0 +1,38 @@
+# DiscordSRV v1.30.5 config 최소 오버라이드.
+# 토큰은 DISCORDSRV_TOKEN env var로 주입 (SealedSecret minecraft-discord-credentials)
+# 플러그인 우선순위: JVM property → env var → .token 파일 → config.yml의 BotToken
+#
+# 미지정 키는 jar 내장 디폴트 자동 적용 (Bukkit copyDefaults 메커니즘).
+# 채널 ID는 알아도 봇 권한 없으면 무해 → ConfigMap 평문으로 보관 가능.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minecraft-discordsrv-config
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: discord-bridge
+data:
+  config.yml: |
+    # ConfigVersion: 플러그인 jar 버전과 일치해야 migration 트리거 안 됨
+    ConfigVersion: 1.30.5
+
+    # 채팅 다리 채널 (Discord 채널 ID — 친구 서버 단일 채널)
+    Channels: {"global": "1331975298027229196"}
+
+    # 콘솔 채널 비활성화 — Discord에서 서버 명령 실행은 보안 위험 (계정 탈취 시 서버 장악)
+    DiscordConsoleChannelId: ""
+
+    # 양방향 채팅 — Discord 메시지가 인게임에, 인게임 채팅이 Discord에 모두 전달
+    DiscordChatChannelDiscordToMinecraft: true
+    DiscordChatChannelMinecraftToDiscord: true
+
+    # 봇 상태 표시 — Discord 친구 목록에서 봇 클릭 시 "Playing on mc.json-server.win" 노출
+    DiscordGameStatus: ["playing on mc.json-server.win"]
+    DiscordOnlineStatus: ONLINE
+
+    # 계정 연결 강제 비활성화 — 향후 필요 시 활성화 (`/discord link` 명령 그대로 동작)
+    DiscordInviteLink: ""
+
+    # Presence intent 사용 안 함 (Discord Developer Portal 에서도 비활성화 해뒀음)
+    EnablePresenceInformation: false
