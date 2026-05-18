@@ -33,7 +33,7 @@
 [k8s/observability/prometheus/manifests/alert-rules.yaml](prometheus/manifests/alert-rules.yaml)의 `homelab-alerts` PrometheusRule. 그룹별로 분리해서 작성:
 - `blackbox` — Blackbox Exporter probe (kube-prometheus-stack 기본에 없음)
 - `storage`, `smart` — PVC/디스크 임계치, ATA 어트리뷰트 (도메인 특화)
-- `resources`, `coral`, `crowdsec` — 환경 특화
+- `resources`, `crowdsec` — 환경 특화
 
 ### chart 내장 룰이 broken인 경우
 

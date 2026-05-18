@@ -248,24 +248,20 @@ livenessProbe:
 
 ## 외부·내부 프로빙 (Blackbox Exporter)
 
-### 2-레이어 관측
+### 내부 관측 (현재 운영)
 
-1. **내부** (cluster 안에서 ClusterIP 체크)
-   - `blackbox-exporter` Deployment (observability ns)
-   - 등록: `k8s/observability/blackbox-exporter/values.yaml`의 `targets` 배열
-   - 현재 대상: argocd / grafana / prometheus (cluster.local URL)
-   - 목적: 서비스 self-health
+- `blackbox-exporter` Deployment (observability ns)
+- 등록: `k8s/observability/blackbox-exporter/values.yaml`의 `targets` 배열
+- 현재 대상: argocd / grafana / prometheus (cluster.local URL)
+- 목적: 서비스 self-health
 
-2. **외부** (인터넷 → ingress → cluster, 독립 관측점)
-   - **Coral Dev Board**의 Blackbox Exporter (cluster 밖)
-   - 대상: **`argocd.json-server.win` 단 하나** (대표 endpoint)
-   - 목적: DNS·Cloudflare·ingress·TLS 전체 경로 확인
-   - Prometheus 설정: `additionalScrapeConfigs`의 `coral-blackbox-http`
+> 외부 관측(인터넷→ingress→cluster 전체 경로)은 Coral Dev Board에서 운영했으나
+> 2026-05 은퇴. 후속 PR에서 **Cloudflare Health Checks**로 이행 예정 — DNS·Cloudflare·ingress·TLS
+> 전체 경로 검증은 그쪽으로 위임.
 
 ### 새 서비스 배포 시
 
 - **내부 targets에 추가** (service health 기본)
-- 외부 probing은 **argocd 하나 유지** (대표성, 경로 공유)
 
 ### 알림
 
@@ -273,7 +269,6 @@ livenessProbe:
 - `EndpointDown` (probe_success == 0, 2분+)
 - `TLSCertExpiringSoon` (< 14일)
 - `SlowResponse` (avg > 3초, 5분+)
-- 모두 `source!="coral"` 필터로 중복 방지
 
 ---
 

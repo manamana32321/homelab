@@ -68,7 +68,7 @@ serviceMonitor:
 
   targets:
     # --- 내부 서비스 헬스체크 (ClusterIP, 서비스 자체 health) ---
-    # 외부 경로 헬스체크는 coral이 담당 (독립 관측점)
+    # 외부 경로 헬스체크는 별도 (Cloudflare Health Checks 도입 예정) — see PR follow-up
     - name: argocd
       url: http://argocd-server.argocd.svc.cluster.local
       module: http_2xx_no_tls

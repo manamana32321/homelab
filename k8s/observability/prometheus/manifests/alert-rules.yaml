@@ -11,7 +11,7 @@ spec:
     - name: blackbox
       rules:
         - alert: EndpointDown
-          expr: probe_success{source!="coral"} == 0
+          expr: probe_success == 0
           for: 2m
           labels:
             severity: critical
@@ -20,7 +20,7 @@ spec:
             description: "{{ $labels.instance }} has been unreachable for 2 minutes (source: {{ $labels.job }})."
 
         - alert: TLSCertExpiringSoon
-          expr: (probe_ssl_earliest_cert_expiry{source!="coral"} - time()) / 86400 < 14
+          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
           for: 1h
           labels:
             severity: warning
@@ -29,7 +29,7 @@ spec:
             description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
 
         - alert: SlowResponse
-          expr: avg_over_time(probe_duration_seconds{source!="coral"}[5m]) > 3
+          expr: avg_over_time(probe_duration_seconds[5m]) > 3
           for: 5m
           labels:
             severity: warning
@@ -152,37 +152,6 @@ spec:
           annotations:
             summary: "High memory: {{ $labels.instance }}"
             description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
-
-    # Coral Dev Board (K3s 외부, standalone Docker). 외부 관측점이므로 다운 시 critical
-    - name: coral
-      rules:
-        - alert: CoralExternalProbeDown
-          expr: up{job="coral-blackbox-http"} == 0
-          for: 2m
-          labels:
-            severity: critical
-          annotations:
-            summary: "외부 관측점 coral 다운"
-            description: "coral-1 blackbox-exporter 2분 이상 응답 없음. 외부 경로 (DNS/Cloudflare/ingress) 시야 손실. host 점검 필요."
-
-        - alert: CoralHighTemp
-          # i.MX8MQ는 hwmon 미사용 → thermal_zone 메트릭으로 노출 (type=cpu-thermal)
-          expr: node_thermal_zone_temp{instance="coral-1",type="cpu-thermal"} > 75
-          for: 5m
-          labels:
-            severity: warning
-          annotations:
-            summary: "Coral CPU 온도 {{ $value }}°C"
-            description: "coral-1 CPU 온도 5분 이상 75°C 초과. i.MX8MQ thermal throttle 임박."
-
-        - alert: CoralLoadHigh
-          expr: node_load5{instance="coral-1"} > 4
-          for: 10m
-          labels:
-            severity: warning
-          annotations:
-            summary: "Coral 부하 {{ $value | printf \"%.1f\" }}"
-            description: "coral-1 5분 평균 load가 10분 이상 4 초과 (4-core 포화)."
 
     # ArgoCD 앱 health — chart의 ArgoAppMissing/ArgoAppNotSynced로는 못 잡는
     # Degraded/Missing/Unknown 상태를 12h 기다리지 않고 catch.
