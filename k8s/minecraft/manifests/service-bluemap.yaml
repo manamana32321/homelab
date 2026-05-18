@@ -1,0 +1,21 @@
+# BlueMap webserver(port 8100)용 별도 Service.
+# 메인 LoadBalancer(25565, TCP Minecraft 프로토콜)에 섞지 않음 — Ingress 라우팅 명료성.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-bluemap
+  namespace: minecraft
+  labels:
+    app: minecraft-bluemap
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: webmap
+spec:
+  type: ClusterIP
+  selector:
+    # 차트가 생성한 Pod 라벨 (BlueMap plugin 이 같은 Pod 안 메인 컨테이너에서 실행)
+    app: minecraft
+  ports:
+    - name: http
+      port: 8100
+      targetPort: 8100
+      protocol: TCP

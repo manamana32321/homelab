@@ -129,3 +129,6 @@ serviceMonitor:
     - name: minecraft
       url: minecraft.minecraft.svc.cluster.local:25565
       module: tcp_connect
+    - name: minecraft-bluemap
+      url: http://minecraft-bluemap.minecraft.svc.cluster.local:8100
+      module: http_2xx_no_tls
