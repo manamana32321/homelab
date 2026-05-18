@@ -4,6 +4,10 @@ export NOTION_TOKEN=""
 # Cloudflare API Token (for Terraform)
 export TF_VAR_cloudflare_api_token=""
 
+# Better Stack Uptime API Token (for Terraform — external probe monitoring)
+# Issue at https://uptime.betterstack.com/team/api-tokens
+export TF_VAR_betterstack_api_token=""
+
 # Default IP for A records (dynamic IP)
 export TF_VAR_default_ip=""
 

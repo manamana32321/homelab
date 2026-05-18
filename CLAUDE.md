@@ -30,6 +30,10 @@ homelab/
 │   ├── reflector/               # Secret 복제 설정
 │   ├── dashboard/               # Kubernetes Dashboard
 │   └── observability/           # 모니터링 스택 (OTel, Prometheus, Loki, Tempo)
+├── betterstack/             # Terraform - Better Stack Uptime (외부 probe)
+│   ├── versions.tf
+│   ├── variables.tf
+│   └── monitors.tf              # argocd.json-server.win monitor (Coral 후신)
 ├── .envrc                   # 공개 환경변수 (TF_VAR_*)
 └── .envrc.local             # 민감한 credentials (gitignored)
 ```
@@ -40,6 +44,7 @@ homelab/
 |------|------|--------|
 | `k8s/` | ArgoCD GitOps (자동 sync) | Git push → ArgoCD가 감지 |
 | `cloudflare/` | 수동 `terraform apply` | - |
+| `betterstack/` | 수동 `terraform apply` | - |
 
 ## Cloudflare/Terraform
 

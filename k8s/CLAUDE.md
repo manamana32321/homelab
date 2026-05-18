@@ -256,8 +256,8 @@ livenessProbe:
 - 목적: 서비스 self-health
 
 > 외부 관측(인터넷→ingress→cluster 전체 경로)은 Coral Dev Board에서 운영했으나
-> 2026-05 은퇴. 후속 PR에서 **Cloudflare Health Checks**로 이행 예정 — DNS·Cloudflare·ingress·TLS
-> 전체 경로 검증은 그쪽으로 위임.
+> 2026-05 은퇴. 후속으로 **Better Stack Uptime**(SaaS, multi-region, 3분 interval, Telegram 직통)으로
+> 이행 — `betterstack/` Terraform IaC 참조. DNS·Cloudflare·ingress·TLS 전체 경로 검증은 그쪽으로 위임.
 
 ### 새 서비스 배포 시
 
