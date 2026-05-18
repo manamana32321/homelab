@@ -90,6 +90,8 @@ initContainers:
         set -eux
         mkdir -p /data/plugins/DiscordSRV
         cp /etc/configmap/discordsrv/config.yml /data/plugins/DiscordSRV/config.yml
+        # messages.yml: 한국어 메시지 템플릿 (DiscordSRV upstream messages/ko.yml v1.30.5)
+        cp /etc/configmap/discordsrv/messages.yml /data/plugins/DiscordSRV/messages.yml
     volumeMounts:
       - name: datadir
         mountPath: /data
