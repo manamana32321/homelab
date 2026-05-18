@@ -23,9 +23,11 @@ resource "betteruptime_monitor" "argocd" {
   recovery_period     = 0
   confirmation_period = 60
 
-  # 2xx and 3xx are both fine — Argo CD redirects unauthenticated GET / to /login.
+  # ArgoCD serves the SPA directly with 200 on unauthenticated GET /. Following
+  # redirects is kept on as a defensive default; BetterStack rejects combining
+  # follow_redirects with 3xx in expected_status_codes (final response must be 2xx).
   http_method           = "GET"
-  expected_status_codes = [200, 301, 302]
+  expected_status_codes = [200]
   follow_redirects      = true
   remember_cookies      = false
 
