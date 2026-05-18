@@ -1,0 +1,58 @@
+# BlueMap v5.18 minimal config override.
+# 토큰류 없음 (Mojang 클라이언트 jar 다운로드 동의 + webserver bind 만 필수).
+# 미지정 키는 jar 내장 디폴트 자동 적용 (HOCON 파서가 default fallback).
+# Maps configs (overworld/nether/end) 는 plugin 이 첫 실행 시 자동 생성.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minecraft-bluemap-config
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: webmap
+data:
+  core.conf: |
+    # Mojang EULA 동의 + 클라이언트 jar 다운로드 허용 (필수 — false 시 부팅 중단)
+    # 본 jar 는 BlueMap 이 블록 텍스처/모델 추출용으로 사용. 사용자가 마인크래프트 라이센스 보유자여야 함.
+    accept-download: true
+
+    # 데이터 디렉토리 (BlueMap 작업 파일, 렌더 진행상황 등)
+    data: "bluemap"
+
+    # 렌더 스레드 — 메인 컨테이너 리소스(limits.cpu=1000m) 고려해 2로 제한.
+    # 0 또는 음수 = (CPU 코어 수 + 값). 1 코어 환경에서 2 정도가 적정.
+    render-thread-count: 2
+
+    # 메트릭 옵트아웃 (BlueMap 익명 통계)
+    metrics: false
+
+  webserver.conf: |
+    enabled: true
+
+    # 웹 파일들의 루트 — BlueMap 이 html/js/textures 를 여기 생성
+    webroot: "bluemap/web"
+
+    # ip: clusterIP Service 에서 스크레이프 가능하도록 모든 인터페이스 바인드.
+    # source 확인: WebserverConfig.java 의 'ip' 필드.
+    ip: "0.0.0.0"
+
+    # port: chart 의 별도 Service(8100) 와 매칭. default 가 8100 이지만 명시.
+    port: 8100
+
+  plugin.conf: |
+    # 실시간 플레이어 마커 (웹맵에 누가 어디 있는지 헤드 아이콘)
+    live-player-markers: true
+
+    # 스펙테이터 모드는 마커 숨김 (관전 중인 운영자가 위치 노출되지 않도록)
+    hidden-game-modes: ["spectator"]
+
+    # 베니쉬/투명/스니킹 처리 — 기본값 명시
+    hide-vanished: true
+    hide-invisible: true
+    hide-sneaking: false
+
+    # 스킨 다운로드 활성화 (마커에 플레이어 얼굴 표시)
+    skin-download: true
+
+    # 작업 큐 size — 기본값 충분
+    full-update-interval: 1440  # 분 단위 — 1일에 1번 풀 업데이트

@@ -1,0 +1,29 @@
+# BlueMap 웹맵 Ingress — mcmap.json-server.win
+# proxied=false + cert-manager DNS01 — 다른 홈랩 앱(grafana/immich 등)과 동일 패턴.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minecraft-bluemap
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: webmap
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: mcmap.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minecraft-bluemap
+                port:
+                  number: 8100
+  tls:
+    - secretName: minecraft-bluemap-tls
+      hosts:
+        - mcmap.json-server.win

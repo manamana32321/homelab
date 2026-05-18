@@ -83,6 +83,16 @@ resource "cloudflare_record" "minecraft" {
   proxied = false
 }
 
+# BlueMap 웹 뷰어 — HTTP. proxied=false + cert-manager DNS01 (다른 서비스와 동일 패턴 유지)
+resource "cloudflare_record" "minecraft_map" {
+  zone_id = cloudflare_zone.main.id
+  name    = "mcmap"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "BlueMap 3D web viewer for Minecraft"
+}
+
 resource "cloudflare_record" "k8s" {
   zone_id = cloudflare_zone.main.id
   name    = "k8s"
