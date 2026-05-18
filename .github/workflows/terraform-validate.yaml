@@ -5,12 +5,14 @@ on:
     paths:
       - "cloudflare/**"
       - "aws/**"
+      - "betterstack/**"
       - ".github/workflows/terraform-validate.yaml"
   push:
     branches: [main]
     paths:
       - "cloudflare/**"
       - "aws/**"
+      - "betterstack/**"
 
 permissions:
   contents: read
@@ -21,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [cloudflare, aws]
+        dir: [cloudflare, aws, betterstack]
     defaults:
       run:
         working-directory: ${{ matrix.dir }}
