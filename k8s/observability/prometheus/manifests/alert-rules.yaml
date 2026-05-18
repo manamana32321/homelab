@@ -50,8 +50,9 @@ spec:
             description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
 
         - alert: NodeDiskAlmostFull
-          # SSD(`/`): 90% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
-          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"} / node_filesystem_size_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"}) > 0.9
+          # SSD(`/`): 95% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
+          # kube-prometheus-stack의 `NodeFilesystemSpaceFillingUp` (predict_linear 4h)이 임박 위험을 별도 catch.
+          expr: (1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"} / node_filesystem_size_bytes{fstype=~"ext4|xfs",mountpoint!~"/mnt/hdd-.*"}) > 0.95
           for: 5m
           labels:
             severity: warning
