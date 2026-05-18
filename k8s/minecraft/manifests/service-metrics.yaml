@@ -1,0 +1,21 @@
+# sladkoff exporter 플러그인이 노출하는 /metrics 포트(9940)용 별도 Service.
+# 메인 LoadBalancer Service(25565)에 섞지 않고 분리 — 외부 노출 위험 차단 + ServiceMonitor selector 단순화.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-metrics
+  namespace: minecraft
+  labels:
+    app: minecraft-metrics
+    app.kubernetes.io/part-of: minecraft
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  selector:
+    # 차트가 생성한 Pod 라벨
+    app: minecraft
+  ports:
+    - name: metrics
+      port: 9940
+      targetPort: 9940
+      protocol: TCP

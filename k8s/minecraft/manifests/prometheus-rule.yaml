@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: minecraft-alerts
+  namespace: minecraft
+  labels:
+    app.kubernetes.io/part-of: minecraft
+    # kube-prometheus-stack가 release=prometheus 인 PrometheusRule만 수집
+    release: prometheus
+spec:
+  groups:
+    - name: minecraft
+      rules:
+        # 서버 다운 / 잦은 재시작은 의도적으로 추가하지 않음.
+        # - 다운: 기존 EndpointDown(probe_success==0) 이 Blackbox 대상에 추가된 minecraft도 자동 catch
+        # - 재시작: kube-prometheus-stack 기본 KubePodCrashLooping 이 cluster-wide로 catch
+        # k8s/observability/CLAUDE.md "재발명 금지" 원칙 — 컴포넌트별 specific 알림으로 일반 룰 재정의 금지.
+
+        # TPS 저하 — sladkoff exporter mc_tps (정상 ~20). 기본 룰 동급 없음.
+        - alert: MinecraftLowTPS
+          expr: mc_tps < 18
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Minecraft TPS 저하: {{ $value | humanize }} (정상 20)"
+            description: "지난 5분간 TPS가 18 미만. 청크/엔티티 과부하 또는 JVM 압박 의심."
+
+        # 메모리 90% 초과 — OOMKill 직전. 기본 룰 동급 없음(컨테이너 단위 임계치).
+        - alert: MinecraftHighMemoryUsage
+          expr: |
+            container_memory_working_set_bytes{namespace="minecraft", container="minecraft"}
+              / container_spec_memory_limit_bytes{namespace="minecraft", container="minecraft"} > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Minecraft 컨테이너 메모리 {{ $value | humanizePercentage }} 사용"
+            description: "메모리 한도 90% 초과 5분 지속. JVM 힙 또는 메모리 한도 상향 검토."
