@@ -4,6 +4,7 @@ metadata:
   name: minecraft-metrics
   namespace: minecraft
   labels:
+    app.kubernetes.io/part-of: minecraft
     # kube-prometheus-stack discovery — Prometheus가 release=prometheus 인 ServiceMonitor만 수집
     release: prometheus
 spec:
