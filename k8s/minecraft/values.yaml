@@ -40,19 +40,19 @@ minecraftServer:
     enabled: true
     existingSecret: minecraft-rcon-credentials
     # secretKey 기본값 "rcon-password" 그대로 사용
-  # sladkoff minecraft-prometheus-exporter 플러그인 (#206 모니터링)
-  # 설계: docs/superpowers/specs/2026-05-18-minecraft-monitoring-design.md
-  # Service: k8s/minecraft/manifests/service-metrics.yaml (port 9940)
+  # 플러그인 목록 — itzg가 컨테이너 기동 시 jar 다운로드 후 /data/plugins/ 에 배치.
+  # 각 플러그인의 config는 별도 ConfigMap → extraVolumes subPath 마운트 (아래).
   pluginUrls:
+    # sladkoff minecraft-prometheus-exporter (#206 모니터링) — port 9940 /metrics
     - https://github.com/sladkoff/minecraft-prometheus-exporter/releases/download/v3.1.2/minecraft-prometheus-exporter-3.1.2.jar
+    # DiscordSRV (#209 Discord 양방향 채팅 다리)
+    - https://github.com/DiscordSRV/DiscordSRV/releases/download/v1.30.5/DiscordSRV-Build-1.30.5.jar
 
 strategyType: Recreate
 
-# sladkoff exporter v3.1.2 config.yml 강제 주입.
-# 이 버전은 env var override 미지원 (소스 확인: master HEAD에만 추가됨, README가 master 기준이라 잘못 안내).
-# ConfigMap minecraft-prometheus-exporter-config 의 config.yml 을 플러그인 디렉토리에 subPath로 마운트.
-# Bukkit 의 saveDefaultConfig() 는 파일이 이미 존재하면 덮어쓰지 않으므로 우리 값이 살아남음.
+# 플러그인 config.yml 강제 주입 — Bukkit copyDefaults 가 mounted file 을 우선 사용.
 extraVolumes:
+  # sladkoff exporter v3.1.2 — env var override 미지원 (소스 확인, master HEAD 만 지원). config.yml 마운트로 host=0.0.0.0 강제.
   - volumeMounts:
       - name: prometheus-exporter-config
         mountPath: /data/plugins/PrometheusExporter/config.yml
@@ -61,6 +61,21 @@ extraVolumes:
       - name: prometheus-exporter-config
         configMap:
           name: minecraft-prometheus-exporter-config
+  # DiscordSRV v1.30.5 — 토큰은 env(DISCORDSRV_TOKEN)로, 채널/봇설정은 config.yml 로
+  - volumeMounts:
+      - name: discordsrv-config
+        mountPath: /data/plugins/DiscordSRV/config.yml
+        subPath: config.yml
+    volumes:
+      - name: discordsrv-config
+        configMap:
+          name: minecraft-discordsrv-config
+
+# DiscordSRV 가 DISCORDSRV_TOKEN env var 를 1순위로 읽음 (소스 확인: v1.30.5 DiscordSRV.java).
+# 토큰은 SealedSecret minecraft-discord-credentials 에 봉인되어 있고 envFrom 으로 메인 컨테이너에 주입.
+envFrom:
+  - secretRef:
+      name: minecraft-discord-credentials
 
 livenessProbe:
   initialDelaySeconds: 120
