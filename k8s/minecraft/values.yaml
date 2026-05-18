@@ -48,10 +48,19 @@ minecraftServer:
 
 strategyType: Recreate
 
-# sladkoff exporter — Prometheus가 cluster에서 스크레이프하려면 localhost(기본) 대신 0.0.0.0 바인드 필요.
-# 플러그인 README: env가 config.yml를 오버라이드 (최우선순위).
-extraEnv:
-  MINECRAFT_PROMETHEUS_EXPORTER_HOST: "0.0.0.0"
+# sladkoff exporter v3.1.2 config.yml 강제 주입.
+# 이 버전은 env var override 미지원 (소스 확인: master HEAD에만 추가됨, README가 master 기준이라 잘못 안내).
+# ConfigMap minecraft-prometheus-exporter-config 의 config.yml 을 플러그인 디렉토리에 subPath로 마운트.
+# Bukkit 의 saveDefaultConfig() 는 파일이 이미 존재하면 덮어쓰지 않으므로 우리 값이 살아남음.
+extraVolumes:
+  - volumeMounts:
+      - name: prometheus-exporter-config
+        mountPath: /data/plugins/PrometheusExporter/config.yml
+        subPath: config.yml
+    volumes:
+      - name: prometheus-exporter-config
+        configMap:
+          name: minecraft-prometheus-exporter-config
 
 livenessProbe:
   initialDelaySeconds: 120
