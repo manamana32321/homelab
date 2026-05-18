@@ -61,15 +61,41 @@ extraVolumes:
       - name: prometheus-exporter-config
         configMap:
           name: minecraft-prometheus-exporter-config
-  # DiscordSRV v1.30.5 — 토큰은 env(DISCORDSRV_TOKEN)로, 채널/봇설정은 config.yml 로
+  # DiscordSRV v1.30.5 config —
+  # subPath 마운트는 부모 dir 을 root 소유로 만들어 plugin 이 messages.yml/linking.yml 등 다른 파일 작성 시 EACCES
+  # → ConfigMap 은 staging 경로(/etc/configmap/discordsrv)에 read-only directory mount,
+  #   initContainer 가 PVC 의 /data/plugins/DiscordSRV/config.yml 로 복사 (아래 initContainers).
   - volumeMounts:
-      - name: discordsrv-config
-        mountPath: /data/plugins/DiscordSRV/config.yml
-        subPath: config.yml
+      - name: discordsrv-config-staging
+        mountPath: /etc/configmap/discordsrv
+        readOnly: true
     volumes:
-      - name: discordsrv-config
+      - name: discordsrv-config-staging
         configMap:
           name: minecraft-discordsrv-config
+
+# DiscordSRV 가 자기 디렉토리에 messages.yml/linking.yml 등 여러 파일 작성하는데
+# subPath 마운트는 부모 dir 을 root 소유로 잠금 → 권한 거부.
+# initContainer 가 uid 1000 (itzg 기본 사용자) 으로 plugin dir 을 미리 만들고 config.yml 복사 → 메인 컨테이너가 평범한 dir로 인식.
+initContainers:
+  - name: discordsrv-config-seed
+    image: busybox:1.36
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 2000
+    command:
+      - sh
+      - -c
+      - |
+        set -eux
+        mkdir -p /data/plugins/DiscordSRV
+        cp /etc/configmap/discordsrv/config.yml /data/plugins/DiscordSRV/config.yml
+    volumeMounts:
+      - name: datadir
+        mountPath: /data
+      - name: discordsrv-config-staging
+        mountPath: /etc/configmap/discordsrv
+        readOnly: true
 
 # DiscordSRV 가 DISCORDSRV_TOKEN env var 를 1순위로 읽음 (소스 확인: v1.30.5 DiscordSRV.java).
 # 토큰은 SealedSecret minecraft-discord-credentials 에 봉인되어 있고 envFrom 으로 메인 컨테이너에 주입.
