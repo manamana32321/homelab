@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: minecraft-metrics
+  namespace: minecraft
+  labels:
+    # kube-prometheus-stack discovery — Prometheus가 release=prometheus 인 ServiceMonitor만 수집
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: minecraft-metrics
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s

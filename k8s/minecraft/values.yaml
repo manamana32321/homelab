@@ -40,8 +40,18 @@ minecraftServer:
     enabled: true
     existingSecret: minecraft-rcon-credentials
     # secretKey 기본값 "rcon-password" 그대로 사용
+  # sladkoff minecraft-prometheus-exporter 플러그인 (#206 모니터링)
+  # 설계: docs/superpowers/specs/2026-05-18-minecraft-monitoring-design.md
+  # Service: k8s/minecraft/manifests/service-metrics.yaml (port 9940)
+  pluginUrls:
+    - https://github.com/sladkoff/minecraft-prometheus-exporter/releases/download/v3.1.2/minecraft-prometheus-exporter-3.1.2.jar
 
 strategyType: Recreate
+
+# sladkoff exporter — Prometheus가 cluster에서 스크레이프하려면 localhost(기본) 대신 0.0.0.0 바인드 필요.
+# 플러그인 README: env가 config.yml를 오버라이드 (최우선순위).
+extraEnv:
+  MINECRAFT_PROMETHEUS_EXPORTER_HOST: "0.0.0.0"
 
 livenessProbe:
   initialDelaySeconds: 120

@@ -126,3 +126,6 @@ serviceMonitor:
     - name: gbrain-mcp
       url: http://gbrain-mcp.gbrain.svc.cluster.local/healthz
       module: http_2xx_no_tls
+    - name: minecraft
+      url: minecraft.minecraft.svc.cluster.local:25565
+      module: tcp_connect

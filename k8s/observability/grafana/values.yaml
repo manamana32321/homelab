@@ -220,6 +220,13 @@ dashboards:
       gnetId: 14584
       revision: 1
       datasource: Prometheus
+    # Minecraft sladkoff exporter - https://github.com/sladkoff/minecraft-prometheus-exporter
+    # gnetId 없음 (grafana.com 미업로드) → 직접 URL로 가져옴, DS_PROMETHEUS 변수 매핑
+    minecraft:
+      url: https://raw.githubusercontent.com/sladkoff/minecraft-prometheus-exporter/v3.1.2/dashboards/minecraft-server-dashboard.json
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
 
 downloadDashboards:
   env: {}
