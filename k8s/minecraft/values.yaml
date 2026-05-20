@@ -52,6 +52,20 @@ minecraftServer:
     - https://github.com/DiscordSRV/DiscordSRV/releases/download/v1.30.5/DiscordSRV-Build-1.30.5.jar
     # BlueMap (#208 웹맵 3D viewer) — v5.18 = 1.21.x 호환 마지막 (v5.19+는 api-version 26.1.1 요구)
     - https://github.com/BlueMap-Minecraft/BlueMap/releases/download/v5.18/bluemap-5.18-paper.jar
+    # EssentialsX (#207 QoL — /tpa /home /sethome /back) — api-version 1.13, 1.21.x 광범위 호환.
+    # Modrinth 메타데이터가 1.21.11 미표기(릴리스가 먼저 나옴)라 GitHub 릴리스 jar 직접 사용.
+    - https://github.com/EssentialsX/Essentials/releases/download/2.21.2/EssentialsX-2.21.2.jar
+  # Modrinth 배포 플러그인 (#207) — slug:version 핀. itzg가 Modrinth API로 해석.
+  modrinth:
+    projects:
+      # CoreProtect (그리핑 블록단위 추적/롤백) — Community Edition free 빌드
+      - coreprotect:23.2
+      # WorldEdit — WorldGuard 하드 의존성 (먼저 명시 핀하여 reproducible, downloadDependencies 미사용)
+      - worldedit:7.4.3
+      # WorldGuard (지역 보호 — 스폰/공동 건축물 2차 방어선)
+      - worldguard:7.0.16
+    # WorldEdit를 명시 핀했으므로 의존성 자동 다운로드 불필요 (기본값 유지)
+    downloadDependencies: none
 
 strategyType: Recreate
 
