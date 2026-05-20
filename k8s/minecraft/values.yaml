@@ -21,9 +21,12 @@ nodeSelector:
   kubernetes.io/hostname: json-server-2
 
 persistence:
-  # 클러스터 default StorageClass가 2개(longhorn, longhorn-ssd) → 무명시 시 비결정적.
-  # 마크 월드는 stateful → longhorn-ssd 명시 핀 (복제·노드 비종속, CLAUDE.md 스토리지 규칙).
-  storageClass: longhorn-ssd
+  # storageClass는 values에 핀하지 않음 — itzg 차트 5.0.0은 storageClass를
+  # 레거시 annotation(volume.beta.kubernetes.io/storage-class)으로 렌더하는데,
+  # 이 annotation은 기존 PVC에서 immutable이라 ArgoCD sync가 통째로 거부됨
+  # (#230에서 핀 시도 → PVC 패치 전체 실패로 Size 확장까지 막힘).
+  # 현 PVC는 이미 longhorn-ssd(spec.storageClassName, immutable) — 핀 불필요.
+  # 향후 PVC 재생성 시 결정성은 클러스터 default SC 단일화로 해결.
   dataDir:
     enabled: true
     # itzg 차트 키는 대문자 Size — 소문자 size는 무시되어 차트 기본값 1Gi로 떨어짐 (#229까지 1Gi였던 원인).
