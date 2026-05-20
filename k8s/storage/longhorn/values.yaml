@@ -9,6 +9,10 @@ defaultSettings:
   # raspi-1은 Longhorn 스토리지에서 제외
   taintToleration: ""
 
+# 차트 기본 longhorn SC를 default에서 내림 — longhorn-ssd(manifests/storage-class.yaml)만 단독 default 유지
+persistence:
+  defaultClass: false
+
 # ingress는 argocd auth proxy 뒤에 두거나 비활성화
 longhornUI:
   replicas: 1
