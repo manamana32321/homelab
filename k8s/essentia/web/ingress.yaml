@@ -11,9 +11,23 @@ spec:
   tls:
     - hosts:
         - essentia.json-server.win
+        - learningx.json-server.win
       secretName: essentia-web-tls
   rules:
     - host: essentia.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: essentia-web
+                port:
+                  number: 3000
+    # LearningX MCP 마케팅 landing. 같은 essentia-web 서비스로 보내고,
+    # Next.js next.config rewrites가 host=learningx.json-server.win 를
+    # /learningx 로 내부 rewrite (essentia-edu/essentia#83).
+    - host: learningx.json-server.win
       http:
         paths:
           - path: /

@@ -330,3 +330,15 @@ resource "cloudflare_record" "gbrain" {
   proxied = true
   comment = "gbrain HTTP MCP — Bearer auth (caddy sidecar), Cloudflare proxied"
 }
+
+# LearningX MCP 마케팅 landing. Cloudflare Pages 정적 사이트에서 essentia-web
+# ingress로 이전 (essentia-edu/essentia#83). apps/web의 (marketing)/learningx
+# route를 host-based rewrite로 서빙 — essentia-web ingress가 이 host를 받는다.
+resource "cloudflare_record" "learningx" {
+  zone_id = cloudflare_zone.main.id
+  name    = "learningx"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "LearningX MCP landing — essentia-web ingress (Next host rewrite)"
+}
