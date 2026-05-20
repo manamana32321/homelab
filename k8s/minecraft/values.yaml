@@ -5,13 +5,20 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# json-server-2(i5-8400 6C/6T, 메모리 여유)로 이전하며 리소스 증설.
+# 기존 limit 1코어가 CPU throttle 93.7% 유발 → 청크 로딩 지연. node-2는 한가하고 코어 많아 넉넉히 허용.
 resources:
   requests:
-    memory: 1Gi
-    cpu: "500m"
-  limits:
-    memory: 2Gi
+    memory: 3Gi
     cpu: "1000m"
+  limits:
+    memory: 4Gi
+    cpu: "4000m"
+
+# 월드 PVC(local-path)가 node-1에 묶여있어 nodeSelector + PVC 마이그레이션 필요.
+# node-2: i5-8400 (마크는 싱글스레드 의존적 → 신세대 i5가 i7-3770보다 유리) + 메모리 여유.
+nodeSelector:
+  kubernetes.io/hostname: json-server-2
 
 persistence:
   dataDir:
@@ -22,7 +29,8 @@ minecraftServer:
   eula: "TRUE"
   type: "PAPER"
   version: "1.21.11"
-  memory: "1G"
+  # JVM 힙 — node-2 메모리 여유 활용. Paper 1.21 + 플러그인 8종 + BlueMap에 1G는 GC 압박.
+  memory: "3G"
   difficulty: "normal"
   gameMode: "survival"
   maxPlayers: 20
