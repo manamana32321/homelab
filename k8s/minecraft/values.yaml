@@ -29,6 +29,9 @@ minecraftServer:
   pvp: true
   motd: "JSON Homelab Minecraft Server"
   onlineMode: true
+  # 화이트리스트 — 등록된 친구만 접속 (그리퍼 차단). WHITELIST env → whitelist.json 동기화.
+  # 친구 추가 시 이 줄에 쉼표로 닉네임 추가 후 PR. git이 SSOT.
+  whitelist: "EddieDawn,Dinudi,JinuStar0"
   # k3s ServiceLB(klipper)가 노드 호스트의 25565를 직접 바인딩 → 공유기 포트포워딩 1:1
   serviceType: LoadBalancer
   servicePort: 25565
@@ -51,6 +54,14 @@ minecraftServer:
     - https://github.com/BlueMap-Minecraft/BlueMap/releases/download/v5.18/bluemap-5.18-paper.jar
 
 strategyType: Recreate
+
+# 화이트리스트 enforcement 명시 — 차트는 minecraftServer.whitelist(목록)만 노출하므로
+# server.properties 플래그는 extraEnv 로 직접 선언. itzg 가 Pod 재기동 시 재생성해도 보장.
+#   ENABLE_WHITELIST  → white-list=true
+#   ENFORCE_WHITELIST → enforce-whitelist=true (비화이트리스트 접속자 즉시 강퇴)
+extraEnv:
+  ENABLE_WHITELIST: "true"
+  ENFORCE_WHITELIST: "true"
 
 # 플러그인 config.yml 강제 주입 — Bukkit copyDefaults 가 mounted file 을 우선 사용.
 extraVolumes:
