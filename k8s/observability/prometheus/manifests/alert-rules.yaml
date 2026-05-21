@@ -153,6 +153,29 @@ spec:
             summary: "High memory: {{ $labels.instance }}"
             description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
 
+        # chart 룰 CPUThrottlingHigh(info, 5m window)는 짧은 버스트성 스로틀링까지
+        # 잡아 info noise로 묻힌다. wedge된 컨트롤러(예: minio-operator의
+        # PolicyBinding watch hot-loop)는 CPU limit에 몇 시간씩 연속으로 붙어
+        # ~100% 스로틀된다 — 버스트와 명확히 구분되는 고신뢰 신호이므로
+        # 더 긴 window + warning으로 별도 발화. CPUThrottlingHigh의 컴포넌트별
+        # 재정의가 아니라, sustained 케이스 전용 상위 severity tier.
+        - alert: ContainerCPUThrottlingSustained
+          expr: >-
+            sum by (namespace, pod, container) (
+              rate(container_cpu_cfs_throttled_periods_total{container!="", job="kubelet", metrics_path="/metrics/cadvisor"}[15m])
+            )
+            /
+            sum by (namespace, pod, container) (
+              rate(container_cpu_cfs_periods_total{container!="", job="kubelet", metrics_path="/metrics/cadvisor"}[15m])
+            )
+            > 0.9
+          for: 2h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Sustained CPU throttling: {{ $labels.namespace }}/{{ $labels.pod }}"
+            description: "{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }})가 2시간+ 동안 {{ $value | humanizePercentage }} CPU 스로틀 중. CPU limit에 붙어 wedge되었거나 limit이 과소 설정됨 — pod 재시작 또는 limit 증설 필요."
+
     # ArgoCD 앱 health — chart의 ArgoAppMissing/ArgoAppNotSynced로는 못 잡는
     # Degraded/Missing/Unknown 상태를 12h 기다리지 않고 catch.
     # Healthy/Progressing/Suspended는 의도적 정상 상태이므로 제외.
