@@ -6,13 +6,4 @@ resources:
   - sealed-secret.yaml
   - ingress.yaml
   - ingress-console.yaml
-patches:
-  - target:
-      group: minio.min.io
-      version: v2
-      kind: Tenant
-      name: minio
-    patch: |
-      - op: replace
-        path: /spec/pools/0/volumeClaimTemplate/spec/storageClassName
-        value: longhorn-ssd
+# base/tenant.yaml이 longhorn-ssd로 통일되어 patch 제거 (SSOT).

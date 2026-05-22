@@ -23,7 +23,9 @@ spec:
           resources:
             requests:
               storage: 5Gi
-          storageClassName: local-path
+          # longhorn-ssd: server-1+server-2 SSD에 복제본 2 + 노드 이동성 — raspi-1 SD카드 회피.
+          # Tenant volumeClaimTemplate은 immutable이라 SC 변경 시 PVC 재생성 + 데이터 이관 필요.
+          storageClassName: longhorn-ssd
       resources:
         requests:
           cpu: 50m
