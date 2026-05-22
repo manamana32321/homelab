@@ -8,6 +8,8 @@ defaultSettings:
   storageReservedPercentageForDefaultDisk: 0
   # raspi-1은 Longhorn 스토리지에서 제외
   taintToleration: ""
+  # 고아 복제본 자동 삭제 — rebuild 시 남는 잔여 디렉토리 누적 방지 (chart default: false)
+  orphanAutoDeletion: true
 
 # 차트 기본 longhorn SC를 default에서 내림 — longhorn-ssd(manifests/storage-class.yaml)만 단독 default 유지
 persistence:
