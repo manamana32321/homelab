@@ -1,3 +1,8 @@
+# 2026-05-23 인시던트: json-server-1 디스크 포화 중 HA가 60초 startup 안에 못 떠
+# liveness 실패 → 80분간 26회 크래시 루프 → 반복 startup IO가 디스크 포화 악순환 유발.
+# 일시적으로 0으로 내림. startupProbe 추가(느린 디스크 대응) 후 1로 복구 예정.
+replicaCount: 0
+
 controller:
   type: StatefulSet
 
