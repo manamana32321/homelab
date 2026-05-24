@@ -32,7 +32,7 @@ spec:
                 - -c
                 - |
                   set -eo pipefail
-                  pip install --quiet --no-cache-dir openai==1.109.1 httpx==0.28.1
+                  pip install --quiet --no-cache-dir httpx==0.28.1
                   python /scripts/morning-brief.py
               env:
                 - name: HEALTH_HUB_URL
@@ -70,13 +70,6 @@ spec:
                     secretKeyRef:
                       name: alertmanager-telegram
                       key: message-thread-id
-                # OPENAI_API_KEY: Reflected from shared-secrets/llm-api-keys
-                # (single SOT for cross-domain LLM keys, per k8s/CLAUDE.md).
-                - name: OPENAI_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: llm-api-keys
-                      key: OPENAI_API_KEY
               volumeMounts:
                 - name: script
                   mountPath: /scripts

@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - cronjob.yaml
-  - sealedsecret-tokens.yaml
 
 # Python script를 별도 파일로 관리 + ConfigMap 자동 생성
 # (YAML에 Python 직접 embed하면 parser 혼동 위험)
