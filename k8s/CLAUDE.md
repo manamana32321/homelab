@@ -294,7 +294,7 @@ resources:
 
 ### 특수 케이스
 
-- **Python + pip install 인라인** (brain-agent 등): `memory: 256Mi-512Mi` 권장
+- **Python + pip install 인라인** (Job/CronJob에서 deps 임시 설치하는 패턴): `memory: 256Mi-512Mi` 권장
 - **Postgres·TimescaleDB**: `request 256Mi / limit 1Gi+`
 - **Prometheus**: metric 볼륨에 따라 `500Mi+`
 - **minio-operator**: CPU 200m→500m 상향 필요 (PolicyBinding watch CPU 소모)
@@ -307,15 +307,15 @@ Kubernetes 공식 label (디버깅·쿼리 일관성):
 
 ```yaml
 labels:
-  app.kubernetes.io/name: brain-agent             # 앱 이름
-  app.kubernetes.io/part-of: automation           # 상위 그룹
-  app.kubernetes.io/component: cronjob            # 역할
+  app.kubernetes.io/name: <app-name>              # 앱 이름 (예: health-hub-api)
+  app.kubernetes.io/part-of: <group>              # 상위 그룹 (예: health-hub)
+  app.kubernetes.io/component: <role>             # 역할 (예: api, worker, cronjob)
   app.kubernetes.io/managed-by: argocd            # 관리 도구 (보통 argocd가 자동)
 ```
 
 최소 `app.kubernetes.io/part-of`만이라도 붙이면 label selector로 묶음 쿼리 가능:
 ```bash
-kubectl get all -A -l app.kubernetes.io/part-of=automation
+kubectl get all -A -l app.kubernetes.io/part-of=<group>
 ```
 
 ---
@@ -435,7 +435,7 @@ metadata:
 k8s/argocd/applications/
 ├── infra/         # cert-manager, external-secrets, reflector, sealed-secrets, ingress 등
 ├── observability/ # prometheus, grafana, loki, tempo, alertmanager
-└── apps/          # 실제 워크로드 (brain-agent, health-hub, essentia, ...)
+└── apps/          # 실제 워크로드 (health-hub, essentia, immich, seafile, ...)
 ```
 
 신규 Application은 카테고리 맞춰 배치. `apps` app-of-apps가 자동 sync.
