@@ -307,9 +307,9 @@ Kubernetes 공식 label (디버깅·쿼리 일관성):
 
 ```yaml
 labels:
-  app.kubernetes.io/name: brain-agent-webhook     # 앱 이름
+  app.kubernetes.io/name: brain-agent             # 앱 이름
   app.kubernetes.io/part-of: automation           # 상위 그룹
-  app.kubernetes.io/component: webhook            # 역할
+  app.kubernetes.io/component: cronjob            # 역할
   app.kubernetes.io/managed-by: argocd            # 관리 도구 (보통 argocd가 자동)
 ```
 
