@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: basic-memory
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/part-of: brain
+spec:
+  selector:
+    app.kubernetes.io/name: basic-memory
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
