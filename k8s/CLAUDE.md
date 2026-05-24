@@ -297,7 +297,7 @@ resources:
 - **Python + pip install 인라인** (brain-agent 등): `memory: 256Mi-512Mi` 권장
 - **Postgres·TimescaleDB**: `request 256Mi / limit 1Gi+`
 - **Prometheus**: metric 볼륨에 따라 `500Mi+`
-- **minio-operator**: CPU 200m→500m 상향 필요 (PolicyBinding watch CPU 소모)
+- **minio-operator**: CPU `limit: "1"` + `replicaCount: 2` 권장. RSS는 ~25Mi지만 CFS throttle이 60s leader lease 윈도우 안의 renew를 놓치면 leader-lost callback 후 재캠페인 goroutine deadlock → TCP는 살아있지만 reconcile 멈추는 zombie pod 발생. 과거 "PolicyBinding watch CPU 소모"로 잘못 진단된 패턴 — 실제 원인은 leader-election 재캠페인 deadlock. v7.1.1 binary는 HTTP health endpoint 미노출이라 livenessProbe로 자동 감지 불가, 대신 2-replica failover + PrometheusRule `MinIOOperatorLeaseStale`(lease renewTime 5분+ stale)로 대응
 
 ---
 
