@@ -16,7 +16,7 @@ spec:
         # Allowlist is explicit (no auto-broadcast) so adding a new consumer
         # is a deliberate change reviewed in a PR.
         reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "automation,gbrain"
+        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "gbrain"
         reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-        reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "automation,gbrain"
+        reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "gbrain"
     type: Opaque
