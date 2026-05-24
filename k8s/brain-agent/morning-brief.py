@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
 """
-Brain Agent — Morning Brief (v2.1: REST direct)
+Brain Agent — Morning Brief (v3.0: 완전 결정론)
 
-매일 07:30 KST 실행. 철학: Compiled AI / Crystallization
-  - 데이터 수집·포맷팅 = 결정론 (REST 직접 호출, MCP 경유 X)
-  - LLM 메타 레이어 1회 호출만 = 다중 소스 종합 "오늘 한 줄"
+매일 07:30 KST 실행. 철학: Compiled AI / Crystallization (전체 완성)
+  - 데이터 수집·포맷팅 = 결정론 (REST 직접 호출)
+  - "오늘 한 줄" 메타 레이어도 결정론 (v2.1 OpenAI gpt-4o-mini → 우선순위 cascade)
 
-Sources (v2.1):
+Sources:
   1. health-hub REST — https://health.json-server.win/api/v1/summary
   2. Canvas REST — 7일 내 과제 + 최근 24h 공지
-  3. (v3 예정) Google Calendar, Google Tasks, brain git log
 
-MCP는 LLM agent의 tool selection 용 프로토콜.
-결정론 cron엔 REST 직접이 정답 (세션 handshake 3회 → 1회 요청).
+LLM 의존 0. 환각/외부 의존/비용 모두 제거.
 """
 import datetime
 import html
-import json
 import os
 import sys
 import traceback
 from typing import Any
 
 import httpx
-from openai import OpenAI
 
 # --- Config ---
 KST = datetime.timezone(datetime.timedelta(hours=9))
@@ -36,7 +32,6 @@ HEALTH_HUB_URL = os.environ.get("HEALTH_HUB_URL", "https://health.json-server.wi
 HEALTH_HUB_TOKEN = os.environ["HEALTH_HUB_TOKEN"]
 CANVAS_BASE_URL = os.environ["CANVAS_BASE_URL"].rstrip("/")
 CANVAS_ACCESS_TOKEN = os.environ["CANVAS_ACCESS_TOKEN"]
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 TELEGRAM_THREAD_ID = os.environ.get("TELEGRAM_THREAD_ID")
@@ -258,33 +253,53 @@ def format_icampus(
 
 
 # =====================
-# Meta layer (the only LLM call)
+# Highlight layer — 결정론 우선순위 cascade
+# (v2.1까지는 LLM이 암묵적으로 하던 sorter 역할. v3에서 명시 룰로 정착)
 # =====================
-META_PROMPT = (
-    "너는 장수님의 개인 비서. 아래 오늘 아침 데이터를 보고 단 한 줄로 "
-    "'오늘 가장 주목할 것'을 뽑아줘.\n\n"
-    "규칙:\n"
-    "- 반말, 짧은 단정형 한국어\n"
-    "- 데이터가 말하지 않는 것을 지어내지 말 것 (환각 금지)\n"
-    "- 이모지 1개로 시작\n"
-    "- 50자 이내\n"
-    "- 평범한 날이면 '평범한 하루, 루틴대로' 같이 담담하게"
-)
+def days_left(assignment: dict) -> int:
+    due = datetime.datetime.fromisoformat(
+        assignment["due_at"].replace("Z", "+00:00")
+    ).astimezone(KST)
+    return (due.date() - TODAY).days
 
 
-def meta_summarize(sections: dict) -> str:
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    context = "\n\n".join(f"## {name}\n{body}" for name, body in sections.items())
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": META_PROMPT},
-            {"role": "user", "content": context},
-        ],
-        temperature=0.3,
-        max_tokens=120,
-    )
-    return resp.choices[0].message.content.strip()
+def deterministic_highlight(
+    health: dict,
+    assignments: list[dict],
+    announcements: list[dict],
+) -> str:
+    """오늘 가장 주목할 한 줄을 결정론으로 결정.
+
+    위에서 아래로 평가, 매치된 첫 룰이 이김.
+    cascade 순서·임계치는 도메인 지식(개인 패턴) — PR review에서 refine 가능.
+    """
+    today_due = [a for a in assignments if days_left(a) == 0]
+    soon_due  = [a for a in assignments if 1 <= days_left(a) <= 2]
+    sleep_min = ((health.get("sleep") or {}).get("duration_m") or 0)
+    sleep_h   = sleep_min / 60 if sleep_min else 0
+    steps     = health.get("total_steps") or 0
+
+    # 1. 격무 경고 — 마감 + 수면 부족 콤보 (가장 위험)
+    if today_due and 0 < sleep_h < 6:
+        return f"⚠️ 오늘 마감 {len(today_due)}건 + 수면 {sleep_h:.0f}h, 무리하지 마"
+    # 2. 오늘 마감
+    if today_due:
+        head = today_due[0]["name"][:20]
+        return f"🚨 오늘 마감 {len(today_due)}건 (가장 급한 건 [{head}])"
+    # 3. 심각한 수면 부족
+    if 0 < sleep_h < 5:
+        return f"🛏 어제 수면 {sleep_h:.0f}h, 컨디션 회복 우선"
+    # 4. D-1 ~ D-2 마감
+    if soon_due:
+        return f"⏰ D-2 이내 마감 {len(soon_due)}건"
+    # 5. 거의 안 움직인 어제
+    if 0 < steps < 1000:
+        return "🏃 어제 거의 안 움직임, 오늘은 잠깐이라도"
+    # 6. 공지가 있다
+    if announcements:
+        return f"📣 어제 공지 {len(announcements)}건 확인"
+    # 7. 평일 default
+    return "✨ 평범한 하루, 루틴대로"
 
 
 # =====================
@@ -331,15 +346,14 @@ def main() -> int:
             "icampus": format_icampus(assignments, announcements, courses),
         }
 
-        print("Meta summarizing...")
-        meta = meta_summarize(sections)
+        highlight = deterministic_highlight(health, assignments, announcements)
 
         brief = "\n\n".join(
             [
                 f"🌅 <b>Morning Brief — {TODAY} ({WEEKDAY_KR})</b>",
                 sections["health"],
                 sections["icampus"],
-                f"<b>✨ 오늘 한 줄</b>\n{_esc(meta)}",
+                f"<b>✨ 오늘 한 줄</b>\n{_esc(highlight)}",
             ]
         )
         send_telegram(brief)
