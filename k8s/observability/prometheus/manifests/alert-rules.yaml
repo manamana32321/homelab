@@ -230,3 +230,18 @@ spec:
           annotations:
             summary: "Image Updater stuck: registry 폴링 멈춤"
             description: "{{ $labels.registry }}에 대한 폴링이 15분 이상 0건. pod up이지만 내부 stuck 가능. `kubectl logs -n argocd -l app.kubernetes.io/name=argocd-image-updater` 확인."
+
+    # minio-operator zombie 감지 — leader pod이 CPU throttling으로 lease를 잃은 뒤
+    # 재캠페인 goroutine이 deadlock에 빠지면 TCP는 살아있지만 reconcile 멈춤.
+    # v7.1.1 binary는 health endpoint를 노출하지 않아 livenessProbe로 못 잡음.
+    # 대신 kube-state-metrics의 lease renewTime을 watcher로 사용.
+    - name: minio-operator
+      rules:
+        - alert: MinIOOperatorLeaseStale
+          expr: (time() - kube_lease_renew_time{lease="minio-operator-lock"}) > 300
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "minio-operator leader lease 5분+ stale"
+            description: "lease {{ $labels.namespace }}/{{ $labels.lease }}이 {{ $value | humanizeDuration }} 동안 갱신 안 됨. replicas=2 failover가 작동하지 않은 경우. zombie pod 확인 후 `kubectl -n minio-operator rollout restart deploy/minio-operator`."

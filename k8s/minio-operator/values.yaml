@@ -1,10 +1,38 @@
 operator:
-  replicaCount: 1
+  # 2 replicas로 leader-election failover 확보.
+  # leader pod이 CPU throttling으로 lease 잃은 뒤 재캠페인 deadlock에 빠지는
+  # zombie 패턴 (PR: fix(minio-operator) 참조)이 재발해도 다른 replica가
+  # 60s 내 lease 인수 → tenant 운영 무중단.
+  replicaCount: 2
+
+  # 차트 7.1.1 default antiaffinity는 `name=minio-operator` 라벨을 찾는데
+  # 실제 pod 라벨은 `app.kubernetes.io/name=operator` → 매칭 안 됨 → 두 replica가
+  # 같은 노드에 떨어질 수 있음. selector를 실제 라벨에 맞춰 override.
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - operator
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                  - minio-operator
+          topologyKey: kubernetes.io/hostname
+
   resources:
     requests:
       cpu: 50m
       memory: 128Mi
       ephemeral-storage: 500Mi
     limits:
-      cpu: 500m
+      # CFS throttling이 lease renewal (15s window in 60s lease) timeout을 유발하면
+      # leader-lost callback 후 goroutine deadlock → zombie pod. RSS는 ~25Mi라
+      # CPU 여유만 있으면 trigger 빈도 크게 감소. v7.1.1 binary는 health endpoint를
+      # 노출하지 않아 livenessProbe로 zombie 자동 감지 불가 — replicas=2 failover +
+      # PrometheusRule `MinIOOperatorLeaseStale` 알림으로 대응.
+      cpu: "1"
       memory: 256Mi
