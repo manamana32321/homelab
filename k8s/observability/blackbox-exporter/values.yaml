@@ -87,9 +87,7 @@ serviceMonitor:
     - name: seafile
       url: http://seafile.seafile.svc.cluster.local
       module: http_2xx_no_tls
-    - name: home-assistant
-      url: http://home-assistant.home-assistant.svc.cluster.local:8080
-      module: http_2xx_no_tls
+    # home-assistant: replicaCount 0 (PR #84b4125, 2026-05-23 인시던트 후속) — startupProbe 추가 + 부활 시 복원
     - name: k8s-dashboard
       url: http://headlamp.headlamp.svc.cluster.local
       module: http_2xx_no_tls
