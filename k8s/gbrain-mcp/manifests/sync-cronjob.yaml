@@ -9,11 +9,15 @@ spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   concurrencyPolicy: Forbid         # never overlap
+  startingDeadlineSeconds: 300      # skip schedule if not started within 5m (prevents stuck-job cascade)
   jobTemplate:
     spec:
+      activeDeadlineSeconds: 1800   # kill job after 30m (normal sync finishes in ~17m)
       template:
         spec:
           restartPolicy: OnFailure
+          nodeSelector:
+            kubernetes.io/arch: amd64   # image is amd64-only; raspi-1 (arm64) would ImagePullBackOff
           containers:
             - name: sync
               image: ghcr.io/manamana32321/gbrain-mcp:latest
