@@ -32,3 +32,35 @@ data:
         attrs:
           sources:
             - !Find [authentik_sources_oauth.oauthsource, [slug, github]]
+
+      # Expression Policy: GitHub OAuth source 경유 enrollment 시 user.type=internal 부여.
+      # skku-amang org 검증은 app-level policy(cloudbeaver/longhorn/health-hub/loop)에서
+      # 별도 처리 — 여기서는 type 부여만, 권한 검증은 앱 레이어에서 (Separation of Concerns).
+      - model: authentik_policies_expression.expressionpolicy
+        state: present
+        identifiers:
+          name: github-oauth-enrollment-internal-grant
+        attrs:
+          name: github-oauth-enrollment-internal-grant
+          expression: |
+            source = request.context.get("source")
+            if source is not None and getattr(source, "slug", "") == "github":
+                request.context.setdefault("prompt_data", {})["type"] = "internal"
+                login = request.context.get("oauth_userinfo", {}).get("login", "?")
+                ak_logger.info(f"granted internal type to github oauth user: {login}")
+            return True
+
+      # default-source-enrollment flow에 binding — user_write stage 이전에 평가되어
+      # prompt_data["type"]가 영속화됨.
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_flows.flow, [slug, default-source-enrollment]]
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, github-oauth-enrollment-internal-grant]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
