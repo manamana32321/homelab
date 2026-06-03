@@ -1,6 +1,23 @@
 container_runtime: containerd
 
 agent:
+  # Run as a single Deployment co-located with Traefik (podAffinity) instead of a
+  # per-node DaemonSet. The agent's only job is reading Traefik access logs, and
+  # Traefik runs on exactly one node. A DaemonSet also placed agents on raspi-1/j1
+  # where there are no Traefik logs to read — pure overhead — and their stable pod
+  # names caused a permanent `cscli lapi register: user already exist` crashloop
+  # after restarts wiped the emptyDir credentials (LAPI machine DB persists on PV).
+  # podAffinity makes the single agent follow Traefik wherever it is scheduled.
+  isDeployment: true
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+          namespaces:
+            - kube-system
+          topologyKey: kubernetes.io/hostname
   acquisition:
     - namespace: kube-system
       podName: traefik-*
