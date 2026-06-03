@@ -2,8 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: amang-api-production
 resources:
-  # ../../base 일시 제거 — PR #236 후속 PVC 마이그레이션 동안 Tenant CR을 GitOps로 비워야 함.
-  # 작업 종료 직후 PR로 복원. 자세한 경위는 PR 본문 참조.
+  - ../../base
   - sealed-secret.yaml
   - sealed-secret-s3-credentials.yaml
   - ingress.yaml
