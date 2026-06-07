@@ -13,6 +13,10 @@ spec:
       labels:
         app: health-hub
     spec:
+      # health-hub 이미지는 amd64-only — raspi-1(arm64) 배치 시 exec format error로
+      # crashloop. 롤아웃 때 스케줄러가 raspi-1에 올려 노출됨 (#248 동일 패턴)
+      nodeSelector:
+        kubernetes.io/arch: amd64
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
