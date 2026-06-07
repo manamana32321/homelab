@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: basic-memory
+  namespace: argocd
+  annotations:
+    # Pin to digest via Image Updater (public image from basicmachines-co — no auth needed).
+    # PoC: track latest tag and roll forward. Stabilize → switch to `semver` strategy with allow-tags pattern.
+    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/basicmachines-co/basic-memory:latest
+    argocd-image-updater.argoproj.io/app.update-strategy: digest
+    argocd-image-updater.argoproj.io/app.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/basic-memory/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: basic-memory
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

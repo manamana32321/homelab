@@ -1,0 +1,30 @@
+---
+# Bearer auth handled by caddy sidecar (Authorization: Bearer <MCP_AUTH_TOKEN>)
+# TLS via cert-manager DNS01 (Cloudflare API).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: basic-memory
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/part-of: brain
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: bm.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: basic-memory
+                port:
+                  number: 80
+  tls:
+    - secretName: basic-memory-tls
+      hosts:
+        - bm.json-server.win

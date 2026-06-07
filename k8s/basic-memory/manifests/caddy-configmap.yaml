@@ -1,0 +1,36 @@
+---
+# Bearer auth gate in front of Basic Memory MCP SSE endpoint.
+# Mirrors gbrain-mcp pattern — keep behavior consistent so client config is interchangeable.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: basic-memory-caddy
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/part-of: brain
+data:
+  Caddyfile: |
+    {
+      auto_https off
+      admin off
+    }
+
+    :80 {
+      handle /healthz {
+        respond "ok" 200
+      }
+
+      @authorized header Authorization "Bearer {env.MCP_AUTH_TOKEN}"
+      handle @authorized {
+        reverse_proxy localhost:8000 {
+          flush_interval -1
+          transport http {
+            read_timeout 24h
+          }
+        }
+      }
+
+      handle {
+        respond "unauthorized" 401
+      }
+    }
