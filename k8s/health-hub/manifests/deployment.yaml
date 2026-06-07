@@ -20,6 +20,31 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        # timescaledb가 뜨고 DNS가 풀릴 때까지 대기 — 재부팅/DB 재시작 시
+        # 앱이 DB 연결 실패로 Exit 1 crashloop 도는 startup ordering 문제 차단
+        - name: wait-for-db
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z timescaledb 5432; do
+                echo "waiting for timescaledb:5432..."
+                sleep 2
+              done
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
       containers:
         - name: health-hub
           image: ghcr.io/manamana32321/health-hub:latest
@@ -66,8 +91,10 @@ spec:
             httpGet:
               path: /healthz
               port: http
-            initialDelaySeconds: 5
-            periodSeconds: 15
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /healthz
