@@ -47,7 +47,7 @@ minecraftServer:
   onlineMode: true
   # 화이트리스트 — 등록된 친구만 접속 (그리퍼 차단). WHITELIST env → whitelist.json 동기화.
   # 친구 추가 시 이 줄에 쉼표로 닉네임 추가 후 PR. git이 SSOT.
-  whitelist: "EddieDawn,Dinudi,JinuStar0"
+  whitelist: "EddieDawn,Dinudi,JinuStar0,SEOM"
   # k3s ServiceLB(klipper)가 노드 호스트의 25565를 직접 바인딩 → 공유기 포트포워딩 1:1
   serviceType: LoadBalancer
   servicePort: 25565
