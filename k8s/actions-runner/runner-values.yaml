@@ -16,10 +16,11 @@ maxRunners: 4
 
 template:
   spec:
-    # amd64 전용 (json-server). raspi-1(arm64) 회피 — lychee 등 도구의 arm 바이너리
-    # 다운 실패→nightly fallback(docs-lint file:// 오탐) 방지.
+    # amd64 worker 전용 = json-server-2. control-plane(json-server-1, taint 없어 워크로드
+    # 받음) 제외 — 러너 부하가 etcd/apiserver 굶기는 사고 방지. raspi-1(arm64)도 arch 로 제외.
     nodeSelector:
       kubernetes.io/arch: amd64
+      node-role.kubernetes.io/worker: "true"
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
