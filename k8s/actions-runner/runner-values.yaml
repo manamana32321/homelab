@@ -1,6 +1,6 @@
-# ARC Runner Scale Set — morton 레포 전용 러너
+# ARC Runner Scale Set — bconnect 레포 전용 러너
 # GitHub App 인증 → SealedSecret으로 관리 (github-app-secret)
-githubConfigUrl: "https://github.com/mortonCareer/morton"
+githubConfigUrl: "https://github.com/mortonCareer/bconnect"
 githubConfigSecret: github-app-secret
 
 controllerServiceAccount:
@@ -9,7 +9,12 @@ controllerServiceAccount:
 
 # scale-from-zero: 워크플로우 대기 중일 때만 Pod 생성
 minRunners: 0
-maxRunners: 2
+maxRunners: 4
+
+# BE CI(ci-api/ci-api-spec)가 Testcontainers-postgresql 사용 → Docker daemon 필요.
+# dind: 러너 Pod에 docker-in-docker 사이드카 + DOCKER_HOST 자동 주입.
+containerMode:
+  type: "dind"
 
 template:
   spec:
@@ -19,8 +24,8 @@ template:
         command: ["/home/runner/run.sh"]
         resources:
           limits:
-            cpu: "1"
-            memory: 2Gi
+            cpu: "2"
+            memory: 4Gi
           requests:
             cpu: 250m
             memory: 512Mi
