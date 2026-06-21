@@ -1,8 +1,8 @@
-# ARC Runner Scale Set — bconnect LIGHT 러너 (docker 불필요 잡: FE/docs/format/packages/crawler)
-# BE gradle(Testcontainers) 은 dind 경합 회피 위해 morton-runner-dind 별도 셋 사용.
-# githubConfigUrl은 canonical 이름(bconnect) 필수 — 내부 actions/runner-registration
-# 엔드포인트는 repo rename redirect를 안 따라가므로 옛 이름(morton)으론 fresh 등록 시 404.
-# GitHub App 인증 → SealedSecret으로 관리 (github-app-secret)
+# ARC Runner Scale Set — bconnect kiscon-sync 전용 러너
+# CI 는 GitHub-hosted 로 환원(self-hosted 미사용). 이 러너는 kiscon-sync.yml 만 사용.
+# githubConfigUrl 은 canonical bconnect 필수 — 내부 actions/runner-registration 이 repo
+# rename redirect 를 안 따라가므로 옛 morton URL 로는 fresh 등록 시 404.
+# GitHub App 인증 → SealedSecret (github-app-secret).
 githubConfigUrl: "https://github.com/mortonCareer/bconnect"
 githubConfigSecret: github-app-secret
 
@@ -10,14 +10,14 @@ controllerServiceAccount:
   name: arc-controller-gha-rs-controller
   namespace: actions-runner
 
-# scale-from-zero: 워크플로우 대기 중일 때만 Pod 생성
+# scale-from-zero
 minRunners: 0
-maxRunners: 4
+maxRunners: 2
 
 template:
   spec:
-    # amd64 worker 전용 = json-server-2. control-plane(json-server-1, taint 없어 워크로드
-    # 받음) 제외 — 러너 부하가 etcd/apiserver 굶기는 사고 방지. raspi-1(arm64)도 arch 로 제외.
+    # 무거운 잡이 아니어도 control-plane(json-server-1, taint 없음) 회피는 유지
+    # — 2026-06-21 인시던트 재발방지 안전망.
     nodeSelector:
       kubernetes.io/arch: amd64
       node-role.kubernetes.io/worker: "true"
@@ -27,8 +27,8 @@ template:
         command: ["/home/runner/run.sh"]
         resources:
           limits:
-            cpu: "2"
-            memory: 4Gi
+            cpu: "1"
+            memory: 2Gi
           requests:
             cpu: 250m
             memory: 512Mi
