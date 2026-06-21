@@ -1,8 +1,8 @@
-# ARC Runner Scale Set — bconnect(구 morton) 레포 전용 러너
-# githubConfigUrl은 등록 시점 URL(morton) 유지 필수 — scale set은 등록 config URL 스코프로
-# 키잉되므로 bconnect로 바꾸면 stored scaleSetId(1)가 404 → 재등록 필요. rename redirect로 작동.
+# ARC Runner Scale Set — bconnect 레포 전용 러너
+# githubConfigUrl은 canonical 이름(bconnect) 필수 — 내부 actions/runner-registration
+# 엔드포인트는 repo rename redirect를 안 따라가므로 옛 이름(morton)으론 fresh 등록 시 404.
 # GitHub App 인증 → SealedSecret으로 관리 (github-app-secret)
-githubConfigUrl: "https://github.com/mortonCareer/morton"
+githubConfigUrl: "https://github.com/mortonCareer/bconnect"
 githubConfigSecret: github-app-secret
 
 controllerServiceAccount:
