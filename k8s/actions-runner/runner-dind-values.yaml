@@ -1,0 +1,43 @@
+# ARC Runner Scale Set — bconnect DIND 러너 (docker-in-docker)
+# BE gradle 잡(ci-api/ci-api-spec)의 Testcontainers-postgresql 전용. workflow 에서
+# runs-on: morton-runner-dind 로 지정. 나머지 잡은 light morton-runner 사용.
+# githubConfigSecret 은 morton-runner 와 동일 SealedSecret(github-app-secret) 공유.
+githubConfigUrl: "https://github.com/mortonCareer/bconnect"
+githubConfigSecret: github-app-secret
+
+controllerServiceAccount:
+  name: arc-controller-gha-rs-controller
+  namespace: actions-runner
+
+# scale-from-zero. BE 잡은 2개(ci-api/ci-api-spec) → maxRunners 2 로 동시 dind 경합 억제.
+minRunners: 0
+maxRunners: 2
+
+# BE Testcontainers-postgresql → Docker daemon 필요. dind 사이드카 + DOCKER_HOST 자동 주입.
+containerMode:
+  type: "dind"
+
+template:
+  spec:
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    # dind 러너가 한 노드에 몰리면 containerd 동시 기동 경합 → 타임아웃 크래시.
+    # 노드별로 분산해 per-node dind 부하 완화 (soft: 불가 시 그래도 스케줄).
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            actions.github.com/scale-set-name: morton-runner-dind
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["/home/runner/run.sh"]
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi

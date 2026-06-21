@@ -1,4 +1,5 @@
-# ARC Runner Scale Set — bconnect 레포 전용 러너
+# ARC Runner Scale Set — bconnect LIGHT 러너 (docker 불필요 잡: FE/docs/format/packages/crawler)
+# BE gradle(Testcontainers) 은 dind 경합 회피 위해 morton-runner-dind 별도 셋 사용.
 # githubConfigUrl은 canonical 이름(bconnect) 필수 — 내부 actions/runner-registration
 # 엔드포인트는 repo rename redirect를 안 따라가므로 옛 이름(morton)으론 fresh 등록 시 404.
 # GitHub App 인증 → SealedSecret으로 관리 (github-app-secret)
@@ -13,15 +14,10 @@ controllerServiceAccount:
 minRunners: 0
 maxRunners: 4
 
-# BE CI(ci-api/ci-api-spec)가 Testcontainers-postgresql 사용 → Docker daemon 필요.
-# dind: 러너 Pod에 docker-in-docker 사이드카 + DOCKER_HOST 자동 주입.
-containerMode:
-  type: "dind"
-
 template:
   spec:
-    # amd64 전용 (json-server). raspi-1(arm64) 회피 — gradle+dind 메모리(8GB OOM) +
-    # lychee 등 도구의 arm 바이너리 다운 실패→nightly fallback(docs-lint file:// 오탐) 방지.
+    # amd64 전용 (json-server). raspi-1(arm64) 회피 — lychee 등 도구의 arm 바이너리
+    # 다운 실패→nightly fallback(docs-lint file:// 오탐) 방지.
     nodeSelector:
       kubernetes.io/arch: amd64
     containers:
