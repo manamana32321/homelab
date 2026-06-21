@@ -20,6 +20,10 @@ containerMode:
 
 template:
   spec:
+    # amd64 전용 (json-server). raspi-1(arm64) 회피 — gradle+dind 메모리(8GB OOM) +
+    # lychee 등 도구의 arm 바이너리 다운 실패→nightly fallback(docs-lint file:// 오탐) 방지.
+    nodeSelector:
+      kubernetes.io/arch: amd64
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
