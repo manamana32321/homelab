@@ -1,0 +1,181 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basic-memory
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/part-of: brain
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: basic-memory
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: basic-memory
+        app.kubernetes.io/part-of: brain
+    spec:
+      initContainers:
+        # Initial clone of brain repo into emptyDir.
+        # Subsequent updates handled by the git-pull sidecar below.
+        - name: git-clone
+          image: alpine/git:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -eo pipefail
+              if [ -d /brain/.git ]; then
+                cd /brain && git pull --ff-only
+              else
+                rm -rf /brain/* /brain/.[!.]* 2>/dev/null || true
+                git clone --depth 1 \
+                  "https://x-access-token:${GH_PAT}@github.com/manamana32321/brain.git" \
+                  /brain
+              fi
+          env:
+            - name: GH_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: basic-memory-github
+                  key: GH_PAT
+          volumeMounts:
+            - name: brain
+              mountPath: /brain
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      containers:
+        # Background git pull every 5 minutes (PAT embedded in remote URL by init clone).
+        # Basic Memory's WatchService detects file changes and re-indexes incrementally.
+        - name: git-pull
+          image: alpine/git:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -eo pipefail
+              while true; do
+                sleep 300
+                cd /brain && git pull --ff-only 2>&1 \
+                  || echo "[git-pull] pull failed at $(date -Iseconds), retrying next cycle"
+              done
+          volumeMounts:
+            - name: brain
+              mountPath: /brain
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        # Main: Basic Memory MCP server (SSE on :8000)
+        # Image is public (ghcr.io/basicmachines-co/basic-memory) — no Image Updater needed.
+        # Pin a digest in PoC follow-up once verified.
+        - name: basic-memory
+          image: ghcr.io/basicmachines-co/basic-memory:latest
+          imagePullPolicy: Always
+          env:
+            - name: BASIC_MEMORY_DEFAULT_PROJECT
+              value: brain
+            - name: BASIC_MEMORY_SYNC_CHANGES
+              value: "true"
+            - name: BASIC_MEMORY_SYNC_DELAY
+              value: "2000"
+            - name: BASIC_MEMORY_LOG_LEVEL
+              value: INFO
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              # Wait for /brain to be populated by init container
+              until [ -d /brain/.git ]; do
+                echo "[basic-memory] Waiting for /brain to be populated..."
+                sleep 2
+              done
+              # Idempotent project registration → SSOT path
+              basic-memory project add brain /brain 2>/dev/null || true
+              basic-memory project default brain
+              # Initial index sync (no-op if already current)
+              basic-memory sync --project brain || true
+              # Start MCP SSE server
+              exec basic-memory mcp --transport sse --host 0.0.0.0 --port 8000
+          ports:
+            - containerPort: 8000
+              name: sse
+          volumeMounts:
+            - name: brain
+              mountPath: /brain
+            - name: data
+              mountPath: /home/appuser/.basic-memory
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+        # Sidecar: caddy reverse proxy with Bearer auth (mirrors gbrain-mcp pattern)
+        - name: caddy
+          image: caddy:2-alpine
+          command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+          env:
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: basic-memory-auth
+                  key: MCP_AUTH_TOKEN
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /etc/caddy
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+      volumes:
+        - name: brain
+          emptyDir: {}
+        - name: data
+          persistentVolumeClaim:
+            claimName: basic-memory-data
+        - name: caddy-config
+          configMap:
+            name: basic-memory-caddy

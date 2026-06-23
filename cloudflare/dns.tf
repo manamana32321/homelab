@@ -331,6 +331,16 @@ resource "cloudflare_record" "gbrain" {
   comment = "gbrain HTTP MCP — Bearer auth (caddy sidecar), Cloudflare proxied"
 }
 
+# Basic Memory MCP — PoC alternative to gbrain. Runs in parallel until validated.
+resource "cloudflare_record" "basic_memory" {
+  zone_id = cloudflare_zone.main.id
+  name    = "bm"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Basic Memory MCP (PoC) — Bearer auth (caddy sidecar), Cloudflare proxied"
+}
+
 # LearningX MCP 마케팅 landing. Cloudflare Pages 정적 사이트에서 essentia-web
 # ingress로 이전 (essentia-edu/essentia#83). apps/web의 (marketing)/learningx
 # route를 host-based rewrite로 서빙 — essentia-web ingress가 이 host를 받는다.

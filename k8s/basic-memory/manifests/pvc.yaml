@@ -1,0 +1,17 @@
+---
+# Persistent storage for Basic Memory SQLite index + .basic-memory/config.json
+# Sized for ~1000 markdown notes; FastEmbed embedding cache adds ~200MB.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: basic-memory-data
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/part-of: brain
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-ssd
+  resources:
+    requests:
+      storage: 5Gi
