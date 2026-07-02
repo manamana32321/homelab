@@ -245,3 +245,21 @@ spec:
           annotations:
             summary: "minio-operator leader lease 5분+ stale"
             description: "lease {{ $labels.namespace }}/{{ $labels.lease }}이 {{ $value | humanizeDuration }} 동안 갱신 안 됨. replicas=2 failover가 작동하지 않은 경우. zombie pod 확인 후 `kubectl -n minio-operator rollout restart deploy/minio-operator`."
+
+    # gbrain-sync cron 신선도 감지 — git(brain repo) → Postgres 인덱스 동기화가
+    # 지속적으로 실패하면 brain 검색 결과가 stale해진다.
+    # kube-prometheus-stack의 KubeJobFailed는 잡 오브젝트 존재로 발화해 일시적
+    # 실패에도 잔재 알림이 남는다(→ CronJob failedJobsHistoryLimit=0으로 소스 차단).
+    # 대신 "마지막 성공 이후 경과 시간"으로 지속 장애만 잡고 성공 시 자동 해소.
+    # 정상 cadence 주의: sync ~17분 + concurrencyPolicy=Forbid → 성공 완료 간격이
+    # ~20분으로 벌어지므로 임계를 넉넉히(1h) 잡아 false positive를 피한다.
+    - name: gbrain
+      rules:
+        - alert: GbrainSyncStale
+          expr: (time() - kube_cronjob_status_last_successful_time{cronjob="gbrain-sync"}) > 3600
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "gbrain-sync 1시간+ 성공 없음"
+            description: "gbrain-sync cron이 {{ $value | humanizeDuration }} 동안 성공하지 못함. brain 인덱스가 stale해지는 중. `kubectl -n gbrain get jobs`로 최근 실패 확인 후 로그(`kubectl -n gbrain logs job/<name>`) 점검."

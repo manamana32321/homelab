@@ -7,7 +7,11 @@ metadata:
 spec:
   schedule: "*/5 * * * *"          # every 5 minutes
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  # 0: 실패 잡 오브젝트를 남기지 않는다. kube-prometheus-stack의 KubeJobFailed는
+  # kube_job_failed>0 (= 실패 잡 오브젝트 존재)로 발화하는데, 5분 cron의 일시적
+  # 실패가 남긴 잡이 새 실패로 rotate되거나 수동 삭제될 때까지 알림이 안 꺼져 nuisance가 된다.
+  # 지속 장애 감지는 alert-rules.yaml의 GbrainSyncStale(last_successful_time 신선도)이 담당.
+  failedJobsHistoryLimit: 0
   concurrencyPolicy: Forbid         # never overlap
   startingDeadlineSeconds: 300      # skip schedule if not started within 5m (prevents stuck-job cascade)
   jobTemplate:
