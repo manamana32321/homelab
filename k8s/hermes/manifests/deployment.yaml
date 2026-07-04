@@ -1,0 +1,176 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app.kubernetes.io/name: hermes
+    app.kubernetes.io/part-of: hermes
+spec:
+  replicas: 1
+  # RWO PVC shared by both containers → single node, no rolling.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hermes
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: hermes
+        app.kubernetes.io/part-of: hermes
+    spec:
+      # Hermes user is uid/gid 10000; fsGroup makes the PVC group-writable.
+      securityContext:
+        fsGroup: 10000
+
+      initContainers:
+        # Seed-if-absent: copy the default config onto the PVC ONLY on first
+        # boot. On restart it already exists → skipped, so Hermes' migrated
+        # live config (schema bumps, curator defaults) is never clobbered.
+        # The Claude credential is NOT seeded as a file — it is injected as the
+        # ANTHROPIC_TOKEN env var below (sk-ant-oat subscription token).
+        - name: seed
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              if [ ! -f /opt/data/config.yaml ]; then
+                echo "seeding config.yaml (first boot)"
+                cp /seed-config/config.yaml /opt/data/config.yaml
+                chown 10000:10000 /opt/data/config.yaml
+              else
+                echo "config.yaml present — skip (preserve live config)"
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: seed-config
+              mountPath: /seed-config
+              readOnly: true
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+      containers:
+        # Messaging gateway (Telegram long-poll, outbound) + OpenAI-compat API :8642
+        - name: gateway
+          image: nousresearch/hermes-agent:v2026.6.5
+          args: ["gateway", "run"]
+          env:
+            - name: HERMES_UID
+              value: "10000"
+            - name: HERMES_GID
+              value: "10000"
+            # Claude subscription OAuth token (sk-ant-oat) — NOT a metered key.
+            # ANTHROPIC_API_KEY is intentionally left unset.
+            - name: ANTHROPIC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: ANTHROPIC_TOKEN
+            # Telegram deferred to a follow-up PR (needs a revoked/fresh bot
+            # token). optional=true → gateway runs without it now; adding the
+            # sealed TELEGRAM_BOT_TOKEN key later + restart enables the gateway.
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: TELEGRAM_BOT_TOKEN
+                  optional: true
+            - name: HERMES_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: HERMES_ADMIN_USERNAME
+            - name: HERMES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: HERMES_ADMIN_PASSWORD
+          ports:
+            - containerPort: 8642
+              name: api
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+          livenessProbe:
+            tcpSocket:
+              port: api
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: api
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+
+        # Admin dashboard :9119 (gated by Authentik forward-auth at the Ingress)
+        - name: dashboard
+          image: nousresearch/hermes-agent:v2026.6.5
+          args: ["dashboard", "--host", "0.0.0.0", "--port", "9119", "--no-open"]
+          env:
+            - name: HERMES_UID
+              value: "10000"
+            - name: HERMES_GID
+              value: "10000"
+            - name: ANTHROPIC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: ANTHROPIC_TOKEN
+            - name: HERMES_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: HERMES_ADMIN_USERNAME
+            - name: HERMES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: HERMES_ADMIN_PASSWORD
+          ports:
+            - containerPort: 9119
+              name: dashboard
+          livenessProbe:
+            tcpSocket:
+              port: dashboard
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: dashboard
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-data
+        - name: seed-config
+          configMap:
+            name: hermes-config
