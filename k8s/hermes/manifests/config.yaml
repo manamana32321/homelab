@@ -1,0 +1,17 @@
+# Hermes Agent seed config — copied to /opt/data/config.yaml by the seed
+# initContainer ONLY if that file does not already exist. After first boot
+# Hermes owns the live file on the PVC; edits here do NOT overwrite it.
+# To change live settings, use the dashboard or `hermes config` in the pod.
+model:
+  # Claude Max via OAuth (provider: anthropic + ~/.claude/.credentials.json,
+  # NO ANTHROPIC_API_KEY env → uses subscription OAuth, not metered API).
+  provider: anthropic
+  default: claude-sonnet-4-6
+terminal:
+  # local = agent shell runs INSIDE this pod (the pod is the sandbox).
+  # docker backend would need docker-in-docker → avoided in K8s.
+  backend: local
+  timeout: 180
+memory:
+  memory_enabled: true
+  user_profile_enabled: true

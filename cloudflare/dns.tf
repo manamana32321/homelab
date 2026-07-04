@@ -75,6 +75,15 @@ resource "cloudflare_record" "db" {
   comment = "CloudBeaver DB admin"
 }
 
+resource "cloudflare_record" "hermes" {
+  zone_id = cloudflare_zone.main.id
+  name    = "hermes"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Hermes Agent admin dashboard (Authentik forward-auth)"
+}
+
 resource "cloudflare_record" "minecraft" {
   zone_id = cloudflare_zone.main.id
   name    = "mc"
