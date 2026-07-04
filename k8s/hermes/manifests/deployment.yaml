@@ -29,7 +29,8 @@ spec:
         # boot. On restart it already exists → skipped, so Hermes' migrated
         # live config (schema bumps, curator defaults) is never clobbered.
         # The Claude credential is NOT seeded as a file — it is injected as the
-        # ANTHROPIC_TOKEN env var below (sk-ant-oat subscription token).
+        # CLAUDE_CODE_OAUTH_TOKEN env var below (sk-ant-oat subscription token
+        # from `claude setup-token`; canonical env name → correct OAuth framing).
         - name: seed
           image: busybox:1.37
           command:
@@ -70,11 +71,11 @@ spec:
               value: "10000"
             # Claude subscription OAuth token (sk-ant-oat) — NOT a metered key.
             # ANTHROPIC_API_KEY is intentionally left unset.
-            - name: ANTHROPIC_TOKEN
+            - name: CLAUDE_CODE_OAUTH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: hermes-secrets
-                  key: ANTHROPIC_TOKEN
+                  key: CLAUDE_CODE_OAUTH_TOKEN
             # OpenAI-compat API server: keeps `gateway run` alive (it otherwise
             # exits when no messaging platform is enabled) AND serves inference
             # on :8642 (ClusterIP-internal, key-protected) — proves subscription
@@ -134,11 +135,11 @@ spec:
               value: "10000"
             - name: HERMES_GID
               value: "10000"
-            - name: ANTHROPIC_TOKEN
+            - name: CLAUDE_CODE_OAUTH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: hermes-secrets
-                  key: ANTHROPIC_TOKEN
+                  key: CLAUDE_CODE_OAUTH_TOKEN
             # Dashboard binds 0.0.0.0 → Hermes requires a DashboardAuthProvider
             # (the `basic` plugin). These are the real vars (HERMES_ADMIN_* are
             # not used by the dashboard). Defense-in-depth under Authentik.
