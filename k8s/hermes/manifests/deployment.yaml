@@ -75,6 +75,19 @@ spec:
                 secretKeyRef:
                   name: hermes-secrets
                   key: ANTHROPIC_TOKEN
+            # OpenAI-compat API server: keeps `gateway run` alive (it otherwise
+            # exits when no messaging platform is enabled) AND serves inference
+            # on :8642 (ClusterIP-internal, key-protected) — proves subscription
+            # OAuth works via curl without needing a messenger.
+            - name: API_SERVER_ENABLED
+              value: "true"
+            - name: API_SERVER_HOST
+              value: "0.0.0.0"
+            - name: API_SERVER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: API_SERVER_KEY
             # Telegram deferred to a follow-up PR (needs a revoked/fresh bot
             # token). optional=true → gateway runs without it now; adding the
             # sealed TELEGRAM_BOT_TOKEN key later + restart enables the gateway.
@@ -84,34 +97,26 @@ spec:
                   name: hermes-secrets
                   key: TELEGRAM_BOT_TOKEN
                   optional: true
-            - name: HERMES_ADMIN_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-secrets
-                  key: HERMES_ADMIN_USERNAME
-            - name: HERMES_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-secrets
-                  key: HERMES_ADMIN_PASSWORD
           ports:
             - containerPort: 8642
               name: api
           volumeMounts:
             - name: data
               mountPath: /opt/data
+          # Skills sync + config migration run in cont-init on every boot (~30-60s)
+          # before the API server binds → generous initial delays.
           livenessProbe:
             tcpSocket:
               port: api
-            initialDelaySeconds: 60
+            initialDelaySeconds: 150
             periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: api
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 6
           resources:
             requests:
               cpu: 250m
@@ -134,31 +139,40 @@ spec:
                 secretKeyRef:
                   name: hermes-secrets
                   key: ANTHROPIC_TOKEN
-            - name: HERMES_ADMIN_USERNAME
+            # Dashboard binds 0.0.0.0 → Hermes requires a DashboardAuthProvider
+            # (the `basic` plugin). These are the real vars (HERMES_ADMIN_* are
+            # not used by the dashboard). Defense-in-depth under Authentik.
+            - name: HERMES_DASHBOARD_BASIC_AUTH_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: hermes-secrets
                   key: HERMES_ADMIN_USERNAME
-            - name: HERMES_ADMIN_PASSWORD
+            - name: HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: hermes-secrets
                   key: HERMES_ADMIN_PASSWORD
+            # Token-signing key → stable sessions across restarts.
+            - name: HERMES_DASHBOARD_BASIC_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: HERMES_DASHBOARD_BASIC_AUTH_SECRET
           ports:
             - containerPort: 9119
               name: dashboard
           livenessProbe:
             tcpSocket:
               port: dashboard
-            initialDelaySeconds: 60
+            initialDelaySeconds: 150
             periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: dashboard
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 6
           resources:
             requests:
               cpu: 50m
