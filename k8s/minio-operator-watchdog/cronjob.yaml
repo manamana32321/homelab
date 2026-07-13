@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: minio-operator-watchdog
+  namespace: minio-operator
+  labels:
+    app.kubernetes.io/name: minio-operator-watchdog
+    app.kubernetes.io/part-of: minio-operator
+spec:
+  # 알림 임계(MinIOOperatorLeaseStale, 5m)와 정렬. 감지 후 다음 tick에 복구.
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 120
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      ttlSecondsAfterFinished: 600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: minio-operator-watchdog
+        spec:
+          serviceAccountName: minio-operator-watchdog
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: watchdog
+              image: alpine/k8s:1.34.5
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+
+                  LEASE=minio-operator-lock
+                  DEPLOY=minio-operator
+                  NS=minio-operator
+                  THRESHOLD=300  # 초. 알림 임계와 동일
+
+                  renew=$(kubectl -n "$NS" get lease "$LEASE" \
+                    -o jsonpath='{.spec.renewTime}')
+                  if [ -z "$renew" ]; then
+                    echo "lease $LEASE renewTime 비어있음 — 스킵"
+                    exit 0
+                  fi
+
+                  # 2026-07-10T02:10:43.708810Z → 2026-07-10 02:10:43
+                  # (소수초·T·Z 제거 → busybox/GNU date 양쪽 파싱 안전)
+                  clean=$(echo "$renew" | sed 's/\.[0-9]*Z$//; s/Z$//; s/T/ /')
+                  renew_epoch=$(date -u -d "$clean" +%s)
+                  now_epoch=$(date -u +%s)
+                  age=$(( now_epoch - renew_epoch ))
+                  echo "lease age: ${age}s (threshold ${THRESHOLD}s)"
+
+                  if [ "$age" -le "$THRESHOLD" ]; then
+                    echo "fresh — 조치 없음"
+                    exit 0
+                  fi
+
+                  echo "STALE — operator leader wedge 추정, rollout restart 실행"
+                  kubectl -n "$NS" rollout restart "deployment/$DEPLOY"
+                  echo "restart 트리거 완료"
