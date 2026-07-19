@@ -1,5 +1,6 @@
-# ARC Runner Scale Set — bconnect kiscon-sync 전용 러너
-# CI 는 GitHub-hosted 로 환원(self-hosted 미사용). 이 러너는 kiscon-sync.yml 만 사용.
+# ARC Runner Scale Set — bconnect CI + kiscon-sync 러너
+# GitHub Actions 유료분 소진 대응으로 CI 를 self-hosted 로 회귀 (CEO 제안).
+# self-hosted 러너는 hosted 분 quota/spending-limit 대상이 아니라 청구 막혀도 계속 돎.
 # githubConfigUrl 은 canonical bconnect 필수 — 내부 actions/runner-registration 이 repo
 # rename redirect 를 안 따라가므로 옛 morton URL 로는 fresh 등록 시 404.
 # GitHub App 인증 → SealedSecret (github-app-secret).
@@ -10,9 +11,16 @@ controllerServiceAccount:
   name: arc-controller-gha-rs-controller
   namespace: actions-runner
 
-# scale-from-zero
+# dind — ci-api 가 Testcontainers(postgresql) 사용 → gradle build 시 docker daemon 필요.
+# chart 가 privileged dind sidecar 주입 + runner 에 DOCKER_HOST/소켓 마운트 배선.
+# k3s 는 PSP 없어 privileged 허용.
+containerMode:
+  type: "dind"
+
+# scale-from-zero. maxRunners 는 유일 amd64 워커(json-server-2, 16Gi)의 여유에 맞춤 —
+# CI 7개 잡은 2~3 웨이브로 직렬화. 노드 증설 시 상향.
 minRunners: 0
-maxRunners: 2
+maxRunners: 3
 
 template:
   spec:
@@ -25,10 +33,11 @@ template:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
         command: ["/home/runner/run.sh"]
+        # next build / gradle+testcontainers 피크 대응 상향.
         resources:
           limits:
-            cpu: "1"
-            memory: 2Gi
+            cpu: "2"
+            memory: 4Gi
           requests:
-            cpu: 250m
-            memory: 512Mi
+            cpu: 300m
+            memory: 1Gi
