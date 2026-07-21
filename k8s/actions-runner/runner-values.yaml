@@ -17,18 +17,19 @@ controllerServiceAccount:
 containerMode:
   type: "dind"
 
-# scale-from-zero. maxRunners 는 유일 amd64 워커(json-server-2, 16Gi)의 여유에 맞춤 —
-# CI 7개 잡은 2~3 웨이브로 직렬화. 노드 증설 시 상향.
+# scale-from-zero. maxRunners 는 amd64 노드 2대(json-server-1/2, 각 16Gi)의 실메모리
+# 여유 기준 — minecraft 정지 + loki chunks-cache 비활성으로 확보 (#261).
+# CI 7개 잡이 1~2 웨이브로 돎.
 minRunners: 0
-maxRunners: 3
+maxRunners: 6
 
 template:
   spec:
-    # 무거운 잡이 아니어도 control-plane(json-server-1, taint 없음) 회피는 유지
-    # — 2026-06-21 인시던트 재발방지 안전망.
+    # 2026-07-21 control-plane(json-server-1) 개방 (#261) — 동시성 확대.
+    # 2026-06-21 인시던트 안전망(worker-only, #252)은 러너별 limit(2CPU/4Gi)이 대체.
+    # arm64(raspi-1)는 계속 제외.
     nodeSelector:
       kubernetes.io/arch: amd64
-      node-role.kubernetes.io/worker: "true"
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest

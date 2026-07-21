@@ -1,4 +1,6 @@
-replicaCount: 1
+# 2026-07-21 일시정지 — 최근 접속 없어 json-server-2 메모리를 CI 러너에 양보 (#261).
+# 월드는 longhorn PVC 에 보존. 재개 시 1 로 복원.
+replicaCount: 0
 
 image:
   repository: itzg/minecraft-server
