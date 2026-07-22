@@ -65,13 +65,19 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 1
+      # 30초 recheck 를 포함해도 1분이면 끝난다. 데드라인이 없으면 무언가 매달렸을 때
+      # 조용히 남는다 (loop-migrate 가 정확히 그렇게 됐다, #265).
+      activeDeadlineSeconds: 120
       template:
         spec:
           restartPolicy: Never
           serviceAccountName: minio-operator-reaper
           containers:
             - name: reaper
-              image: rancher/kubectl:v1.34.1
+              # 셸이 필요하다. rancher/kubectl 은 18MB distroless 라 `sh` 가 없어
+              # StartError 로 죽는다 (#264 배포 후 실측). alpine/k8s 는 busybox 셸 +
+              # kubectl 을 포함하고 태그가 클러스터 버전(K3s v1.34.5)과 일치한다.
+              image: alpine/k8s:1.34.5
               command:
                 - sh
                 - -c
