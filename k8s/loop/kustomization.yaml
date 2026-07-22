@@ -22,4 +22,8 @@ resources:
   - web/service.yaml
   - web/deployment.yaml
   - web/ingress.yaml
-  - migrate-job.yaml
+  # 앱 파킹 중에는 제외. PostSync hook 이라 sync 마다 재생성되는데,
+  # initContainer 가 `until pg_isready ...; do sleep 2; done` 로 무한 대기하고
+  # activeDeadlineSeconds 도 없어서 loop-postgres 가 0 replica 인 동안
+  # Init:0/1 파드가 영구히 남는다. 되살릴 때 replicas 블록과 함께 복구.
+  # - migrate-job.yaml
