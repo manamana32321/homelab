@@ -23,6 +23,10 @@ spec:
     # bouncer plugin can read the LAPI key from a file path instead of
     # inlining the plaintext in the Middleware CRD.
     deployment:
+      # HA: 2 replicas so a single node going NotReady cannot leave the
+      # ingress with 0 backends (caused a site-wide Cloudflare 523 on 2026-06-21
+      # when json-server-2 briefly flapped and the lone traefik pod was evicted).
+      replicas: 2
       additionalVolumes:
         - name: crowdsec-bouncer-key
           secret:
@@ -34,3 +38,13 @@ spec:
       - name: crowdsec-bouncer-key
         mountPath: /run/secrets/crowdsec
         readOnly: true
+    # Force the two replicas onto distinct nodes. Required (not preferred) so the
+    # scheduler can never stack both on one node — which would re-create the SPOF.
+    # Satisfiable: 3 nodes, 2 replicas.
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: traefik
+            topologyKey: kubernetes.io/hostname
