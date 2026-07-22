@@ -3,15 +3,18 @@ kind: Application
 metadata:
   name: loop
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/manamana32321/loop-api:latest, web=ghcr.io/manamana32321/loop-web:latest
-    argocd-image-updater.argoproj.io/api.update-strategy: digest
-    argocd-image-updater.argoproj.io/api.force-update: "true"
-    argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:loop/ghcr-pull
-    argocd-image-updater.argoproj.io/web.update-strategy: digest
-    argocd-image-updater.argoproj.io/web.force-update: "true"
-    argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:loop/ghcr-pull
-    argocd-image-updater.argoproj.io/write-back-method: argocd
+  # 앱 전면 정지(k8s/loop/kustomization.yaml)에 맞춰 Image Updater 해제.
+  # 남겨두면 ghcr-pull 의 PAT 가 만료된 상태라 30분마다 tags/list 401 로
+  # ImageUpdaterImageErrors 가 계속 발화한다. 되살릴 때 PAT 재발급 →
+  # ghcr-pull-sealed-secret.yaml 재봉인 → 아래 annotation 복구 순서.
+  #   argocd-image-updater.argoproj.io/image-list: api=ghcr.io/manamana32321/loop-api:latest, web=ghcr.io/manamana32321/loop-web:latest
+  #   argocd-image-updater.argoproj.io/api.update-strategy: digest
+  #   argocd-image-updater.argoproj.io/api.force-update: "true"
+  #   argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:loop/ghcr-pull
+  #   argocd-image-updater.argoproj.io/web.update-strategy: digest
+  #   argocd-image-updater.argoproj.io/web.force-update: "true"
+  #   argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:loop/ghcr-pull
+  #   argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

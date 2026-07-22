@@ -3,17 +3,20 @@ kind: Application
 metadata:
   name: essentia
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: api=ghcr.io/essentia-edu/api:latest, web=ghcr.io/essentia-edu/web:latest, telegram-relay=ghcr.io/manamana32321/essentia-telegram-relay:latest
-    argocd-image-updater.argoproj.io/api.update-strategy: digest
-    argocd-image-updater.argoproj.io/web.update-strategy: digest
-    argocd-image-updater.argoproj.io/telegram-relay.update-strategy: digest
-    argocd-image-updater.argoproj.io/api.force-update: "true"
-    argocd-image-updater.argoproj.io/web.force-update: "true"
-    argocd-image-updater.argoproj.io/telegram-relay.force-update: "true"
-    argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:essentia/ghcr-essentia
-    argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:essentia/ghcr-essentia
-    argocd-image-updater.argoproj.io/write-back-method: argocd
+  # 앱 전면 정지(k8s/essentia/kustomization.yaml)에 맞춰 Image Updater 해제.
+  # 남겨두면 ghcr-essentia 의 PAT 가 만료된 상태라 30분마다 tags/list 401 로
+  # ImageUpdaterImageErrors 가 계속 발화한다. 되살릴 때 PAT 재발급 →
+  # ghcr-pull-sealed-secret.yaml 재봉인 → 아래 annotation 복구 순서.
+  #   argocd-image-updater.argoproj.io/image-list: api=ghcr.io/essentia-edu/api:latest, web=ghcr.io/essentia-edu/web:latest, telegram-relay=ghcr.io/manamana32321/essentia-telegram-relay:latest
+  #   argocd-image-updater.argoproj.io/api.update-strategy: digest
+  #   argocd-image-updater.argoproj.io/web.update-strategy: digest
+  #   argocd-image-updater.argoproj.io/telegram-relay.update-strategy: digest
+  #   argocd-image-updater.argoproj.io/api.force-update: "true"
+  #   argocd-image-updater.argoproj.io/web.force-update: "true"
+  #   argocd-image-updater.argoproj.io/telegram-relay.force-update: "true"
+  #   argocd-image-updater.argoproj.io/api.pull-secret: pullsecret:essentia/ghcr-essentia
+  #   argocd-image-updater.argoproj.io/web.pull-secret: pullsecret:essentia/ghcr-essentia
+  #   argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

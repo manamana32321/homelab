@@ -25,11 +25,29 @@ maxRunners: 6
 
 template:
   spec:
-    # 2026-07-21 control-plane(json-server-1) 개방 (#261) — 동시성 확대.
-    # 2026-06-21 인시던트 안전망(worker-only, #252)은 러너별 limit(2CPU/4Gi)이 대체.
-    # arm64(raspi-1)는 계속 제외.
-    nodeSelector:
-      kubernetes.io/arch: amd64
+    # arm64(raspi-1)는 하드 제외. control-plane(json-server-1)은 #261 에서 개방했으나,
+    # 2026-07-22 인시던트에서 러너 6개가 전량 json-server-1 로 착륙 + 백업 크론 3개 동시
+    # 실행이 겹쳐 node_load1 112 까지 치솟아 apiserver 응답이 지연됐다. 그 여파로
+    # minio-operator 의 leader lease 갱신(15s deadline)이 두 replica 연속 실패.
+    # → worker(json-server-2) 를 선호하고 control-plane 은 오버플로우 전용으로 강등.
+    #   soft preference 라 #261 의 동시성 6 목표는 그대로 유지된다.
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/arch
+                  operator: In
+                  values:
+                    - amd64
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/worker
+                  operator: In
+                  values:
+                    - "true"
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest

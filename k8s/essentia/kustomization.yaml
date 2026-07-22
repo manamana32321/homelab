@@ -1,5 +1,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# 2026-07-22 전면 정지. 사용 빈도가 낮은데 GHCR PAT 만료(2026-07-18)로 Image
+# Updater 만 4일째 에러를 뿜고 있었다. 데이터는 PVC(essentia-postgres-data)와
+# MinIO Tenant 에 그대로 남는다 — 되살릴 때 아래 replicas 블록만 지우면 된다.
+# 주의: 매일 07:00 KST 텔레그램 다이제스트도 함께 멈춘다 (telegram-relay 앱 내부 스케줄러).
+replicas:
+  - name: essentia-api
+    count: 0
+  - name: essentia-web
+    count: 0
+  - name: essentia-telegram-relay
+    count: 0
+  - name: essentia-postgres
+    count: 0
+
 resources:
   - namespace.yaml
   - api/configmap.yaml
