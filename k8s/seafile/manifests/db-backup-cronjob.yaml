@@ -7,7 +7,9 @@ metadata:
     app: seafile
     job-type: db-backup
 spec:
-  schedule: "0 17 * * *"
+  # 02:40 KST. immich(02:00) / health-hub(02:20) 과 20분 간격 — 동시 IO 폭주 회피
+  # (2026-07-22 인시던트: 3개 동시 실행 + CI 러너 쏠림 → node_load1 112).
+  schedule: "40 17 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3

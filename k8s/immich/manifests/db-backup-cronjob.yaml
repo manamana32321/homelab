@@ -6,6 +6,8 @@ metadata:
     app: immich
     job-type: db-backup
 spec:
+  # 02:00 KST. DB 백업 3종(health-hub/immich/seafile)이 같은 분에 몰리면 IO 폭주로
+  # apiserver 가 밀린다 (2026-07-22 인시던트). 20분 간격으로 분산.
   schedule: "0 17 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3

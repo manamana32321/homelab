@@ -124,9 +124,12 @@ serviceMonitor:
     - name: gbrain-mcp
       url: http://gbrain-mcp.gbrain.svc.cluster.local/healthz
       module: http_2xx_no_tls
-    - name: minecraft
-      url: minecraft.minecraft.svc.cluster.local:25565
-      module: tcp_connect
-    - name: minecraft-bluemap
-      url: http://minecraft-bluemap.minecraft.svc.cluster.local:8100
-      module: http_2xx_no_tls
+    # minecraft 는 #262 에서 replicaCount 0 으로 정지 (접속 없음, 월드는 PVC 보존).
+    # probe 를 남겨두면 EndpointDown critical 이 상시 발화하므로 함께 비활성화.
+    # 서버를 다시 켤 때 아래 두 항목 주석 해제.
+    # - name: minecraft
+    #   url: minecraft.minecraft.svc.cluster.local:25565
+    #   module: tcp_connect
+    # - name: minecraft-bluemap
+    #   url: http://minecraft-bluemap.minecraft.svc.cluster.local:8100
+    #   module: http_2xx_no_tls

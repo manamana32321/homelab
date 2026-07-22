@@ -1,0 +1,112 @@
+# minio-operator zombie reaper
+#
+# 왜 필요한가 — operator v7.1.1 의 leader election 은 lease 갱신에 실패하면
+# OnStoppedLeading 에서 컨트롤러(work queue + operator:4221 / sts:4223 웹서버)를
+# 내리고 election context 를 cancel 한 뒤, StartOperator 가 `<-stopCh` 에서 영구
+# 블록된다. os.Exit 도 재선출 진입도 없다. 즉 프로세스는 살아있고 kubelet 은
+# 1/1 Running 으로 보지만 실제로는 아무 일도 하지 않는다.
+# 2026-07-22 인시던트에서 replica 2개가 6분 간격으로 연속 전사 → lease
+# holderIdentity 가 "" 인 채 17시간 방치, 그 사이 Tenant 재조정 전면 중단.
+# 좀비는 CPU limit(1코어)에 붙어서 계속 돌기까지 해 다음 재발 확률을 스스로 올린다.
+#
+# 왜 probe 가 아닌가 — 차트 7.1.1 은 operator Deployment 에 probe 필드를 노출하지
+# 않는다 (values 스키마에 없음). helm 소스를 kustomize helmCharts inflator 로
+# 갈아끼우면 patch 가 가능하지만, 4000줄짜리 CRD 를 렌더 경로째 바꾸는 위험 대비
+# 이득이 적다. 좀비 시그니처가 lease 한 필드로 정확히 판별되므로 외부 감시로 처리.
+#
+# 판정 — holderIdentity 가 "" 면 좀비. client-go leaderelection 은 정상 반납 시
+# holderIdentity 를 비우고 leaseDurationSeconds 를 1 로 낮추므로, 살아있는
+# 후보가 하나라도 있으면 1~5초 안에 다시 채워진다. 오탐을 막으려 30초 간격으로
+# 두 번 확인하고 둘 다 비어있을 때만 파드를 지운다.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: minio-operator-reaper
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: minio-operator-reaper
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    resourceNames: ["minio-operator-lock"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: minio-operator-reaper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: minio-operator-reaper
+subjects:
+  - kind: ServiceAccount
+    name: minio-operator-reaper
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: minio-operator-reaper
+  labels:
+    app: minio-operator
+    job-type: watchdog
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  # 실패 Job 은 GC 전까지 KubeJobFailed 가 firing 상태로 남는다. 감시 job 이
+  # 알람 소스가 되면 본말전도이므로 히스토리를 짧게 유지.
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: minio-operator-reaper
+          containers:
+            - name: reaper
+              image: rancher/kubectl:v1.34.1
+              command:
+                - sh
+                - -c
+                - |
+                  set -eo pipefail
+                  LEASE="lease/minio-operator-lock"
+                  JP='{.spec.holderIdentity}'
+
+                  holder=$(kubectl get $LEASE -o jsonpath="$JP")
+                  if [ -n "$holder" ]; then
+                    echo "leader=$holder — healthy"
+                    exit 0
+                  fi
+
+                  echo "no leader; rechecking in 30s to rule out a failover window"
+                  sleep 30
+                  holder=$(kubectl get $LEASE -o jsonpath="$JP")
+                  if [ -n "$holder" ]; then
+                    echo "leader=$holder — recovered on its own"
+                    exit 0
+                  fi
+
+                  echo "no leader for 30s — operator is zombied, deleting pods"
+                  kubectl delete pod \
+                    -l app.kubernetes.io/name=operator,app.kubernetes.io/instance=minio-operator
+              securityContext:
+                runAsUser: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
