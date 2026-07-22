@@ -7,7 +7,11 @@ metadata:
     app.kubernetes.io/name: hermes
     app.kubernetes.io/part-of: hermes
 spec:
-  replicas: 1
+  # PARKED at 0: Claude Max OAuth needs *purchased* extra-usage credits (base Max
+  # allowance is not usable by third-party apps), so inference is blocked. Infra
+  # is complete and verified — flip to 1 once a working provider credential is
+  # seeded (Gemini free tier = only $0 path; Codex = ChatGPT-sub included).
+  replicas: 0
   # RWO PVC shared by both containers → single node, no rolling.
   strategy:
     type: Recreate
