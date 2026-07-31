@@ -53,8 +53,13 @@ template:
     # 네트워크에서 빼는 것 외에 우회로가 없다. hostPath 라 amd64 2대가 각각 한 번씩
     # 채우고, 그 이후로는 setup-node 가 다운로드도 압축해제도 하지 않는다.
     #
-    # emptyDir 인 work 볼륨(/home/runner/_work)과 같은 루트 파일시스템(/dev/sda2)에
-    # 두는 게 중요하다. 다른 fs 면 pnpm 이 하드링크를 못 걸고 복사로 떨어진다.
+    #
+    # pnpm store 마운트 위치가 /home/runner/_work/.pnpm-store 인 이유 (#269 배포 검증
+    # 에서 정정): pnpm 은 설정된 store 가 프로젝트와 다른 마운트에 있으면 그것을 버리고
+    # <프로젝트 마운트 루트>/.pnpm-store 로 store 를 재배치한다. 프로젝트는 emptyDir 인
+    # work 볼륨 위에 있으므로, 평범하게 /pnpm 등에 걸면 store 가 emptyDir 로 옮겨가
+    # 파드마다 통째로 증발한다 — 캐시가 아예 동작하지 않는다.
+    # 그 재배치 목적지에 hostPath 를 직접 걸어 재배치가 영속 볼륨으로 떨어지게 한다.
     volumes:
       - name: pnpm-store
         hostPath:
@@ -101,12 +106,12 @@ template:
         imagePullPolicy: IfNotPresent
         command: ["/home/runner/run.sh"]
         env:
-          # pnpm store 를 노드 로컬로. PNPM_STORE_DIR / npm_config_store_dir 은
-          # pnpm 11 에서 존재하지 않는다(무시됨) — PNPM_HOME 이 실측상 동작하는
-          # 환경변수 레버이고 store 는 $PNPM_HOME/store/v<major> 로 떨어진다.
-          # (.npmrc 도 안 먹는다. pnpm 10.6+ 는 설정을 pnpm-workspace.yaml 로 옮겼다.)
-          - name: PNPM_HOME
-            value: /pnpm
+          # pnpm store 를 가리키는 환경변수는 없다. PNPM_STORE_DIR·PNPM_STORE_PATH·
+          # npm_config_store_dir·PNPM_HOME·~/.npmrc·~/.config/pnpm/rc·
+          # `pnpm config set --global` 전부 재배치를 못 막는다(실측). 유일하게 통하는
+          # 건 --store-dir CLI 플래그인데 워크플로 수정이 필요하므로, 대신 재배치
+          # 목적지에 볼륨을 거는 방식을 쓴다 — 위 volumes 주석 참조.
+          #
           # 러너 툴 캐시. 기본값은 _work/_tool 인데 work 가 emptyDir 라 잡마다
           # 날아가고, 그래서 setup-node 가 매번 node 를 받아 푼다(계측 168~192초,
           # 압축해제만 110.8초). 어느 쪽 이름을 읽는지는 러너 바이너리가 단일 파일
@@ -115,9 +120,15 @@ template:
             value: /opt/hostedtoolcache
           - name: AGENT_TOOLSDIRECTORY
             value: /opt/hostedtoolcache
+        # work 를 여기서 명시하는 건 순서 때문이다. 중첩 마운트라 부모(work)가 먼저
+        # 마운트돼야 하는데, chart 는 사용자 마운트를 먼저 쓰고 work 를 뒤에 붙인다.
+        # 명시하면 chart 의 $mountWork 가 0 이 되어 재추가하지 않는다. 볼륨 자체는
+        # 선언하지 않으므로 chart 가 계속 emptyDir 로 만든다(잡 간 격리 유지).
         volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
           - name: pnpm-store
-            mountPath: /pnpm
+            mountPath: /home/runner/_work/.pnpm-store
           - name: tool-cache
             mountPath: /opt/hostedtoolcache
         # next build / gradle+testcontainers 피크 대응 상향.
