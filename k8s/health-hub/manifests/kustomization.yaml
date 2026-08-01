@@ -1,5 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+# 2026-08-01 대시보드만 파킹. amd64 전용 이미지가 nodeSelector 없이 raspi-1(arm64)
+# 로 스케줄돼 `exec format error` 로 1092 회 재시작 중이었다. 웹 UI 는 거의 안 쓰고
+# 실사용은 MCP(/mcp)·REST(/api/v1) 경로라, 고쳐서 띄우는 대신 껐다.
+# 되살릴 때: 아래 replicas 블록 제거 + dashboard-deployment.yaml 에
+# `nodeSelector: {kubernetes.io/arch: amd64}` 추가(안 하면 같은 증상 재발).
+# Ingress(health-hub-dashboard, path `/`)는 그대로 둔다 — 되살리기 원클릭.
+# `/` 는 파킹 동안 503. `/api/v1`·`/healthz`·`/mcp` 는 health-hub-api Ingress 라 무관.
+replicas:
+  - name: health-hub-dashboard
+    count: 0
+
 resources:
   - namespace.yaml
   - sealed-secret.yaml
