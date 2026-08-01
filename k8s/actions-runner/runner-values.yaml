@@ -17,10 +17,22 @@ controllerServiceAccount:
 containerMode:
   type: "dind"
 
-# scale-from-zero. maxRunners 는 amd64 노드 2대(json-server-1/2, 각 16Gi)의 실메모리
-# 여유 기준 — minecraft 정지 + loki chunks-cache 비활성으로 확보 (#261).
-# CI 7개 잡이 1~2 웨이브로 돎.
-minRunners: 0
+# maxRunners 는 amd64 노드 2대(json-server-1/2, 각 16Gi)의 실메모리 여유 기준 —
+# minecraft 정지 + loki chunks-cache 비활성으로 확보 (#261). CI 7개 잡이 1~2 웨이브로 돎.
+#
+# minRunners 2 (#268 3순위). 캐시를 회선에서 빼기 전에 러너를 늘리면 같은 경합이
+# 반복되므로 #269·#270 배포·검증 뒤로 미뤄뒀던 항목이다.
+#
+# 실측: 런 생성 → 잡 시작이 1차 웨이브 37~44초. ci-career 는 needs: changes 라
+# 파드 콜드스타트를 두 번 물어 80~104초. 이미지 핀 + IfNotPresent 로 레지스트리
+# 왕복은 이미 사라졌고, 남은 시간은 스케줄링 + init-dind-externals + dockerd 기동
+# + cache-perms + 러너 등록이다. 2 를 미리 띄워 1차 웨이브를 덮는다 — 게이트인
+# changes 와 동시 디스패치되는 format 을 둘 다 커버하려면 1 로는 부족하다.
+#
+# maxRunners 는 그대로라 피크 부하는 불변이다. 대가는 유휴 파드 2개의 영구 예약
+# (request 300m/1Gi each = 600m/2Gi)과 idle dockerd 2개 상주. json-server-2 기준
+# requests 가 55%→66% CPU, 38%→51% memory 로 오른다.
+minRunners: 2
 maxRunners: 6
 
 template:
