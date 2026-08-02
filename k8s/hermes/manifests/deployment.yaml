@@ -39,7 +39,7 @@ spec:
             - -c
             - |
               set -eu
-              if ! grep -q openai-codex /opt/data/config.yaml 2>/dev/null; then
+              if ! grep -q "provider: openai-codex" /opt/data/config.yaml 2>/dev/null; then
                 echo "seeding config.yaml (codex provider)"
                 cp /seed-config/config.yaml /opt/data/config.yaml
                 chown 10000:10000 /opt/data/config.yaml
