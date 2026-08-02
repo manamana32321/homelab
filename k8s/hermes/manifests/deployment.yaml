@@ -7,11 +7,9 @@ metadata:
     app.kubernetes.io/name: hermes
     app.kubernetes.io/part-of: hermes
 spec:
-  # PARKED at 0: Claude Max OAuth needs *purchased* extra-usage credits (base Max
-  # allowance is not usable by third-party apps), so inference is blocked. Infra
-  # is complete and verified — flip to 1 once a working provider credential is
-  # seeded (Gemini free tier = only $0 path; Codex = ChatGPT-sub included).
-  replicas: 0
+  # Live on OpenAI Codex (ChatGPT subscription OAuth, billing subscription_included).
+  # Credential seeded as /opt/data/auth.json from the SealedSecret.
+  replicas: 1
   # RWO PVC shared by both containers → single node, no rolling.
   strategy:
     type: Recreate
@@ -29,12 +27,11 @@ spec:
         fsGroup: 10000
 
       initContainers:
-        # Seed-if-absent: copy the default config onto the PVC ONLY on first
-        # boot. On restart it already exists → skipped, so Hermes' migrated
-        # live config (schema bumps, curator defaults) is never clobbered.
-        # The Claude credential is NOT seeded as a file — it is injected as the
-        # CLAUDE_CODE_OAUTH_TOKEN env var below (sk-ant-oat subscription token
-        # from `claude setup-token`; canonical env name → correct OAuth framing).
+        # Seed-if-no-codex: copy config + the Codex auth.json onto the PVC when
+        # the live files don't yet reference openai-codex. Once Hermes owns them
+        # (and refreshes the OAuth token in place), the grep matches → skipped,
+        # so refreshed tokens / migrated config are never clobbered. This also
+        # transitions a PVC left over from the earlier anthropic attempt.
         - name: seed
           image: busybox:1.37
           command:
@@ -42,18 +39,29 @@ spec:
             - -c
             - |
               set -eu
-              if [ ! -f /opt/data/config.yaml ]; then
-                echo "seeding config.yaml (first boot)"
+              if ! grep -q openai-codex /opt/data/config.yaml 2>/dev/null; then
+                echo "seeding config.yaml (codex provider)"
                 cp /seed-config/config.yaml /opt/data/config.yaml
                 chown 10000:10000 /opt/data/config.yaml
               else
-                echo "config.yaml present — skip (preserve live config)"
+                echo "config.yaml already codex — skip"
+              fi
+              if ! grep -q openai-codex /opt/data/auth.json 2>/dev/null; then
+                echo "seeding auth.json (codex credential)"
+                cp /seed-creds/auth.json /opt/data/auth.json
+                chown 10000:10000 /opt/data/auth.json
+                chmod 600 /opt/data/auth.json
+              else
+                echo "auth.json already has codex — skip (preserve refreshed token)"
               fi
           volumeMounts:
             - name: data
               mountPath: /opt/data
             - name: seed-config
               mountPath: /seed-config
+              readOnly: true
+            - name: seed-creds
+              mountPath: /seed-creds
               readOnly: true
           resources:
             requests:
@@ -73,13 +81,7 @@ spec:
               value: "10000"
             - name: HERMES_GID
               value: "10000"
-            # Claude subscription OAuth token (sk-ant-oat) — NOT a metered key.
-            # ANTHROPIC_API_KEY is intentionally left unset.
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
+            # Codex credential is file-based (/opt/data/auth.json, seeded) — no env.
             # OpenAI-compat API server: keeps `gateway run` alive (it otherwise
             # exits when no messaging platform is enabled) AND serves inference
             # on :8642 (ClusterIP-internal, key-protected) — proves subscription
@@ -139,11 +141,6 @@ spec:
               value: "10000"
             - name: HERMES_GID
               value: "10000"
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
             # Dashboard binds 0.0.0.0 → Hermes requires a DashboardAuthProvider
             # (the `basic` plugin). These are the real vars (HERMES_ADMIN_* are
             # not used by the dashboard). Defense-in-depth under Authentik.
@@ -193,3 +190,9 @@ spec:
         - name: seed-config
           configMap:
             name: hermes-config
+        - name: seed-creds
+          secret:
+            secretName: hermes-secrets
+            items:
+              - key: auth.json
+                path: auth.json

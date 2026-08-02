@@ -1,12 +1,12 @@
 # Hermes Agent seed config — copied to /opt/data/config.yaml by the seed
-# initContainer ONLY if that file does not already exist. After first boot
-# Hermes owns the live file on the PVC; edits here do NOT overwrite it.
+# initContainer only when the live file lacks the openai-codex provider.
+# After first boot Hermes owns the live file on the PVC.
 # To change live settings, use the dashboard or `hermes config` in the pod.
 model:
-  # Claude Max via OAuth (provider: anthropic + ~/.claude/.credentials.json,
-  # NO ANTHROPIC_API_KEY env → uses subscription OAuth, not metered API).
-  provider: anthropic
-  default: claude-sonnet-4-6
+  # OpenAI Codex via ChatGPT subscription OAuth (billing: subscription_included,
+  # no metered/overage). Credential lives in /opt/data/auth.json (seeded), not env.
+  provider: openai-codex
+  default: gpt-5.3-codex
 terminal:
   # local = agent shell runs INSIDE this pod (the pod is the sandbox).
   # docker backend would need docker-in-docker → avoided in K8s.
