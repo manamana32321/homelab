@@ -6,7 +6,7 @@ model:
   # OpenAI Codex via ChatGPT subscription OAuth (billing: subscription_included,
   # no metered/overage). Credential lives in /opt/data/auth.json (seeded), not env.
   provider: openai-codex
-  default: gpt-5.3-codex
+  default: gpt-5.6-sol
 terminal:
   # local = agent shell runs INSIDE this pod (the pod is the sandbox).
   # docker backend would need docker-in-docker → avoided in K8s.
