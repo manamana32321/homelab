@@ -70,21 +70,9 @@ prometheus:
     nodeSelector:
       kubernetes.io/hostname: json-server-1
 
+  # Prometheus는 자체 인증 기능이 없어 ingress가 곧 무인증 공개 API가 된다.
+  # Alertmanager와 동일하게 외부 노출하지 않고 port-forward로만 접근한다:
+  #   kubectl port-forward -n observability svc/prometheus-kube-prometheus-prometheus 9090:9090
+  # 대시보드는 Grafana(ClusterIP 스크레이프)가 담당하므로 일상 조회에 영향 없다.
   ingress:
-    enabled: true
-    hosts:
-      - prometheus.json-server.win
-    paths:
-      - /
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-dns01
-      traefik.ingress.kubernetes.io/redirect-entry-point: https
-      # Prometheus는 자체 인증이 전혀 없어 ingress가 곧 무인증 공개 API였다.
-      # (익명 /api/v1/query로 내부 IP·노드명·전 워크로드 메트릭 열람 가능)
-      # Grafana는 ClusterIP로 스크레이프하므로 이 게이트의 영향을 받지 않는다.
-      traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
-    ingressClassName: traefik
-    tls:
-      - hosts:
-          - prometheus.json-server.win
-        secretName: prometheus-tls
+    enabled: false
