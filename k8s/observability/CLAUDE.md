@@ -129,8 +129,11 @@ PrometheusRule → Prometheus → Alertmanager → Telegram (chat -1003865568684
 | 서비스 | URL |
 |---|---|
 | Grafana | grafana.json-server.win |
-| Prometheus | prometheus.json-server.win |
+| Prometheus | (외부 노출 안 함, kubectl port-forward) |
 | Alertmanager | (외부 노출 안 함, kubectl port-forward) |
+
+Prometheus·Alertmanager는 자체 인증 기능이 없어 ingress가 곧 무인증 공개 API가 된다.
+둘 다 ingress를 두지 않고 port-forward로만 접근한다. 메트릭 조회는 Grafana를 쓴다.
 
 ## 앱에서 텔레메트리 전송
 
