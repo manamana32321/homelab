@@ -8,7 +8,11 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
+    # type: Directory — 경로가 없으면 kubelet이 마운트를 거부한다.
+    # type 미지정("")이면 컨테이너 런타임이 bind-mount 원본을 자동 생성하므로,
+    # Seagate가 미마운트일 때 루트 파일시스템 위에 빈 스텁이 생기고 앱이 거기에 쓴다.
     path: /mnt/hdd-seagate-1t/immich-library
+    type: Directory
   nodeAffinity:
     required:
       nodeSelectorTerms:

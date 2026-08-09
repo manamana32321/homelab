@@ -8,7 +8,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
+    # type: Directory — 경로가 없으면 kubelet이 마운트를 거부한다. immich library-pv.yaml 참조.
     path: /mnt/hdd-seagate-1t/frigate-media
+    type: Directory
   nodeAffinity:
     required:
       nodeSelectorTerms:

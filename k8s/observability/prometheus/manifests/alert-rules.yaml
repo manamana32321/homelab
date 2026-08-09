@@ -70,6 +70,21 @@ spec:
             summary: "HDD almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
             description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
 
+        - alert: HostPathDiskUnmounted
+          # hostPath PV(immich/seafile/frigate)가 올라탄 Seagate 1TB가 마운트되지 않은 상태.
+          # fstab `nofail`은 마운트 실패를 부팅 시 침묵시켜서 부팅 로그로는 안 잡힌다.
+          # 2026-08-08: 하드 컷 → fsck 중단 → 미마운트 → 루트fs에 빈 스텁 생성 → immich/seafile 다운.
+          # node-exporter가 사라지면(노드 다운) absent()가 같이 참이 되므로 `up` 가드로 분리.
+          expr: >-
+            absent(node_filesystem_size_bytes{mountpoint="/mnt/hdd-seagate-1t"})
+            and on() (up{job="node-exporter", instance="192.168.0.27:9100"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Seagate 1TB unmounted (json-server-1)"
+            description: "/mnt/hdd-seagate-1t is not mounted. immich/seafile/frigate media PVs now point at empty directories on the root filesystem — risk of silent data divergence. Recover: `sudo e2fsck -p /dev/sdb1 && sudo mount /mnt/hdd-seagate-1t`."
+
     # SMART 디스크 건강 알림 (ATA HDD 특화 — NVMe 기본 알림은 smartctl-exporter chart에 내장)
     - name: smart
       rules:
@@ -263,3 +278,17 @@ spec:
           annotations:
             summary: "gbrain-sync 1시간+ 성공 없음"
             description: "gbrain-sync cron이 {{ $value | humanizeDuration }} 동안 성공하지 못함. brain 인덱스가 stale해지는 중. `kubectl -n gbrain get jobs`로 최근 실패 확인 후 로그(`kubectl -n gbrain logs job/<name>`) 점검."
+
+    # 노드 재부팅 감지. 2026-08-08 json-server-1이 종료 로그 한 줄 없이 급사한 뒤 추가.
+    # 계획된 재부팅과 구분할 방법이 없으므로 severity는 warning. 재부팅 자체를 알리는 게
+    # 목적이고, 계획에 없던 것이면 즉시 조사에 들어갈 수 있게 한다.
+    - name: node
+      rules:
+        - alert: NodeRebooted
+          expr: (time() - node_boot_time_seconds{job="node-exporter"}) < 600
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node rebooted: {{ $labels.instance }}"
+            description: "{{ $labels.instance }} booted {{ $value | humanizeDuration }} ago. If this was not planned, check `journalctl -b -1 -e` for a shutdown sequence — its absence means an abrupt power loss or hardware stop, not a clean reboot."
