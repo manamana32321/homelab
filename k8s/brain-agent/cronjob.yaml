@@ -7,6 +7,11 @@ metadata:
     app: brain-agent
     job-type: morning-brief
 spec:
+  # 2026-08-10 정지. 브리핑을 거의 보지 않아 매일 아침 알림이 노이즈만 됐다.
+  # 스크립트·시크릿 참조는 그대로 두므로 되살릴 때 이 줄만 지우면 된다.
+  # 참고: essentia 07:00 KST 다이제스트는 2026-07-22부터 이미 정지 상태
+  # (k8s/essentia/kustomization.yaml replicas 0).
+  suspend: true
   # 07:30 KST = 22:30 UTC (previous day)
   schedule: "30 22 * * *"
   timeZone: "Etc/UTC"
