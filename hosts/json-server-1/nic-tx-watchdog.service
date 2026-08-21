@@ -1,0 +1,24 @@
+[Unit]
+Description=r8169 TX 큐 행 감지 후 NIC 자동 복구
+Documentation=https://github.com/manamana32321/homelab/blob/main/docs/nic-tx-hang-runbook.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/nic-tx-watchdog.sh
+Restart=always
+RestartSec=10
+
+# 복구 동작에 root 필요: ip link, modprobe, systemctl restart/reboot
+User=root
+
+Environment=IFACE=enp3s0
+Environment=MODULE=r8169
+Environment=GATEWAY=192.168.0.1
+Environment=COOLDOWN_SEC=120
+# 0 으로 두면 자동 재부팅 폴백이 꺼진다.
+Environment=REBOOT_AFTER_SEC=300
+
+[Install]
+WantedBy=multi-user.target
