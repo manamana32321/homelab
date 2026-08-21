@@ -96,4 +96,11 @@ kubectl -n hermes logs deploy/hermes -c gateway | grep -i "anthropic\|telegram\|
   seed 전용 — 라이브 파일을 덮지 않음.
 - 이미지 핀: 제3자 공개 이미지 → 수동 태그 업데이트 ([manifests/deployment.yaml](manifests/deployment.yaml)
   의 `v2026.6.5`). Image Updater 미사용.
-- 백업: `/opt/data` = 기억/스킬/세션/인증 전부. PVC 유실 시 seed에서 재구성하되 OAuth는 재로그인 필요.
+- 백업: `hermes-state-backup` CronJob이 매일 03:00 KST에 재생성 불가한 상태만 골라
+  `s3://hermes-backup-json-server/state/`로 올린다 (30일 보관, [aws/s3.tf](../../aws/s3.tf)).
+  - 담는 것: `state.db`·`kanban.db`·`response_store.db`(전부 `sqlite3 .backup`으로 일관 스냅샷 —
+    WAL 모드라 `cp`는 찢어진 사본을 만든다), `sessions/`·`pairing/`·`memory/`·`identity/`
+  - 빼는 것: `bin/`(22M)·`skills/`(13M)·캐시 — 이미지와 init이 복원한다. 74M → ~3.5M
+  - **`auth.json`은 의도적으로 제외** — 백업이 크레덴셜 저장소가 되지 않도록. 복구 시
+    `hermes auth add openai-codex` device-code 재발급이 필요하다 (Phase B 참조)
+  - `hermes-data`는 ReadWriteOnce라 백업 파드는 `podAffinity`로 hermes 파드와 같은 노드에 붙는다

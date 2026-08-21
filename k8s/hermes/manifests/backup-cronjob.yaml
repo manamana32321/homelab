@@ -1,0 +1,107 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hermes-state-backup
+  namespace: hermes
+  labels:
+    app.kubernetes.io/name: hermes
+    job-type: state-backup
+spec:
+  # 03:00 KST. immich(02:00) / health-hub(02:20) / seafile(02:40) 다음 슬롯 —
+  # 20분 간격 유지 (2026-07-22 인시던트: 백업 동시 실행 → node_load1 112).
+  schedule: "0 18 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: hermes
+            job-type: state-backup
+        spec:
+          restartPolicy: Never
+          # hermes-data는 ReadWriteOnce(longhorn-ssd)라 이미 마운트 중인 노드에서만
+          # 추가 마운트가 가능하다. hermes Deployment는 nodeSelector가 없어 노드를
+          # 옮길 수 있으므로, 고정 nodeSelector 대신 파드를 따라가도록 affinity를 건다.
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: hermes
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: state-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  set -eo pipefail
+                  apk add --no-cache sqlite rclone
+
+                  mkdir -p /root/.config/rclone
+                  cat > /root/.config/rclone/rclone.conf <<CONF
+                  [s3]
+                  type = s3
+                  provider = AWS
+                  access_key_id = ${AWS_ACCESS_KEY_ID}
+                  secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+                  region = ap-northeast-2
+                  location_constraint = ap-northeast-2
+                  no_check_bucket = true
+                  CONF
+
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  STAGE="/tmp/hermes-${TIMESTAMP}"
+                  mkdir -p "${STAGE}"
+
+                  # SQLite는 WAL 모드다. 라이브 파일을 cp로 뜨면 쓰기 도중의 찢어진
+                  # 스냅샷이 잡혀 복구 시점에 깨진다. .backup은 백업 API를 써서
+                  # 일관성 있는 사본을 만든다 (동시 쓰기와 안전하게 공존).
+                  for DB in state.db kanban.db response_store.db; do
+                    [ -f "/opt/data/${DB}" ] || continue
+                    sqlite3 "/opt/data/${DB}" ".backup '${STAGE}/${DB}'"
+                    echo "snapshot: ${DB}"
+                  done
+
+                  # 재생성 불가한 일반 파일만. bin/ skills/ 캐시는 이미지·init이
+                  # 복원하므로 제외한다 (74M → ~3.5M).
+                  for P in sessions pairing memory identity; do
+                    [ -e "/opt/data/${P}" ] || continue
+                    cp -a "/opt/data/${P}" "${STAGE}/"
+                    echo "copied: ${P}"
+                  done
+
+                  # auth.json(Codex OAuth 크레덴셜)은 의도적으로 제외한다.
+                  # 백업이 크레덴셜 저장소가 되는 것을 막는다. PVC 유실 시
+                  # `hermes auth add openai-codex` device-code 재발급으로 복구
+                  # (README Phase B). 기억·세션·pairing은 이 아카이브로 복원된다.
+
+                  ARCHIVE="/tmp/hermes-state-${TIMESTAMP}.tar.gz"
+                  tar -czf "${ARCHIVE}" -C "${STAGE}" .
+
+                  rclone copy "${ARCHIVE}" s3:hermes-backup-json-server/state/ \
+                    --s3-no-check-bucket
+
+                  echo "state backup uploaded: state/${ARCHIVE##*/} ($(du -h "${ARCHIVE}" | cut -f1))"
+              envFrom:
+                - secretRef:
+                    name: hermes-backup-credentials
+              volumeMounts:
+                - name: data
+                  mountPath: /opt/data
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: hermes-data

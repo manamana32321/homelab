@@ -7,6 +7,8 @@ resources:
   - service.yaml
   - ingress.yaml
   - sealed-secret.yaml
+  - sealed-secret-backup.yaml
+  - backup-cronjob.yaml
 
 configMapGenerator:
   - name: hermes-config
