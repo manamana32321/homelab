@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: essentia-telegram-relay
+  name: essentia-discord-relay
   labels:
-    app: essentia-telegram-relay
+    app: essentia-discord-relay
 spec:
   type: ClusterIP
   selector:
-    app: essentia-telegram-relay
+    app: essentia-discord-relay
   ports:
     - name: http
       port: 8080
