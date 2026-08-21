@@ -88,15 +88,6 @@ spec:
             description: "{{ $labels.device }} has {{ $value }} pending sector(s). Potential disk failure."
 
         - alert: DiskReallocatedSectors
-          # 이 룰의 `> 0` 기준은 HDD 기준이다. SSD는 블록 재할당이 정상 마모 관리의
-          # 일부라 건강한 상태에서도 0이 아닐 수 있어, 그대로 두면 상시 발화가 된다.
-          # json-server-1 sda(WD Green WDS240G2G0A)의 재할당 1개를 baseline으로 제외한다.
-          # 나머지 지표가 깨끗해 열화 신호로 볼 근거가 없다 —
-          # Average_PE_Cycles_TLC 65/최대 101, Available_Reservd_Space 100, UDMA_CRC 0.
-          # 2개 이상으로 늘어나는 실제 증가 신호는 그대로 잡힌다.
-          # json-server-2의 sda는 재할당 0이라 device만으로 억제하면 그쪽 첫 재할당을
-          # 놓치므로 node로 함께 좁힌다.
-          # 제거 조건: 해당 디스크 교체 시. (교체 예정 일정은 없음)
           expr: >-
             smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 0
             unless
