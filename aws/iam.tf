@@ -156,3 +156,39 @@ resource "aws_iam_user_policy_attachment" "probe_readonly" {
 resource "aws_iam_access_key" "probe" {
   user = aws_iam_user.probe.name
 }
+
+# Hermes agent state backup
+resource "aws_iam_user" "hermes_backup" {
+  name = "hermes-backup"
+}
+
+resource "aws_iam_policy" "hermes_backup" {
+  name        = "hermes-backup-s3"
+  description = "Allow Hermes backup CronJob to sync agent state to S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject",
+      ]
+      Resource = [
+        aws_s3_bucket.hermes_backup.arn,
+        "${aws_s3_bucket.hermes_backup.arn}/*",
+      ]
+    }]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "hermes_backup" {
+  user       = aws_iam_user.hermes_backup.name
+  policy_arn = aws_iam_policy.hermes_backup.arn
+}
+
+resource "aws_iam_access_key" "hermes_backup" {
+  user = aws_iam_user.hermes_backup.name
+}
