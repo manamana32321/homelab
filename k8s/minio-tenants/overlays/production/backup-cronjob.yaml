@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: amang-minio-backup
+  namespace: amang-api-production
+  labels:
+    app: amang
+    job-type: media-backup
+spec:
+  # 03:40 KST. immich media(03:00) 다음 슬롯 — 20분 간격 유지
+  # (2026-07-22 인시던트: 백업 동시 실행 + 러너 쏠림 → node_load1 112).
+  schedule: "40 18 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: amang
+            job-type: media-backup
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: media-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  set -eo pipefail
+                  apk add --no-cache rclone
+
+                  mkdir -p /root/.config/rclone
+                  # 소스는 tenant 자신(requestAutoCert:false → 평문 HTTP, ClusterIP :80).
+                  # 대상은 AWS S3. 오브젝트 단위로 미러하므로 MinIO 온디스크 포맷에
+                  # 의존하지 않는다 — 복구 시 다른 버전/다른 tenant로도 밀어넣을 수 있다.
+                  cat > /root/.config/rclone/rclone.conf <<CONF
+                  [minio]
+                  type = s3
+                  provider = Minio
+                  access_key_id = ${S3_ACCESS_KEY}
+                  secret_access_key = ${S3_SECRET_KEY}
+                  endpoint = http://minio.amang-api-production.svc.cluster.local
+                  force_path_style = true
+
+                  [s3]
+                  type = s3
+                  provider = AWS
+                  access_key_id = ${AWS_ACCESS_KEY_ID}
+                  secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+                  region = ap-northeast-2
+                  location_constraint = ap-northeast-2
+                  no_check_bucket = true
+                  CONF
+
+                  # --size-only: mtime 확인용 HEAD 요청이 S3 Tier-2 GET 으로 청구되는 것을 피한다.
+                  ionice -c 3 rclone sync minio:amang s3:amang-backup-json-server/media/ \
+                    --size-only \
+                    --s3-no-head \
+                    --s3-no-check-bucket \
+                    --transfers 4 \
+                    --stats-one-line
+
+                  echo "media backup synced: $(rclone size s3:amang-backup-json-server/media/ --s3-no-check-bucket 2>/dev/null | tail -1)"
+              env:
+                - name: S3_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-s3-credentials
+                      key: S3_ACCESS_KEY
+                - name: S3_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-s3-credentials
+                      key: S3_SECRET_KEY
+              envFrom:
+                - secretRef:
+                    name: amang-backup-credentials
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
