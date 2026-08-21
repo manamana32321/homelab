@@ -77,23 +77,6 @@ output "probe_secret_access_key" {
   sensitive   = true
 }
 
-# Hermes backup
-output "hermes_backup_access_key_id" {
-  description = "Access Key ID for hermes-backup IAM user"
-  value       = aws_iam_access_key.hermes_backup.id
-}
-
-output "hermes_backup_secret_access_key" {
-  description = "Secret Access Key for hermes-backup IAM user"
-  value       = aws_iam_access_key.hermes_backup.secret
-  sensitive   = true
-}
-
-output "hermes_backup_bucket" {
-  description = "S3 bucket name for Hermes agent state backups"
-  value       = aws_s3_bucket.hermes_backup.bucket
-}
-
 # AMANG backup
 output "amang_backup_access_key_id" {
   description = "Access Key ID for amang-backup IAM user"
