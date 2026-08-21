@@ -111,3 +111,35 @@ resource "aws_s3_bucket_public_access_block" "minecraft_backup" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# Hermes agent state backup
+resource "aws_s3_bucket" "hermes_backup" {
+  bucket = "hermes-backup-json-server"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "hermes_backup" {
+  bucket = aws_s3_bucket.hermes_backup.id
+
+  # State archives: keep 30 days only
+  rule {
+    id     = "state-retention"
+    status = "Enabled"
+
+    filter {
+      prefix = "state/"
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "hermes_backup" {
+  bucket = aws_s3_bucket.hermes_backup.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
