@@ -1,7 +1,8 @@
 config:
   devices:
-    - /dev/sdb
-    - /dev/sdc
+    - /dev/sda # WD Green 240GB — root. kine SQLite + 스왑이 여기 (DRAM-less)
+    - /dev/sdb # Seagate ST1000DM003 1TB — /mnt/hdd-seagate-1t
+    - /dev/sdc # Samsung HM641JI 640GB — /mnt/hdd-samsung-640g
 
 common:
   config:
@@ -10,12 +11,29 @@ common:
 nodeSelector:
   kubernetes.io/hostname: json-server-1
 
+extraInstances:
+  - config:
+      devices:
+        - /dev/sda
+    nodeSelector:
+      kubernetes.io/hostname: json-server-2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 250m
+        memory: 64Mi
+
 serviceMonitor:
   enabled: true
   extraLabels:
     release: prometheus
   interval: 5m
   scrapeTimeout: 30s
+  relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
 
 prometheusRules:
   enabled: true

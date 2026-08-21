@@ -88,7 +88,10 @@ spec:
             description: "{{ $labels.device }} has {{ $value }} pending sector(s). Potential disk failure."
 
         - alert: DiskReallocatedSectors
-          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 0
+          expr: >-
+            smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 0
+            unless
+            (smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw", device="sda", node="json-server-1"} <= 1)
           for: 5m
           labels:
             severity: warning
