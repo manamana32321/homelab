@@ -93,3 +93,20 @@ output "hermes_backup_bucket" {
   description = "S3 bucket name for Hermes agent state backups"
   value       = aws_s3_bucket.hermes_backup.bucket
 }
+
+# AMANG backup
+output "amang_backup_access_key_id" {
+  description = "Access Key ID for amang-backup IAM user"
+  value       = aws_iam_access_key.amang_backup.id
+}
+
+output "amang_backup_secret_access_key" {
+  description = "Secret Access Key for amang-backup IAM user"
+  value       = aws_iam_access_key.amang_backup.secret
+  sensitive   = true
+}
+
+output "amang_backup_bucket" {
+  description = "S3 bucket name for AMANG production backups"
+  value       = aws_s3_bucket.amang_backup.bucket
+}
