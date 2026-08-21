@@ -1,0 +1,36 @@
+# 디스코드 발송 경로.
+#
+# raw config(values.yaml)의 discord_configs 를 쓰지 못하는 이유:
+# prometheus-operator 의 discordConfig 타입에 webhook_url_file 이 없어(main 기준)
+# 웹훅 URL 을 파일로 넘길 수 없다. 평문을 git 에 두지 않으려면 CRD 의
+# apiURL(SecretKeySelector) 경로를 써야 한다.
+#
+# 이 route 는 alertmanagerConfigMatcherStrategy: None 덕분에 namespace matcher 없이
+# 전체 경보를 받는다. Watchdog/InfoInhibitor 차단은 values.yaml 의 루트 routes 가
+# 먼저 평가되어 처리한다.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: discord
+  namespace: observability
+spec:
+  route:
+    receiver: discord
+    groupBy: [alertname, namespace]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 12h
+  receivers:
+    - name: discord
+      discordConfigs:
+        - apiURL:
+            name: alertmanager-discord
+            key: webhook-url
+          sendResolved: true
+          title: '{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} [K8s] {{ .Status | toUpper }}'
+          message: |-
+            {{ range .Alerts }}
+            **{{ .Labels.alertname }}** ({{ .Labels.severity }})
+            {{ .Annotations.summary }}
+            {{ .Annotations.description }}
+            {{ end }}
