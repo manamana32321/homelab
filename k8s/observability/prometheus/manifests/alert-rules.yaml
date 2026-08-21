@@ -88,7 +88,15 @@ spec:
             description: "{{ $labels.device }} has {{ $value }} pending sector(s). Potential disk failure."
 
         - alert: DiskReallocatedSectors
-          expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 0
+          # TODO(2026-12): sda 교체 후 원복 — 기존: > 0
+          # json-server-1 루트 SSD(WD Green WDS240G2G0A)는 재할당 1개가 baseline.
+          # SSD는 재할당이 정상 마모 처리의 일부라 0 기준이면 상시 발화가 된다.
+          # 2개 이상으로 늘어날 때(= 실제 증가 신호)만 발화하도록 baseline을 뺀다.
+          # json-server-2 의 sda 는 재할당 0 이므로 device 만으로 억제하면 안 된다 — node 로 함께 좁힌다.
+          expr: >-
+            smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 0
+            unless
+            (smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw", device="sda", node="json-server-1"} <= 1)
           for: 5m
           labels:
             severity: warning
