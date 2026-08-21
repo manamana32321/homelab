@@ -116,11 +116,11 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 ## 알림 채널
 
 ```
-PrometheusRule → Prometheus → Alertmanager → Telegram (chat -1003865568684, thread 206)
+PrometheusRule → Prometheus → Alertmanager → Discord (#alerts 채널 웹훅)
 ```
 
 - **Alertmanager 설정**: [prometheus/values.yaml](prometheus/values.yaml) `alertmanager.config`
-- **bot token**: SealedSecret `alertmanager-telegram` (observability ns)
+- **webhook URL**: SealedSecret `alertmanager-discord` (observability ns)
 - **Watchdog/InfoInhibitor**: `null` receiver로 명시적 무시 (kube-prometheus-stack 기본)
 - **Grafana Unified Alerting 미사용** — 단일 notification path 유지 (단일 사고 경로 = 디버깅 용이)
 

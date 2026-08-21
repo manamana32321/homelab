@@ -28,7 +28,7 @@
 
 1. **누가 발행/생성하는가?** → 그 ns가 owner
    - `health-hub-api-token` → health-hub backend → `health-hub` ns
-   - `alertmanager-telegram` → 알림 시스템 → `observability` ns
+   - `alertmanager-discord` → 알림 시스템 → `observability` ns
 2. **외부 서비스 토큰** (Canvas, Google OAuth 등) → 그 외부 서비스를 wrap하는 cluster 워크로드 ns
    - 예: Canvas 토큰 → essentia ns
 3. **진짜 cross-domain** (LLM 키 등) → consumer hub ns (예: `automation`)
