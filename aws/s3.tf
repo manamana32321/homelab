@@ -143,3 +143,36 @@ resource "aws_s3_bucket_public_access_block" "hermes_backup" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# AMANG production backup (postgres 논리 덤프 + MinIO 오브젝트 미러)
+resource "aws_s3_bucket" "amang_backup" {
+  bucket = "amang-backup-json-server"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "amang_backup" {
+  bucket = aws_s3_bucket.amang_backup.id
+
+  # DB dumps: keep 30 days only.
+  # media/ 는 MinIO 미러라 만료 규칙을 두지 않는다 (immich/seafile 과 동일).
+  rule {
+    id     = "db-retention"
+    status = "Enabled"
+
+    filter {
+      prefix = "db/"
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "amang_backup" {
+  bucket = aws_s3_bucket.amang_backup.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}

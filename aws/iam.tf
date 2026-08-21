@@ -192,3 +192,39 @@ resource "aws_iam_user_policy_attachment" "hermes_backup" {
 resource "aws_iam_access_key" "hermes_backup" {
   user = aws_iam_user.hermes_backup.name
 }
+
+# AMANG production backup
+resource "aws_iam_user" "amang_backup" {
+  name = "amang-backup"
+}
+
+resource "aws_iam_policy" "amang_backup" {
+  name        = "amang-backup-s3"
+  description = "Allow AMANG production backup CronJobs to sync to S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:DeleteObject",
+      ]
+      Resource = [
+        aws_s3_bucket.amang_backup.arn,
+        "${aws_s3_bucket.amang_backup.arn}/*",
+      ]
+    }]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "amang_backup" {
+  user       = aws_iam_user.amang_backup.name
+  policy_arn = aws_iam_policy.amang_backup.arn
+}
+
+resource "aws_iam_access_key" "amang_backup" {
+  user = aws_iam_user.amang_backup.name
+}
