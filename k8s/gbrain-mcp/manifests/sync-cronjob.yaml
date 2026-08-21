@@ -34,7 +34,7 @@ spec:
                   git clone --depth 1 \
                     "https://x-access-token:${GH_PAT}@github.com/manamana32321/brain.git" \
                     /tmp/brain
-                  gbrain sync --repo /tmp/brain
+                  gbrain sync --repo /tmp/brain --no-embed
               env:
                 - name: GH_PAT
                   valueFrom:
