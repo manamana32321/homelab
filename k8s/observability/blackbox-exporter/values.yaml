@@ -118,9 +118,6 @@ serviceMonitor:
     - name: health-hub
       url: http://health-hub.health-hub.svc.cluster.local:8080/healthz
       module: http_2xx_no_tls
-    - name: sme-tour-engine
-      url: http://sme-tour-engine.sme-tour.svc.cluster.local/healthz
-      module: http_2xx_no_tls
     - name: gbrain-mcp
       url: http://gbrain-mcp.gbrain.svc.cluster.local/healthz
       module: http_2xx_no_tls
