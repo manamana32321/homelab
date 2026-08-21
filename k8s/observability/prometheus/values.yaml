@@ -20,13 +20,17 @@ alertmanager:
   alertmanagerSpec:
     nodeSelector:
       kubernetes.io/hostname: json-server-1
-    secrets:
-      - alertmanager-discord
+    # AlertmanagerConfig CR 의 route 에 namespace matcher 를 붙이지 않는다.
+    # discord CR 이 전체 경보를 받아야 하므로.
+    alertmanagerConfigMatcherStrategy:
+      type: None
   config:
     global:
       resolve_timeout: 5m
     route:
-      receiver: discord
+      # 실제 발송은 AlertmanagerConfig `discord` 가 담당 (manifests/alertmanagerconfig-discord.yaml).
+      # 여기 receiver 는 그 route 에도 안 걸린 경보의 fallback 이다.
+      receiver: "null"
       group_by: [alertname, namespace]
       group_wait: 30s
       group_interval: 5m
@@ -41,16 +45,6 @@ alertmanager:
           receiver: "null"
     receivers:
       - name: "null"
-      - name: discord
-        discord_configs:
-          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
-            title: '{{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} [K8s] {{ .Status | toUpper }}'
-            message: |-
-              {{ range .Alerts }}
-              **{{ .Labels.alertname }}** ({{ .Labels.severity }})
-              {{ .Annotations.summary }}
-              {{ .Annotations.description }}
-              {{ end }}
 
 prometheus:
   prometheusSpec:
