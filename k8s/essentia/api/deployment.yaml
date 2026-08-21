@@ -15,6 +15,10 @@ spec:
       labels:
         app: essentia-api
     spec:
+      # 이미지가 amd64 단일 아키텍처다. raspi-1(arm64)에 스케줄되면
+      # ImagePullBackOff 또는 exec format error 로 죽는다.
+      nodeSelector:
+        kubernetes.io/arch: amd64
       imagePullSecrets:
         - name: ghcr-essentia
       containers:
