@@ -31,10 +31,6 @@ alertmanager:
       # 실제 발송은 AlertmanagerConfig `discord` 가 담당 (manifests/alertmanagerconfig-discord.yaml).
       # 여기 receiver 는 그 route 에도 안 걸린 경보의 fallback 이다.
       receiver: "null"
-      group_by: [alertname, namespace]
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 12h
       routes:
         # kube-prometheus-stack 기본 watchdog alert 무시
         - match:
