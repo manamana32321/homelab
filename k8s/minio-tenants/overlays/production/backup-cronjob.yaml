@@ -25,13 +25,12 @@ spec:
           restartPolicy: Never
           containers:
             - name: media-backup
-              image: alpine:3.21
+              image: rclone/rclone:1.75.0
               command:
                 - sh
                 - -c
                 - |
                   set -eo pipefail
-                  apk add --no-cache rclone
 
                   mkdir -p /root/.config/rclone
                   # 소스는 tenant 자신(requestAutoCert:false → 평문 HTTP, ClusterIP :80).
