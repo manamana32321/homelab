@@ -5,5 +5,7 @@ resources:
   - ../../base
   - sealed-secret.yaml
   - sealed-secret-s3-credentials.yaml
+  - sealed-secret-backup.yaml
+  - backup-cronjob.yaml
   - ingress.yaml
   - ingress-console.yaml
