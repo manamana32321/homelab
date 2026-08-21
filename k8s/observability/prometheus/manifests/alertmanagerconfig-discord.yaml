@@ -16,6 +16,16 @@ metadata:
 spec:
   route:
     receiver: discord
+    # 오퍼레이터는 이 route 를 루트 routes 의 맨 앞에 continue: true 로 넣는다.
+    # 따라서 Watchdog/InfoInhibitor 차단을 루트 쪽 형제 route 에 맡길 수 없고
+    # (먼저 여기에 걸려 발송된 뒤 넘어간다) 여기서 직접 제외해야 한다.
+    matchers:
+      - name: alertname
+        matchType: "!="
+        value: Watchdog
+      - name: alertname
+        matchType: "!="
+        value: InfoInhibitor
     groupBy: [alertname, namespace]
     groupWait: 30s
     groupInterval: 5m
