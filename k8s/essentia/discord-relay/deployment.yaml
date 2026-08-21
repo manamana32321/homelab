@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: essentia-telegram-relay
+  name: essentia-discord-relay
   labels:
-    app: essentia-telegram-relay
+    app: essentia-discord-relay
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: essentia-telegram-relay
+      app: essentia-discord-relay
   template:
     metadata:
       labels:
-        app: essentia-telegram-relay
+        app: essentia-discord-relay
     spec:
       containers:
         - name: relay
-          image: ghcr.io/manamana32321/essentia-telegram-relay:latest
+          image: ghcr.io/manamana32321/essentia-discord-relay:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -26,7 +26,7 @@ spec:
               value: "8080"
           envFrom:
             - secretRef:
-                name: essentia-telegram-relay
+                name: essentia-discord-relay
           resources:
             requests:
               cpu: 5m
