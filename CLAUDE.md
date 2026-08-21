@@ -137,7 +137,7 @@ App (OTLP) → OTel Collector → Prometheus (메트릭)
 |--------|-----|
 | ArgoCD | argocd.json-server.win |
 | Grafana | grafana.json-server.win |
-| Prometheus | prometheus.json-server.win |
+| Prometheus | (외부 노출 안 함, kubectl port-forward) |
 | K8s Dashboard | k8s.json-server.win |
 | OTel Collector | otel.json-server.win |
 
