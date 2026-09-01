@@ -4,20 +4,27 @@
 # OnStoppedLeading 에서 컨트롤러(work queue + operator:4221 / sts:4223 웹서버)를
 # 내리고 election context 를 cancel 한 뒤, StartOperator 가 `<-stopCh` 에서 영구
 # 블록된다. os.Exit 도 재선출 진입도 없다. 즉 프로세스는 살아있고 kubelet 은
-# 1/1 Running 으로 보지만 실제로는 아무 일도 하지 않는다.
-# 2026-07-22 인시던트에서 replica 2개가 6분 간격으로 연속 전사 → lease
-# holderIdentity 가 "" 인 채 17시간 방치, 그 사이 Tenant 재조정 전면 중단.
-# 좀비는 CPU limit(1코어)에 붙어서 계속 돌기까지 해 다음 재발 확률을 스스로 올린다.
+# 1/1 Running 으로 보지만 실제로는 아무 일도 하지 않는다. replica 2개가 연달아
+# 이렇게 죽으면 Tenant 재조정이 전면 중단된다. 좀비는 CPU limit(1코어)에 붙어서
+# 계속 돌기까지 해 control-plane 부하를 올리고 다음 재발 확률을 스스로 높인다.
 #
 # 왜 probe 가 아닌가 — 차트 7.1.1 은 operator Deployment 에 probe 필드를 노출하지
 # 않는다 (values 스키마에 없음). helm 소스를 kustomize helmCharts inflator 로
 # 갈아끼우면 patch 가 가능하지만, 4000줄짜리 CRD 를 렌더 경로째 바꾸는 위험 대비
-# 이득이 적다. 좀비 시그니처가 lease 한 필드로 정확히 판별되므로 외부 감시로 처리.
+# 이득이 적다. 좀비 시그니처가 lease 두 필드로 정확히 판별되므로 외부 감시로 처리.
 #
-# 판정 — holderIdentity 가 "" 면 좀비. client-go leaderelection 은 정상 반납 시
-# holderIdentity 를 비우고 leaseDurationSeconds 를 1 로 낮추므로, 살아있는
-# 후보가 하나라도 있으면 1~5초 안에 다시 채워진다. 오탐을 막으려 30초 간격으로
-# 두 번 확인하고 둘 다 비어있을 때만 파드를 지운다.
+# 판정 — 아래 둘 중 하나면 좀비다. 두 경로 모두 실제로 관측됐다.
+#   1. holderIdentity 가 "" — client-go 가 리더십 상실 시 lease 를 정상 반납한
+#      경우. 살아있는 후보가 하나라도 있으면 1~5초 안에 다시 채워진다.
+#   2. holderIdentity 는 남아있는데 renewTime 이 STALE_AFTER 초 이상 낡음 —
+#      반납 요청 자체가 apiserver 타임아웃으로 실패한 경우
+#      (`leaderelection.go:322] Failed to release lock`). 죽은 파드 이름이 lease 에
+#      박제되어 홀더만 보는 판정은 이걸 "건강"으로 오독한다.
+# 임계값 180초 = leaseDurationSeconds(60) 의 3배이자 MinIOOperatorLeaseStale
+# 알람 임계값(5분)보다 짧다. 즉 알람이 울리기 전에 자동 회수된다.
+# 오탐을 막으려 30초 간격으로 두 번 확인하고 둘 다 좀비일 때만 파드를 지운다.
+# apiserver 가 통째로 죽은 상황에서는 리퍼 자신이 API 에 못 붙어 Job 이 실패하므로
+# 애먼 파드를 지우지 않는다.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -84,23 +91,47 @@ spec:
                 - |
                   set -eo pipefail
                   LEASE="lease/minio-operator-lock"
-                  JP='{.spec.holderIdentity}'
+                  STALE_AFTER=180
 
-                  holder=$(kubectl get $LEASE -o jsonpath="$JP")
-                  if [ -n "$holder" ]; then
-                    echo "leader=$holder — healthy"
+                  # 좀비면 사유를 stdout 으로, 건강하면 아무것도 출력하지 않는다.
+                  zombie_reason() {
+                    lease=$(kubectl get $LEASE \
+                      -o jsonpath='{.spec.holderIdentity} {.spec.renewTime}')
+                    holder=${lease% *}
+                    renew=${lease#* }
+
+                    if [ -z "$holder" ]; then
+                      echo "holderIdentity is empty"
+                      return
+                    fi
+
+                    # busybox date 는 RFC3339 를 그대로 못 먹는다. 소수점 이하와 Z 를
+                    # 잘라내고 -D 로 입력 포맷을 명시한다 (컨테이너 TZ 는 UTC).
+                    renew_at=$(date -u -D '%Y-%m-%d %H:%M:%S' \
+                      -d "$(echo "$renew" | cut -c1-19 | tr T ' ')" +%s)
+                    age=$(( $(date -u +%s) - renew_at ))
+
+                    if [ "$age" -gt "$STALE_AFTER" ]; then
+                      echo "holder=$holder but renewTime is ${age}s old (> ${STALE_AFTER}s)"
+                    fi
+                  }
+
+                  reason=$(zombie_reason)
+                  if [ -z "$reason" ]; then
+                    echo "lease healthy"
                     exit 0
                   fi
 
-                  echo "no leader; rechecking in 30s to rule out a failover window"
+                  echo "suspect: $reason — rechecking in 30s to rule out a failover window"
                   sleep 30
-                  holder=$(kubectl get $LEASE -o jsonpath="$JP")
-                  if [ -n "$holder" ]; then
-                    echo "leader=$holder — recovered on its own"
+
+                  reason=$(zombie_reason)
+                  if [ -z "$reason" ]; then
+                    echo "recovered on its own"
                     exit 0
                   fi
 
-                  echo "no leader for 30s — operator is zombied, deleting pods"
+                  echo "still zombied after 30s: $reason — deleting operator pods"
                   kubectl delete pod \
                     -l app.kubernetes.io/name=operator,app.kubernetes.io/instance=minio-operator
               securityContext:
