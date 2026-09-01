@@ -47,3 +47,9 @@ machine-learning:
     cache:
       enabled: true
       type: emptyDir
+
+# raspi-1 (arm64, SD카드) 은 immich 워크로드 배치 대상에서 제외한다.
+# 최상위 defaultPodOptions 는 server / machine-learning / valkey 세 컴포넌트에 모두 전파된다.
+defaultPodOptions:
+  nodeSelector:
+    kubernetes.io/arch: amd64
