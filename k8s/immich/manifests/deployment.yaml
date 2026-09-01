@@ -14,6 +14,8 @@ spec:
       labels:
         app: immich-postgres
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: postgres
           image: ghcr.io/immich-app/postgres:16-vectorchord0.4.3-pgvectors0.3.0
