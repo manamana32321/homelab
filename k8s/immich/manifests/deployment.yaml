@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: tensorchord/pgvecto-rs:pg16-v0.3.0
+          image: ghcr.io/immich-app/postgres:16-vectorchord0.4.3-pgvectors0.3.0
           ports:
             - containerPort: 5432
           envFrom:
@@ -28,6 +28,8 @@ spec:
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
           resources:
             requests:
               memory: "256Mi"
@@ -39,3 +41,8 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-pvc
+        # upstream docker-compose 의 shm_size: 128mb 대응 (k8s 기본 /dev/shm 은 64Mi)
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 128Mi
