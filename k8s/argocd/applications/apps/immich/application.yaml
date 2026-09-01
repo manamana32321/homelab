@@ -11,7 +11,7 @@ spec:
     # Source 1: Immich Helm chart (OCI registry)
     - repoURL: ghcr.io/immich-app/immich-charts
       chart: immich
-      targetRevision: "0.10.3"
+      targetRevision: "0.13.1"
       helm:
         valueFiles:
           - $homelab/k8s/immich/values.yaml
