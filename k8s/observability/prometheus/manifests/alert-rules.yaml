@@ -49,6 +49,19 @@ spec:
             summary: "PVC almost full: {{ $labels.persistentvolumeclaim }}"
             description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
 
+        - alert: NodeUnderDiskPressure
+          # kubelet 이 이미 pod 을 evict 하기 시작한 상태다. 상위 룰 KubeNodePressure 가
+          # 같은 조건을 잡지만 severity: info 라 다른 알림에 묻힌다 - 실제로 2026-09-05
+          # 사고 때 45시간 firing 했는데도 눈에 띄지 않았다. 여기서 warning 으로 다시 낸다.
+          # 임계값 기반 룰과 달리 이건 "곧 위험"이 아니라 "이미 evict 중"이므로 for 를 짧게.
+          expr: kube_node_status_condition{condition="DiskPressure",job="kube-state-metrics",status="true"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node under disk pressure: {{ $labels.node }}"
+            description: "kubelet on {{ $labels.node }} is evicting pods to reclaim ephemeral-storage."
+
         - alert: NodeDiskAlmostFull
           # SSD(`/`): 95% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
           # kube-prometheus-stack의 `NodeFilesystemSpaceFillingUp` (predict_linear 4h)이 임박 위험을 별도 catch.

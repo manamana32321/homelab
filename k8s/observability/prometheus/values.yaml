@@ -12,6 +12,12 @@ kubeEtcd:
 
 prometheus-node-exporter:
   dnsPolicy: Default
+  # DiskPressure 로 evict 되면 안 된다. evict 되는 순간 그 노드의 filesystem 메트릭이
+  # 끊기고, NodeFilesystemAlmostOutOfSpace(for: 30m) 등 디스크 알림의 for 타이머가
+  # 리셋된다. pod 이 재생성됐다 다시 evict 되기를 반복하면 알림은 영원히 pending 에
+  # 머물러 firing 하지 못한다 - 알리려던 조건이 알리는 장치를 죽이는 구조.
+  # system-node-critical 은 kubelet 의 eviction 후보에서 사실상 제외된다.
+  priorityClassName: system-node-critical
 
 grafana:
   enabled: false
