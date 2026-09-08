@@ -1,5 +1,5 @@
 # Longhorn StorageClass
-# longhorn-ssd: server1+server2 SSD 풀, replication=2, default SC
+# longhorn-ssd: server1+server2 SSD 풀, replication=1, default SC
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -7,12 +7,16 @@ metadata:
   name: longhorn-ssd
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
+    # StorageClass.parameters 는 immutable — apply/replace 모두 거부된다.
+    # 값 변경 시 ArgoCD 가 삭제 후 재생성하도록 지시한다.
+    # 기존 PV/PVC 는 이미 바인딩이 끝나 SC 객체와 무관하므로 재생성의 영향을 받지 않는다.
+    argocd.argoproj.io/sync-options: Replace=true,Force=true
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
 parameters:
-  numberOfReplicas: "2"
+  numberOfReplicas: "1"
   staleReplicaTimeout: "30"
   fromBackup: ""
   fsType: xfs

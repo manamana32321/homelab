@@ -1,9 +1,13 @@
 # Longhorn Node 디스크 설정
 # Phase 6에서 apply: kubectl apply -f node-disk-config.yaml
 #
-# server1 SSD: 100GB 할당 (/var/lib/longhorn)
-# server2 SSD: 100GB 할당 (/var/lib/longhorn)
+# server1 SSD: 약 93GiB 할당 (/var/lib/longhorn)
+# server2 SSD: 약 60GiB 할당 (/var/lib/longhorn)
 # raspi-1: Longhorn 스토리지 제외 (scheduling disabled)
+#
+# storageReserved 는 Longhorn 이 쓰지 않을 양이다. 디스크 크기에서 Longhorn 몫을 빼는 식으로
+# 잡으면 OS·containerd·캐시가 누락되어 디스크가 100% 로 차고 kubelet 이 DiskPressure 로
+# 파드를 축출한다. 반드시 [Longhorn 외 실사용 + 증가분 + kubelet 임계] 로 잡을 것.
 ---
 apiVersion: longhorn.io/v1beta2
 kind: Node
@@ -32,7 +36,7 @@ spec:
       allowScheduling: true
       evictionRequested: false
       path: /var/lib/longhorn
-      storageReserved: 19200000000   # ~19GB 예약 (전체 119GB - 100GB Longhorn)
+      storageReserved: 60000000000   # 60GB 예약 = Longhorn 외 실사용 21.6GiB + 증가분 + kubelet imagefs 임계(15% = 17.4GiB)
       tags: []
 ---
 apiVersion: longhorn.io/v1beta2

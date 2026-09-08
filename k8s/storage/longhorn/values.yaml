@@ -1,9 +1,12 @@
 defaultSettings:
-  # server1 SSD: 100GB, server2 SSD: 100GB 할당
+  # 노드별 디스크 할당량은 manifests/node-disk-config.yaml 에서 결정
   defaultDataPath: /var/lib/longhorn
   replicaAutoBalance: best-effort
-  # 복제본 수 (server1 + server2 = 2노드)
-  defaultReplicaCount: 2
+  # 복제본 1 — 스토리지 노드가 server1+server2 2개뿐이라 replica 2는 rebuild 헤드룸이 없다.
+  # (rebuild 는 replica 수 + 1 개의 노드를 필요로 한다)
+  # 한쪽이 스케줄 불가가 되면 복제본 2개가 같은 노드에 쌓여, 디스크만 2배 쓰고 HA 는 사라진다.
+  # 내구성은 각 워크로드의 S3 백업 CronJob 이 담당한다.
+  defaultReplicaCount: 1
   # 스토리지 예약 (각 노드 OS/K8s용)
   storageReservedPercentageForDefaultDisk: 0
   # raspi-1은 Longhorn 스토리지에서 제외
