@@ -24,19 +24,25 @@ OAuth client 발급만 콘솔에서 해야 한다 — API 자격증명 자체를
 ### 1. 태그 선언
 
 Terraform 이 정책 파일을 소유하므로, OAuth client 발급 전에 태그가 존재해야 한다.
-[Access controls](https://login.tailscale.com/admin/acls/file) 에서 `tagOwners` 에
+[Access controls](https://console.tailscale.com/admin/acls/file) 에서 `tagOwners` 에
 `tag:k8s-operator` 와 `tag:k8s` 를 먼저 추가한다. (이후 `terraform apply` 가 이 내용을
 포함한 정책 전체를 소유한다.)
 
 ### 2. OAuth client 2개 발급
 
-[Trust credentials](https://login.tailscale.com/admin/settings/oauth) 에서 발급한다.
-용도를 분리해 최소권한을 유지한다 — operator 용만 클러스터에 상주하므로 노출면이 다르다.
+[Trust credentials](https://console.tailscale.com/admin/settings/trust-credentials) 에서
+`Credential` > `OAuth` 로 발급한다. 용도를 분리해 최소권한을 유지한다 — operator 용만
+클러스터에 상주하므로 노출면이 다르다.
 
 | 용도 | scope | 태그 |
 |------|-------|------|
-| Terraform (정책 파일 관리) | `all:write` | - |
+| Terraform (정책 파일 관리) | `policy_file` write, `devices:posture_attributes` write, `devices:core` read | - |
 | Operator (디바이스·키 관리) | `devices:core` write, `auth_keys` write, `services` write | `tag:k8s-operator` |
+
+`policy_file` 은 단독으로 쓸 수 없다 — `devices:posture_attributes` 와 `devices:core:read` 가
+함께 필요하다. 태그 선택란은 `devices:core` **write** 에만 나타난다.
+
+secret 은 생성 직후 한 번만 보여준다. 창을 닫으면 다시 못 본다.
 
 ### 3. Terraform 자격증명을 `.envrc.local` 에 저장
 
