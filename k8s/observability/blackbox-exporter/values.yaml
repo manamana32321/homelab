@@ -130,3 +130,19 @@ serviceMonitor:
     # - name: minecraft-bluemap
     #   url: http://minecraft-bluemap.minecraft.svc.cluster.local:8100
     #   module: http_2xx_no_tls
+
+    # --- 공유기·노드 ping ---
+    # 장애 때 공유기가 죽은 건지 특정 노드가 죽은 건지 구분하기 위한 probe.
+    # 응답이 없으면 위의 EndpointDown 알람이 그대로 잡는다.
+    - name: lan-gateway
+      url: 192.168.0.1
+      module: icmp_ping
+    - name: node-json-server-1
+      url: 192.168.0.27
+      module: icmp_ping
+    - name: node-json-server-2
+      url: 192.168.0.46
+      module: icmp_ping
+    - name: node-raspi-1
+      url: 192.168.0.37
+      module: icmp_ping
