@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Source 1: Tailscale Kubernetes Operator Helm chart
+    # 차트 기본값이 이미 필요한 설정 그대로라서 values 파일을 두지 않는다.
+    #   operatorConfig.defaultTags = tag:k8s-operator
+    #   proxyConfig.defaultTags    = tag:k8s
+    #   installCRDs                = true
+    #   oauth.clientId/Secret      = "" (비워두면 차트가 Secret 을 만들지 않고
+    #                                    아래 SealedSecret 의 operator-oauth 를 마운트)
+    - repoURL: https://pkgs.tailscale.com/helmcharts
+      chart: tailscale-operator
+      targetRevision: 1.102.3
+      helm:
+        releaseName: tailscale-operator
+    # Source 2: SealedSecret(operator-oauth) + Connector(subnet router)
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/tailscale/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

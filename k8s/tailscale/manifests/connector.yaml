@@ -1,0 +1,19 @@
+---
+apiVersion: tailscale.com/v1alpha1
+kind: Connector
+metadata:
+  name: homelab-subnet-router
+  annotations:
+    # Connector CRD 는 같은 sync 안에서 Helm 차트가 설치한다.
+    # ArgoCD 가 dry-run 하는 시점엔 CRD 가 아직 없으므로 dry-run 을 건너뛴다.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  hostname: homelab-subnet-router
+  tags:
+    - "tag:k8s"
+  subnetRouter:
+    # 홈랩 LAN 전체를 tailnet 에 광고한다.
+    # 이걸로 k8s API(192.168.0.27:6443), 공유기 관리(192.168.0.1),
+    # 그 외 LAN 상의 모든 호스트에 tailnet 어디서든 도달한다.
+    advertiseRoutes:
+      - "192.168.0.0/24"
