@@ -5,6 +5,25 @@
 # 콘솔에서 직접 수정하면 다음 apply 에서 되돌아간다 (의도된 동작).
 locals {
   policy = {
+    # tailnet 기본 정책 그대로. 홈랩 접근을 붙이는 것이 목적이므로
+    # 기존 접근 범위는 건드리지 않는다.
+    grants = [
+      {
+        src = ["*"]
+        dst = ["*"]
+        ip  = ["*"]
+      },
+    ]
+
+    ssh = [
+      {
+        action = "check"
+        src    = ["autogroup:member"]
+        dst    = ["autogroup:self"]
+        users  = ["autogroup:nonroot", "root"]
+      },
+    ]
+
     # k8s operator 가 쓰는 태그.
     #   tag:k8s-operator = operator 파드 자신
     #   tag:k8s          = operator 가 만들어내는 proxy 파드 (= subnet router)
@@ -13,14 +32,6 @@ locals {
       "tag:k8s-operator" = []
       "tag:k8s"          = ["tag:k8s-operator"]
     }
-
-    acls = [
-      {
-        action = "accept"
-        src    = ["autogroup:member"]
-        dst    = ["*:*"]
-      },
-    ]
 
     # subnet router 가 광고하는 홈랩 LAN 을 자동 승인한다.
     # 이게 없으면 Connector 가 라우트를 광고해도 콘솔에서 수동 승인하기 전까지
@@ -36,8 +47,7 @@ locals {
 resource "tailscale_acl" "homelab" {
   acl = jsonencode(local.policy)
 
-  # 기존 정책 파일이 tailnet 기본값이 아니면 apply 를 실패시킨다.
-  # 이미 쓰고 있던 tailnet 정책을 실수로 날리지 않기 위한 안전장치.
-  # 기존 정책을 확인하고 위 local.policy 에 병합한 뒤에만 true 로 바꾼다.
-  overwrite_existing_content = false
+  # 위 local.policy 는 현재 tailnet 정책(기본 grants + ssh)을 그대로 재현한 뒤
+  # tagOwners 와 autoApprovers 만 더한 것이다. 덮어써도 잃는 설정이 없다.
+  overwrite_existing_content = true
 }

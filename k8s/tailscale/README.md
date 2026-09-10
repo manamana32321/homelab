@@ -51,8 +51,8 @@ export TF_VAR_tailscale_oauth_client_id="..."
 export TF_VAR_tailscale_oauth_client_secret="..."
 ```
 
-`.envrc` 의 `TF_VAR_tailscale_tailnet` 도 실제 tailnet 이름으로 채운다
-(admin console > Settings > General).
+tailnet 은 `"-"` 가 기본값이라 따로 지정하지 않는다 — OAuth client 가 속한 tailnet 으로
+해석된다.
 
 ### 4. 정책 파일 apply
 
@@ -63,9 +63,10 @@ terraform plan
 terraform apply
 ```
 
-기존 정책이 tailnet 기본값이 아니면 `overwrite_existing_content = false` 때문에
-apply 가 실패한다. 의도된 안전장치다 — 기존 정책을 [`acl.tf`](../../tailscale/acl.tf)
-의 `local.policy` 에 병합한 뒤 `true` 로 바꾼다.
+`tailscale_acl` 은 policy file 전체를 소유한다. [`acl.tf`](../../tailscale/acl.tf) 의
+`local.policy` 는 tailnet 기본 정책(`grants` 전체 허용 + `ssh` check)을 그대로 재현한 뒤
+`tagOwners` 와 `autoApprovers` 만 더한 것이라, 덮어써도 잃는 설정이 없다.
+정책을 콘솔에서 바꾸고 싶으면 여기를 고쳐야 한다 — 콘솔 수정은 다음 apply 에서 되돌아간다.
 
 ### 5. Operator 자격증명 봉인
 

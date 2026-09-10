@@ -1,6 +1,7 @@
 variable "tailscale_tailnet" {
-  description = "Tailscale tailnet 이름 (admin console > Settings > General)"
+  description = "Tailscale tailnet. \"-\" 는 OAuth client 가 속한 기본 tailnet 으로 해석된다."
   type        = string
+  default     = "-"
 }
 
 variable "tailscale_oauth_client_id" {
