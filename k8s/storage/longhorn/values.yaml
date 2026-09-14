@@ -3,7 +3,7 @@ defaultSettings:
   defaultDataPath: /var/lib/longhorn
   replicaAutoBalance: best-effort
   # 복제본 수 (server1 + server2 = 2노드)
-  defaultReplicaCount: 2
+  defaultReplicaCount: 1
   # 스토리지 예약 (각 노드 OS/K8s용)
   storageReservedPercentageForDefaultDisk: 0
   # raspi-1은 Longhorn 스토리지에서 제외
