@@ -11,6 +11,7 @@ metadata:
   name: json-server-1
   namespace: longhorn-system
 spec:
+  name: json-server-1
   allowScheduling: true
   disks:
     default-disk:
@@ -26,6 +27,7 @@ metadata:
   name: json-server-2
   namespace: longhorn-system
 spec:
+  name: json-server-2
   allowScheduling: true
   disks:
     default-disk:
@@ -41,5 +43,6 @@ metadata:
   name: raspi-1
   namespace: longhorn-system
 spec:
+  name: raspi-1
   allowScheduling: false  # raspi-1은 스토리지 노드 제외
   disks: {}
