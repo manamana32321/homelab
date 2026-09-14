@@ -17,7 +17,7 @@ spec:
       allowScheduling: true
       evictionRequested: false
       path: /var/lib/longhorn
-      storageReserved: 135000000000  # ~135GB 예약 (전체 235GB - 100GB Longhorn)
+      storageReserved: 110000000000  # ~110GB 예약
       tags: []
 ---
 apiVersion: longhorn.io/v1beta2
