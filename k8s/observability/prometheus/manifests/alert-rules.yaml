@@ -49,6 +49,15 @@ spec:
             summary: "PVC almost full: {{ $labels.persistentvolumeclaim }}"
             description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
 
+        - alert: NodeUnderDiskPressure
+          expr: kube_node_status_condition{condition="DiskPressure",job="kube-state-metrics",status="true"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node under disk pressure: {{ $labels.node }}"
+            description: "kubelet on {{ $labels.node }} is evicting pods to reclaim ephemeral-storage."
+
         - alert: NodeDiskAlmostFull
           # SSD(`/`): 95% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
           # kube-prometheus-stack의 `NodeFilesystemSpaceFillingUp` (predict_linear 4h)이 임박 위험을 별도 catch.

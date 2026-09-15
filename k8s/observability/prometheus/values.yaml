@@ -12,6 +12,7 @@ kubeEtcd:
 
 prometheus-node-exporter:
   dnsPolicy: Default
+  priorityClassName: system-node-critical
 
 grafana:
   enabled: false
