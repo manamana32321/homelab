@@ -78,4 +78,5 @@ singleBinary:
     kubernetes.io/hostname: json-server-1
   persistence:
     storageClass: longhorn-ssd
+    enableStatefulSetAutoDeletePVC: false
 
