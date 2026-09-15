@@ -19,7 +19,7 @@ persistence:
 # ingress는 argocd auth proxy 뒤에 두거나 비활성화
 longhornUI:
   replicas: 1
-  priorityClass: system-cluster-critical
+  priorityClass: system-node-critical
 
 ingress:
   enabled: true
@@ -40,4 +40,4 @@ longhornManager:
 longhornDriver:
   tolerations: []
   nodeSelector: {}
-  priorityClass: system-cluster-critical
+  priorityClass: system-node-critical
