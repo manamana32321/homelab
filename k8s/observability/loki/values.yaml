@@ -45,12 +45,10 @@ loki:
 chunksCache:
   enabled: true
   allocatedMemory: 256
-  nodeSelector:
-    kubernetes.io/hostname: json-server-2
   resources:
     requests:
       cpu: 50m
-      memory: 307Mi
+      memory: 307Mi  # allocatedMemory × 1.2 — 차트 기본 계산식(memcached 오버헤드 여유)
     limits:
       memory: 307Mi
 
