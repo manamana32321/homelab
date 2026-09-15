@@ -10,6 +10,7 @@ defaultSettings:
   taintToleration: ""
   # 고아 복제본 자동 삭제 — rebuild 시 남는 잔여 디렉토리 누적 방지 (chart default: false)
   orphanAutoDeletion: true
+  priorityClass: system-node-critical
 
 # 차트 기본 longhorn SC를 default에서 내림 — longhorn-ssd(manifests/storage-class.yaml)만 단독 default 유지
 persistence:
@@ -18,6 +19,7 @@ persistence:
 # ingress는 argocd auth proxy 뒤에 두거나 비활성화
 longhornUI:
   replicas: 1
+  priorityClass: system-cluster-critical
 
 ingress:
   enabled: true
@@ -33,7 +35,9 @@ ingress:
 longhornManager:
   tolerations: []
   nodeSelector: {}
+  priorityClass: system-node-critical
 
 longhornDriver:
   tolerations: []
   nodeSelector: {}
+  priorityClass: system-cluster-critical
