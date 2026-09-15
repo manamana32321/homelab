@@ -42,10 +42,15 @@ loki:
             # these keys will be indexed
             ['service.name', 'service.version', 'service.environment']}}
 
-# 2026-07-21 비활성 — 조회 빈도 낮아 memcached 2Gi 를 CI 러너에 양보 (#261).
-# 비활성 시 청크는 S3(minio) 직조회 — 쿼리 지연만 늘고 데이터 영향 없음.
 chunksCache:
-  enabled: false
+  enabled: true
+  allocatedMemory: 256
+  resources:
+    requests:
+      cpu: 50m
+      memory: 307Mi  # allocatedMemory × 1.2 — 차트 기본 계산식(memcached 오버헤드 여유)
+    limits:
+      memory: 307Mi
 
 resultsCache:
   allocatedMemory: 256
