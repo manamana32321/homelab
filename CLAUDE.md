@@ -88,8 +88,8 @@ terraform apply
 
 | StorageClass | 대상 | 용도 |
 |---|---|---|
-| `longhorn-ssd` (xfs) | server-1 + server-2 SSD | DB/stateful 앱, Prometheus |
-| `local-path-hdd-samsung` | server-1 Samsung 640GB | 텔레메트리 (Loki, Tempo, Grafana) |
+| `longhorn-ssd` (xfs) | server-1 + server-2 SSD | DB/stateful 앱, Prometheus, Loki |
+| `local-path-hdd-samsung` | server-1 Samsung 640GB | 텔레메트리 (Tempo, Grafana) |
 | hostPath `/mnt/hdd-seagate-1t` | server-1 Seagate 1TB | 미디어 (Immich, Seafile) |
 
 - raspi-1: PV 배치 최후순위 (SD카드, IO 느림)
