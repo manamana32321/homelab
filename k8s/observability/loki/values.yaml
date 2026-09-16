@@ -9,30 +9,20 @@ loki:
   ring:
     kvstore:
       store: inmemory
-  # TODO: connect minio
-  # could not find way to inject env variables with helm chart
-  # need to reference minio access key and secret
-  # instead, we will use the default minio provided by this chart
   storage:
-    bucketNames:
-      chunks: loki
-      ruler: loki
-  #   type: s3
-  #   s3:
-  #     endpoint: http://minio.observability.svc.cluster.local:9000
-  #     accessKeyId: # TODO: inject from secret
-  #     secretAccessKey: # TODO: inject from secret
-  #     s3ForcePathStyle: true
-  #     insecure: true
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
   limits_config:
     retention_period: 30d
   compactor:
     retention_enabled: true
-    delete_request_store: s3
+    delete_request_store: filesystem
   schemaConfig:
     configs:
       - from: 2025-08-15
-        object_store: s3
+        object_store: filesystem
         store: tsdb
         schema: v13
         index:
@@ -43,14 +33,7 @@ loki:
             ['service.name', 'service.version', 'service.environment']}}
 
 chunksCache:
-  enabled: true
-  allocatedMemory: 256
-  resources:
-    requests:
-      cpu: 50m
-      memory: 307Mi  # allocatedMemory × 1.2 — 차트 기본 계산식(memcached 오버헤드 여유)
-    limits:
-      memory: 307Mi
+  enabled: false
 
 resultsCache:
   allocatedMemory: 256
@@ -64,19 +47,15 @@ resultsCache:
 gateway:
   enabled: false
 
-# default minio by loki chart
-# need to be replaced by custom minio(observability-minio) for centralized storage
 minio:
-  enabled: true
-  resources:
-    requests:
-      cpu: 200m
-      memory: 256Mi
-  persistence:
-    size: 50Gi
-    storageClass: local-path-hdd-samsung
-  nodeSelector:
-    kubernetes.io/hostname: json-server-1
+  enabled: false
+
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
 
 singleBinary:
   nodeSelector:
