@@ -16,6 +16,12 @@ defaultSettings:
 persistence:
   defaultClass: false
 
+metrics:
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: prometheus
+
 # ingress는 argocd auth proxy 뒤에 두거나 비활성화
 longhornUI:
   replicas: 1
