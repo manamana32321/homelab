@@ -131,6 +131,17 @@ spec:
             summary: "SMART overall FAILED: {{ $labels.device }} ({{ $labels.instance }})"
             description: "{{ $labels.device }} SMART overall-health 판정이 FAIL. 즉시 디스크 교체 준비. `smartctl -A /dev/{{ $labels.device }}`로 어떤 attribute가 threshold를 넘었는지 확인."
 
+    - name: power
+      rules:
+        - alert: NodeUndervoltage
+          expr: max_over_time(node_hwmon_in_lcrit_alarm_volts{chip="soc:firmware_raspberrypi_hwmon"}[15m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Undervoltage: {{ $labels.instance }}"
+            description: "{{ $labels.instance }} 전원 전압이 최근 15분 내 임계 이하로 떨어졌다. 브라운아웃 재부팅 위험. 5.1V/3A 정격 어댑터와 케이블 상태를 점검하고, 노드 부하와 USB 주변기기 전류 소모를 확인할 것."
+
     # CrowdSec IPS 알림
     - name: crowdsec
       rules:
