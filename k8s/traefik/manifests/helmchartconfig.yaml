@@ -14,6 +14,7 @@ spec:
         format: json
     additionalArguments:
       - "--entrypoints.websecure.http.middlewares=kube-system-crowdsec-bouncer@kubernetescrd"
+      - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=1h"
     experimental:
       plugins:
         bouncer:
