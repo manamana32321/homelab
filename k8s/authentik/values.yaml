@@ -58,6 +58,8 @@ postgresql:
       adminPasswordKey: PG_ADMIN_PASSWORD
       userPasswordKey: AUTHENTIK_POSTGRESQL__PASSWORD
   primary:
+    nodeSelector:
+      kubernetes.io/arch: amd64
     persistence:
       enabled: true
       size: 5Gi

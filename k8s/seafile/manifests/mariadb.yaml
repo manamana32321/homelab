@@ -28,6 +28,8 @@ spec:
       labels:
         app: seafile-mariadb
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: mariadb
           image: mariadb:10.11
