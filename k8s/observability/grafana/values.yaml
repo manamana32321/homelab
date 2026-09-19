@@ -69,6 +69,21 @@ datasources:
         access: proxy
         url: http://loki.observability.svc.cluster.local:3100
         editable: false
+        # 로그 → 트레이스: amang-api pino 로그의 trace_id(JSON 필드)를 Tempo·Sentry 링크로
+        # `$$`는 Grafana provisioning 환경변수 치환 escape
+        jsonData:
+          derivedFields:
+            - name: TraceID
+              matcherType: regex
+              matcherRegex: '"trace_id":"(\w+)"'
+              datasourceUid: tempo
+              url: "$${__value.raw}"
+              urlDisplayLabel: Tempo에서 보기
+            - name: Sentry
+              matcherType: regex
+              matcherRegex: '"trace_id":"(\w+)"'
+              url: "https://amang-23.sentry.io/explore/traces/trace/$${__value.raw}/"
+              urlDisplayLabel: Sentry에서 보기
       - name: Prometheus
         uid: prometheus
         type: prometheus
@@ -81,6 +96,14 @@ datasources:
         access: proxy
         url: http://tempo.observability.svc.cluster.local:3200
         editable: false
+        # 트레이스 → 로그: trace_id가 Loki 라벨이 아닌 JSON 필드라 기본 태그 매핑 대신 custom query
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+            customQuery: true
+            query: '{namespace=~"amang-api-.+", app="api"} | json | trace_id="$${__trace.traceId}"'
       - name: HealthHub
         type: postgres
         access: proxy
