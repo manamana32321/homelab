@@ -63,7 +63,8 @@ datasources:
     apiVersion: 1
     prune: true
     # Tempo-production → Tempo 이름 변경: Grafana는 이름으로 매칭하므로 옛 이름을 먼저 지워야
-    # 같은 uid(tempo) 재생성 충돌이 없다. 반영 후 제거해도 됨 (없는 이름 삭제는 no-op)
+    # 같은 uid(tempo) 재생성 충돌이 없다.
+    # TODO: 이 PR 배포 후 Grafana에서 Tempo-production이 사라진 것 확인되면 deleteDatasources 블록 삭제
     deleteDatasources:
       - name: Tempo-production
         orgId: 1
