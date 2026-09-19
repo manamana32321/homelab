@@ -30,6 +30,8 @@ spec:
       labels:
         app: essentia-postgres
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: postgres
           image: postgres:17-alpine

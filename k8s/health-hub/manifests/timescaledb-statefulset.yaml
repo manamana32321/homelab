@@ -14,6 +14,8 @@ spec:
       labels:
         app: timescaledb
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: timescaledb
           image: timescale/timescaledb:2.18.2-pg17
