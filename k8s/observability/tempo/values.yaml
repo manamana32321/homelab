@@ -1,5 +1,5 @@
 # Tempo Single Binary Mode
-# https://artifacthub.io/packages/helm/grafana/tempo
+# https://github.com/grafana-community/helm-charts/tree/main/charts/tempo
 
 tempo:
   # OTLP gRPC receiver
@@ -9,9 +9,10 @@ tempo:
         grpc:
           endpoint: "0.0.0.0:4317"
 
-  compactor:
-    compaction:
-      block_retention: 720h    # 30d
+  retention: 720h    # 30d
+  queryFrontend:
+    mcp_server:
+      enabled: true
   storage:
     trace:
       backend: local
