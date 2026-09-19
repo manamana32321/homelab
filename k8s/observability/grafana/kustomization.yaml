@@ -6,6 +6,4 @@ resources:
   - admin-user.yaml
   - github-credentials.yaml
   - namespace.yaml
-  - health-hub-dashboard.yaml
   - crowdsec-dashboard.yaml
-  - sealed-secret-pg-passwords.yaml

@@ -1,19 +1,14 @@
 # check default values.yaml
 # https://artifacthub.io/packages/helm/grafana/grafana?modal=values
 
-plugins:
-  - marcusolsson-hourly-heatmap-panel
-
 envFromSecret: grafana-github-oauth
 
-# SealedSecret에서 Postgres datasource 비밀번호 환경변수 주입
-#   - grafana-pg-passwords.PG_HEALTHHUB_PASSWORD (Health Hub TimescaleDB)
+# Secret에서 Postgres datasource 비밀번호 환경변수 주입
 #   - grafana-ro-credentials.GRAFANA_RO_PASSWORD (AMANG Postgres read-only,
 #     reflector로 amang-db-production에서 자동 반영)
 # NOTE: Grafana Helm chart 실제 필드는 `envFromSecrets`(배열).
 # `extraEnvFrom`은 Bitnami chart 이름이라 공식 Grafana 차트에선 무시됨.
 envFromSecrets:
-  - name: grafana-pg-passwords
   - name: grafana-ro-credentials
 
 replicas: 1
@@ -62,6 +57,13 @@ datasources:
   datasources.yaml:
     apiVersion: 1
     prune: true
+    # amang-prod uid를 자동값(PBDF1BB7443C86324) → amang-prod로 고정.
+    # Grafana 12.3은 기존 데이터소스 uid를 제자리 변경하면 "data source not found"로
+    # 기동 실패하므로 삭제 후 재생성한다.
+    # TODO: 배포 후 amang-prod uid가 amang-prod로 바뀐 것 확인되면 deleteDatasources 블록 삭제
+    deleteDatasources:
+      - name: amang-prod
+        orgId: 1
     datasources:
       - name: Loki
         uid: loki
@@ -104,27 +106,10 @@ datasources:
             spanEndTimeShift: 5m
             customQuery: true
             query: '{namespace=~"amang-api-.+", app="api"} | json | trace_id="$${__trace.traceId}"'
-      - name: HealthHub
-        type: postgres
-        access: proxy
-        url: timescaledb.health-hub.svc.cluster.local:5432
-        user: healthhub
-        jsonData:
-          database: healthhub
-          user: healthhub
-          sslmode: disable
-          maxOpenConns: 100
-          maxIdleConns: 100
-          maxIdleConnsAuto: true
-          connMaxLifetime: 14400
-          postgresVersion: 1700
-          timescaledb: true
-        secureJsonData:
-          password: $PG_HEALTHHUB_PASSWORD
-        editable: false
       # AMANG 프로덕션 DB (read-only, grafana_ro 전용 유저)
       # 권한: public 스키마 SELECT만. UPDATE/DELETE/DDL은 DB 레벨 거부됨
       - name: amang-prod
+        uid: amang-prod
         type: postgres
         access: proxy
         url: postgres-svc.amang-db-production.svc.cluster.local:5432
