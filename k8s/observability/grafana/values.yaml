@@ -57,13 +57,6 @@ datasources:
   datasources.yaml:
     apiVersion: 1
     prune: true
-    # amang-prod uid를 자동값(PBDF1BB7443C86324) → amang-prod로 고정.
-    # Grafana 12.3은 기존 데이터소스 uid를 제자리 변경하면 "data source not found"로
-    # 기동 실패하므로 삭제 후 재생성한다.
-    # TODO: 배포 후 amang-prod uid가 amang-prod로 바뀐 것 확인되면 deleteDatasources 블록 삭제
-    deleteDatasources:
-      - name: amang-prod
-        orgId: 1
     datasources:
       - name: Loki
         uid: loki
