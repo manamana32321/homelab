@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://grafana.github.io/helm-charts
+    - repoURL: https://grafana-community.github.io/helm-charts
       chart: tempo
-      targetRevision: 1.24.3
+      targetRevision: 3.0.0
       helm:
         valueFiles:
           - $homelab/k8s/observability/tempo/values.yaml
