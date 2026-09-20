@@ -25,6 +25,7 @@ spec:
       # The agent shell runs inside this pod; with no token mounted it has no
       # cluster credential at all. Cluster access goes through the
       # kubernetes-mcp Service, which holds the RBAC.
+      serviceAccountName: default
       automountServiceAccountToken: false
 
       # Hermes user is uid/gid 10000; fsGroup makes the PVC group-writable.
