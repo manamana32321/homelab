@@ -5,6 +5,9 @@
 (billing `subscription_included`, 종량제 API 키 미사용).
 
 - 대시보드: https://hermes.json-server.win (Authentik forward-auth 게이트)
+  - Authentik 쪽 provider/application/정책은 [blueprint-forward-auth.yaml](../authentik/manifests/blueprint-forward-auth.yaml)
+    에 선언한다. Ingress 미들웨어만 붙이고 여기 등록을 빠뜨리면 Authentik 이 404 를 낸다.
+  - 대시보드 계정은 SealedSecret `hermes-secrets` 의 `HERMES_ADMIN_USERNAME` / `HERMES_ADMIN_PASSWORD`
 - 이미지: `nousresearch/hermes-agent:v2026.6.5` (Docker Hub, multiarch)
 - 데이터: PVC `hermes-data` (longhorn-ssd, 5Gi) → `/opt/data` (`HERMES_HOME`/`HOME`)
 
