@@ -104,8 +104,6 @@ spec:
               value: "718427695318564925"
             - name: DISCORD_ALLOWED_CHANNELS
               value: "1540220813993840664,1540223647350915134"
-            - name: DISCORD_FREE_RESPONSE_CHANNELS
-              value: "1540220813993840664"
             - name: DISCORD_NO_THREAD_CHANNELS
               value: "1540220813993840664"
             - name: DISCORD_HOME_CHANNEL
