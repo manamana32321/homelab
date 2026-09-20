@@ -86,6 +86,24 @@ Hermes (토큰 없음)  ──MCP/HTTP──▶  kubernetes-mcp  ──SA 토큰
   `latest` 로 고정돼 있고 `ingress.enabled: true` 가 기본이라 host 없이는 렌더링이 실패한다.
   정작 필요한 권한·읽기전용·Secret 차단은 전부 차트 밖이라 직접 쓰는 편이 짧다.
 
+### 네트워크 경계
+
+MCP 서버는 인증·TLS 없이 `0.0.0.0:8080` 에 바인딩한다(기동 로그에 경고가 찍힌다).
+ClusterIP 라 외부 노출은 없지만, **클러스터 안 아무 파드나 호출하면 그 RBAC 을 그대로
+빌려 쓸 수 있다.** 실측으로 확인했다 — `default` 네임스페이스의 임시 파드가
+`/healthz` 에 HTTP 200 으로 닿았다.
+
+그래서 NetworkPolicy 로 ingress 를 Hermes 파드로만 제한한다. 적용 후 재측정:
+
+| 출발지 | 적용 전 | 적용 후 |
+|---|---|---|
+| `default` ns 임의 파드 | HTTP 200 | **차단** |
+| Hermes 파드 | HTTP 200 | HTTP 200 |
+| kubelet probe | 정상 | 정상 (차단되지 않음) |
+
+kubelet probe 가 NetworkPolicy 에 막히면 파드가 CrashLoop 에 빠지므로 적용 전에 90초간
+확인했다. 이 클러스터(k3s + flannel + 내장 kube-router netpol 컨트롤러)에서는 막히지 않는다.
+
 ### 권한 (MCP 서버의 SA 에 붙는다)
 
 | 범위 | 내용 |
