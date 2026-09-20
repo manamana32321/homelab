@@ -60,20 +60,43 @@ config→env 다리(`if cfg is not None and not os.getenv(...)`)는 env 가 비�
 initContainer 는 라이브 파일을 덮지 않으니 Git 의 [config.yaml](manifests/config.yaml) 은
 PVC 가 비었을 때의 최초 시드일 뿐이다.
 
-## 클러스터 권한 (RBAC)
+## 클러스터 접근 (kubernetes-mcp)
 
-에이전트가 알람을 보고 원인까지 짚으려면 클러스터를 읽어야 한다. 전용 ServiceAccount
-`hermes` 를 쓴다(`default` SA 아님). 정의는 [rbac.yaml](manifests/rbac.yaml).
+에이전트가 알람을 보고 원인까지 짚으려면 클러스터를 읽어야 한다. **Hermes 파드에는
+클러스터 크레덴셜을 두지 않는다** — `automountServiceAccountToken: false` 로 SA 토큰
+마운트 자체를 끈다. 대신 같은 네임스페이스에 [kubernetes-mcp](manifests/mcp-kubernetes.yaml)
+를 띄우고, Hermes 의 내장 MCP 클라이언트가 HTTP 로 붙는다.
+
+```
+Hermes (토큰 없음)  ──MCP/HTTP──▶  kubernetes-mcp  ──SA 토큰──▶  kube-apiserver
+                                   (RBAC 여기에)
+```
+
+권한이 Hermes 프로세스 밖에 있으므로, 프롬프트 인젝션이 나도 **MCP 서버가 노출한 도구
+밖으로는 나갈 수 없다.** 에이전트가 토큰을 읽어 임의 API 를 호출하는 경로가 없다.
+
+### MCP 서버
+
+- 이미지 `quay.io/containers/kubernetes_mcp_server` ([containers/kubernetes-mcp-server](https://github.com/containers/kubernetes-mcp-server), Apache-2.0)
+- `port = "8080"` → Streamable HTTP 가 `/mcp` 에 뜬다
+- `toolsets = ["core"]` — helm/kubevirt/tekton 등은 붙이지 않는다
+- `denied_resources` 로 `v1/Secret` 차단 (RBAC 에 더해 앱 계층 한 겹)
+- Helm 차트(`ghcr.io/containers/charts/kubernetes-mcp-server`)는 쓰지 않는다. 렌더링해 보면
+  SA/ConfigMap/Service/Deployment 4개만 나오고 **RBAC 은 생성되지 않으며**, 이미지가
+  `latest` 로 고정돼 있고 `ingress.enabled: true` 가 기본이라 host 없이는 렌더링이 실패한다.
+  정작 필요한 권한·읽기전용·Secret 차단은 전부 차트 밖이라 직접 쓰는 편이 짧다.
+
+### 권한 (MCP 서버의 SA 에 붙는다)
 
 | 범위 | 내용 |
 |---|---|
-| 읽기 (클러스터 전체) | 빌트인 `view` + `hermes-read-infra` |
-| 쓰기 (10개 ns) | `hermes-workload-restart` 를 RoleBinding 으로 부착 |
+| 읽기 (클러스터 전체) | 빌트인 `view` + `kubernetes-mcp-read-infra` |
+| 쓰기 (10개 ns) | `kubernetes-mcp-workload-restart` 를 RoleBinding 으로 부착 |
 
 빌트인 `view` 는 `secrets`·`pods/exec`·`pods/portforward`·`pods/attach` 를 포함하지 않는다
 (실측 확인). 다만 `nodes`·`persistentvolumes`·`longhorn.io` CR 도 빠져 있어, 이 홈랩의
 주된 장애(노드 NotReady, DiskPressure, Longhorn faulted)를 진단할 수 없다. 그래서
-`hermes-read-infra` 로 그 셋만 읽기 전용으로 보탠다.
+`kubernetes-mcp-read-infra` 로 그 셋만 읽기 전용으로 보탠다.
 
 쓰기는 재시작 계열로 제한한다 — `patch` (deployments/statefulsets/daemonsets 와 그
 `scale` 서브리소스), `delete pods`. 앱 자체를 지우거나 만들 수는 없다.
@@ -81,28 +104,35 @@ PVC 가 비었을 때의 최초 시드일 뿐이다.
 쓰기 대상 ns: `immich` `seafile` `home-assistant` `minecraft` `mosquitto` `nightscout`
 `gbrain` `hermes` `health-hub` `observability`.
 **제외**: `kube-system` `argocd` `cert-manager` `authentik` `longhorn-system`
-`sealed-secrets` `amang-*` `essentia` — 클러스터 자체나 운영 중인 서비스라 에이전트가
-만질 자리가 아니다.
+`sealed-secrets` `amang-*` `essentia`.
 
-`kubectl` 바이너리는 이미지에 없다. `kubectl` initContainer 가 `alpine/k8s` 에서
-emptyDir 로 복사하고, gateway 의 `PATH` 앞에 `/kube-bin` 을 붙인다. 런타임 다운로드가
-없으므로 버전이 이미지 태그로 고정된다. (`rancher/kubectl` 은 셸이 없어 복사가 불가능하다.)
+### Hermes 쪽 연결
+
+`mcp_servers` 는 PVC 위 라이브 `config.yaml` 에 있다(대시보드/런타임 관리 영역):
+
+```yaml
+mcp_servers:
+  kubernetes:
+    url: http://kubernetes-mcp.hermes.svc.cluster.local:8080/mcp
+    trust: untrusted
+```
 
 ### 확인 / 회수
 
 ```bash
-SA=system:serviceaccount:hermes:hermes
+SA=system:serviceaccount:hermes:kubernetes-mcp
 kubectl auth can-i list nodes                 --as=$SA           # yes
 kubectl auth can-i get secrets                --as=$SA -A        # no
 kubectl auth can-i create pods/exec           --as=$SA -A        # no
 kubectl auth can-i patch deployments          --as=$SA -n immich # yes
 kubectl auth can-i patch deployments          --as=$SA -n argocd # no
-kubectl auth can-i delete deployments         --as=$SA -n immich # no
+
+# Hermes 파드에는 토큰이 없어야 한다
+kubectl -n hermes exec deploy/hermes -c gateway -- ls /var/run/secrets/kubernetes.io/ 2>&1
 ```
 
-권한을 되돌리려면 [rbac.yaml](manifests/rbac.yaml) 에서 해당 바인딩을 지우면 된다.
-SA 토큰은 파드에 마운트돼 있고 에이전트 셸(uid 10000)이 읽을 수 있으므로, **RBAC 이
-유일한 관문**이다. 토큰 접근 자체를 막을 방법은 없다.
+권한을 되돌리려면 [rbac.yaml](manifests/rbac.yaml) 에서 해당 바인딩을 지우고,
+접근을 완전히 끊으려면 [mcp-kubernetes.yaml](manifests/mcp-kubernetes.yaml) 을 지우면 된다.
 
 ### 보안 기본값 (주의)
 

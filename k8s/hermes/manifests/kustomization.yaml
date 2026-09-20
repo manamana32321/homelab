@@ -8,6 +8,7 @@ resources:
   - ingress.yaml
   - sealed-secret.yaml
   - rbac.yaml
+  - mcp-kubernetes.yaml
 
 configMapGenerator:
   - name: hermes-config

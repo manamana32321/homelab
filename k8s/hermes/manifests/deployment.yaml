@@ -22,7 +22,10 @@ spec:
         app.kubernetes.io/name: hermes
         app.kubernetes.io/part-of: hermes
     spec:
-      serviceAccountName: hermes
+      # The agent shell runs inside this pod; with no token mounted it has no
+      # cluster credential at all. Cluster access goes through the
+      # kubernetes-mcp Service, which holds the RBAC.
+      automountServiceAccountToken: false
 
       # Hermes user is uid/gid 10000; fsGroup makes the PVC group-writable.
       securityContext:
@@ -73,27 +76,6 @@ spec:
               cpu: 100m
               memory: 64Mi
 
-        - name: kubectl
-          image: alpine/k8s:1.34.5
-          command:
-            - sh
-            - -c
-            - |
-              set -eu
-              cp /usr/bin/kubectl /kube-bin/kubectl
-              chmod 0755 /kube-bin/kubectl
-              /kube-bin/kubectl version --client --output=yaml | head -3
-          volumeMounts:
-            - name: kube-bin
-              mountPath: /kube-bin
-          resources:
-            requests:
-              cpu: 25m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
-
       containers:
         # Messaging gateway (Discord gateway WS, outbound) + OpenAI-compat API :8642
         - name: gateway
@@ -137,17 +119,12 @@ spec:
               value: "mentions"
             - name: DISCORD_AUTO_THREAD
               value: "true"
-            - name: PATH
-              value: "/kube-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
           ports:
             - containerPort: 8642
               name: api
           volumeMounts:
             - name: data
               mountPath: /opt/data
-            - name: kube-bin
-              mountPath: /kube-bin
-              readOnly: true
           # Skills sync + config migration run in cont-init on every boot (~30-60s)
           # before the API server binds → generous initial delays.
           livenessProbe:
@@ -225,8 +202,6 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: hermes-data
-        - name: kube-bin
-          emptyDir: {}
         - name: seed-config
           configMap:
             name: hermes-config
