@@ -32,9 +32,33 @@ Discord는 **아웃바운드 WebSocket(Discord gateway)** → ingress·포트개
 | `#일반` | `1540220813993840664` | 멘션 없이 대화(free-response), 스레드 없이 직접 답변, cron·자율 알림 발신(home) |
 | `#alert` | `1540223647350915134` | 멘션 시에만 응답, 답변은 스레드로 격리 |
 
-설정은 전부 **env** 로 선언한다. seed initContainer 는 PVC 위 라이브 `config.yaml` 을 덮지
-않고, 어댑터의 config→env 매핑이 `not os.getenv(...)` 로 가드돼 있어 **env 가 라이브 config 를
-이긴다**. 따라서 파드 안에서 `hermes config set` 을 칠 필요가 없고 Git 이 SSOT 로 남는다.
+### 설정이 두 경로로 갈린다 (중요)
+
+Discord 설정은 키마다 읽는 경로가 다르다. 어느 쪽인지 모르고 건드리면 반영이 안 된다.
+
+| 경로 | 키 | 바꾸는 곳 |
+|---|---|---|
+| `os.getenv` 직접 | `allowed_users`, `allowed_channels`, `ignored_channels`, `no_thread_channels`, `auto_thread`, `allow_bots`, `home_channel` | **Git** — [deployment.yaml](manifests/deployment.yaml) 의 `DISCORD_*` env |
+| `config.extra` 우선 | `require_mention`, `free_response_channels`, `thread_require_mention`, `history_backfill(_limit)`, `allow_any_attachment`, `max_attachment_bytes`, `slash_commands` | **대시보드** — https://hermes.json-server.win |
+
+env 경로는 컨테이너 환경변수라 대시보드에서 못 바꾼다. 즉 **누가 부를 수 있고 어느 채널까지
+열려 있는지는 Git 이 강제**하며, 대시보드로 느슨하게 만들 수 없다. 여기가 보안 경계다.
+
+`config.extra` 경로는 반대다. getter 가 이렇게 생겼다:
+
+```python
+raw = self.config.extra.get("free_response_channels")
+if raw is None:
+    raw = os.getenv("DISCORD_FREE_RESPONSE_CHANNELS", "")
+```
+
+라이브 config 에 키가 **빈 문자열로 존재**하면 `None` 이 아니므로 env 를 아예 보지 않는다.
+config→env 다리(`if cfg is not None and not os.getenv(...)`)는 env 가 비었을 때 config 로 env 를
+채울 뿐이라 이 경로를 구제하지 못한다. **그래서 이 키들에 `DISCORD_*` env 를 걸어도 무의미하다.**
+
+이 키들은 Hermes 가 PVC 위 `config.yaml` 의 주인이므로 **대시보드에서 관리한다.** seed
+initContainer 는 라이브 파일을 덮지 않으니 Git 의 [config.yaml](manifests/config.yaml) 은
+PVC 가 비었을 때의 최초 시드일 뿐이다.
 
 ### 보안 기본값 (주의)
 
