@@ -1,9 +1,5 @@
 operator:
-  # 2 replicas로 leader-election failover 확보.
-  # 단, replica 2개만으로는 부족하다 — 2026-07-22 인시던트에서 apiserver 지연이
-  # 6분간 이어지자 두 replica가 순차로 같은 zombie 상태에 빠져 lease holder가
-  # 아예 사라졌다. 최종 안전망은 manifests/zombie-reaper.yaml (좀비 판별 후 파드 삭제).
-  replicaCount: 2
+  replicaCount: 1
 
   # 차트 7.1.1 default antiaffinity는 `name=minio-operator` 라벨을 찾는데
   # 실제 pod 라벨은 `app.kubernetes.io/name=operator` → 매칭 안 됨 → 두 replica가
