@@ -30,3 +30,8 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token)"
 # TODO: 추후 MCP 전용 Service Account 분리 (현재는 개인 토큰 사용)
 export GRAFANA_URL="https://grafana.json-server.win"
 export GRAFANA_SERVICE_ACCOUNT_TOKEN=""
+
+# Discord MCP 전용 봇 토큰 (Hermes 봇과 분리된 별도 Application)
+# https://discord.com/developers/applications → Bot → Reset Token
+# Portal 토글: MESSAGE CONTENT INTENT 켜기, Public Bot 끄기
+export DISCORD_TOKEN=""
