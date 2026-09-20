@@ -13,6 +13,7 @@ configMapGenerator:
   - name: hermes-config
     files:
       - config.yaml
+      - profile-kube-bin.sh
 
 generatorOptions:
   # Stable name so deployment can reference `hermes-config`.

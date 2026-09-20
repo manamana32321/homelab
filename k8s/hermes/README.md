@@ -85,8 +85,17 @@ PVC 가 비었을 때의 최초 시드일 뿐이다.
 만질 자리가 아니다.
 
 `kubectl` 바이너리는 이미지에 없다. `kubectl` initContainer 가 `alpine/k8s` 에서
-emptyDir 로 복사하고, gateway 의 `PATH` 앞에 `/kube-bin` 을 붙인다. 런타임 다운로드가
-없으므로 버전이 이미지 태그로 고정된다. (`rancher/kubectl` 은 셸이 없어 복사가 불가능하다.)
+emptyDir 로 복사한다. 런타임 다운로드가 없으므로 버전이 이미지 태그로 고정된다.
+(`rancher/kubectl` 은 셸이 없어 `cp` 조차 못 돌린다.)
+
+**PATH 를 두 군데 넣어야 한다.** 컨테이너 env 의 `PATH` 만으로는 에이전트에게 닿지 않는다.
+에이전트 터미널은 **로그인 셸**로 뜨고, `/etc/profile` 이 비-root 사용자(Hermes 는 uid 10000)
+에게 `PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"` 를 덮어씌우기 때문이다.
+그래서 `/etc/profile.d/kube-bin.sh` 드롭인([profile-kube-bin.sh](manifests/profile-kube-bin.sh))
+으로 로그인 셸에서도 `/kube-bin` 을 앞에 붙인다.
+
+> 증상: 에이전트가 `kubectl: not found` 를 만나 스스로 dl.k8s.io 에서 61MB 를 받아
+> `/tmp/hermes-bin` 에 깐다. 동작은 하지만 파드 재시작마다 반복되고, 버전 고정이 깨진다.
 
 ### 확인 / 회수
 

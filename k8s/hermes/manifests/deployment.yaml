@@ -148,6 +148,10 @@ spec:
             - name: kube-bin
               mountPath: /kube-bin
               readOnly: true
+            - name: seed-config
+              mountPath: /etc/profile.d/kube-bin.sh
+              subPath: profile-kube-bin.sh
+              readOnly: true
           # Skills sync + config migration run in cont-init on every boot (~30-60s)
           # before the API server binds → generous initial delays.
           livenessProbe:
