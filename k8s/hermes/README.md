@@ -124,6 +124,37 @@ kubelet probe 가 NetworkPolicy 에 막히면 파드가 CrashLoop 에 빠지므�
 **제외**: `kube-system` `argocd` `cert-manager` `authentik` `longhorn-system`
 `sealed-secrets` `amang-*` `essentia`.
 
+## gbrain MCP
+
+개인 지식(brain) 검색을 에이전트에 붙인다. 별도 파드를 띄우지 않는다 — `gbrain-mcp` 가
+이미 클러스터에서 돌고 있으므로 **내부 ClusterIP 로 직접 붙는다**(Cloudflare 헤어핀 회피).
+
+```
+Hermes ──SSE──▶ http://gbrain-mcp.gbrain.svc.cluster.local/sse
+                  └ 파드 내 Caddy 가 Bearer 게이트. 내부 접근도 401 로 막힌다(실측)
+```
+
+토큰은 **설정 파일에 평문으로 넣지 않는다.** Hermes MCP 설정은 `${VAR}` 치환을 지원하므로
+(`mcp_config.py` 의 `_resolve_mcp_server_config`), 헤더에는 플레이스홀더만 두고 실제 값은
+컨테이너 env 로 주입한다:
+
+```yaml
+mcp_servers:
+  gbrain:
+    url: http://gbrain-mcp.gbrain.svc.cluster.local/sse
+    transport: sse
+    headers:
+      Authorization: "Bearer ${GBRAIN_MCP_TOKEN}"
+```
+
+`GBRAIN_MCP_TOKEN` 은 SealedSecret `hermes-secrets` 의 동명 키에서 온다. 원본은 gbrain
+네임스페이스의 `gbrain-postgres-secrets/MCP_AUTH_TOKEN` 이고, 네임스페이스가 달라 직접
+참조할 수 없으므로 hermes 쪽에 별도로 봉인했다. gbrain 쪽 토큰이 바뀌면 여기도 재봉인해야
+한다.
+
+> **쓰기 도구는 쓰지 않는다.** brain 의 SSOT 는 markdown 파일 + git 이고, MCP write 도구
+> (`put_page` 등)는 DB 만 갱신해 orphan 을 만든다. 에이전트에는 읽기 도구만 노출한다.
+
 ### Hermes 쪽 연결
 
 `mcp_servers` 는 PVC 위 라이브 `config.yaml` 에 있다(대시보드/런타임 관리 영역):
