@@ -35,6 +35,28 @@
 - `storage`, `smart` — PVC/디스크 임계치, ATA 어트리뷰트 (도메인 특화)
 - `resources`, `crowdsec` — 환경 특화
 
+### annotation 작성
+
+Alertmanager 디스코드 템플릿이 `summary`와 `description`을 연달아 출력한다. 둘이 같은 값을 반복하면 메시지 길이가 두 배가 된다.
+
+| annotation | 담는 것 | 금지 |
+|---|---|---|
+| `summary` | 알림 종류 한 줄 | 라벨 값 — 식별은 description이 한다 |
+| `description` | 대상 식별 + 관측 수치 | summary 반복, 원인 추정, 조치 절차 |
+
+```yaml
+- alert: EndpointDown
+  annotations:
+    summary: "엔드포인트 응답 없음"
+    description: "{{ $labels.instance }} ({{ $labels.job }})이 2분간 probe 실패."
+```
+
+- 한국어로 쓴다
+- 룰은 actionable해야 하지만(아래 Anti-patterns) **절차 자체는 본문에 쓰지 않는다**. 알림은 "무엇이 관측됐나"까지
+- `runbook_url`은 현재 디스코드 템플릿이 렌더하지 않으므로 쓰지 않는다
+
+**선례**: [PR #335](https://github.com/manamana32321/homelab/pull/335)에서 24건 전수 정리. 설명 평균 144자 → 79자, summary 라벨 중복 16건 → 0건.
+
 ### chart 내장 룰이 broken인 경우
 
 chart 룰이 메트릭명 mismatch 같은 버그를 가지면:
@@ -51,6 +73,7 @@ chart 룰이 메트릭명 mismatch 같은 버그를 가지면:
 - ❌ kube-prometheus-stack 일반 룰(`TargetDown` 등)을 컴포넌트별 specific 알림으로 재정의 — `up{namespace="argocd"} == 0` 같은 룰은 이미 `TargetDown`이 catch
 - ❌ "혹시 모르니까" 룰 무더기 추가 — 각 룰은 **운영상 actionable**해야 함 (받는 사람이 즉시 행동할 수 있어야 함)
 - ❌ NVMe 전용 메트릭 룰을 SATA-only 환경에서 enable — 발화 불가능한 dead rule
+- ❌ description에 조치 절차(`kubectl ...`)나 원인 추정 서술 — 28종이 동시에 울 때 긴 알림은 안 읽힌다
 
 ### 룰 전수 검증
 
