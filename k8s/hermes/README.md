@@ -1,8 +1,8 @@
 # Hermes Agent
 
 개인 상시 AI 비서 ([NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent), MIT).
-영구기억 + 자율 스킬 + 메신저 게이트웨이 + credential pool. Claude **Max 구독 OAuth**로 추론
-(종량제 API 키 미사용).
+영구기억 + 자율 스킬 + 메신저 게이트웨이 + credential pool. **Codex(ChatGPT 구독 OAuth)**로 추론
+(billing `subscription_included`, 종량제 API 키 미사용).
 
 - 대시보드: https://hermes.json-server.win (Authentik forward-auth 게이트)
 - 이미지: `nousresearch/hermes-agent:v2026.6.5` (Docker Hub, multiarch)
@@ -17,8 +17,32 @@
 | `gateway` | `gateway run` | 8642 (OpenAI 호환 API) | ClusterIP 내부 전용 |
 | `dashboard` | `dashboard --host 0.0.0.0 --port 9119 --no-open` | 9119 | Ingress (Authentik) |
 
-Telegram은 **롱폴링 아웃바운드** → ingress 불필요. `terminal.backend: local` → 에이전트 셸이
-파드 내부에서 실행 (파드 = 샌드박스, kubeconfig 미주입).
+Discord는 **아웃바운드 WebSocket(Discord gateway)** → ingress·포트개방 불필요.
+`terminal.backend: local` → 에이전트 셸이 파드 내부에서 실행 (파드 = 샌드박스, kubeconfig 미주입).
+
+## Discord 게이트웨이
+
+서버 `1540220813477945444` (개인 홈랩 서버, Alertmanager 알람이 오는 곳).
+
+| 채널 | ID | Hermes 동작 |
+|---|---|---|
+| `#일반` | `1540220813993840664` | 멘션 없이 대화(free-response), 스레드 없이 직접 답변, cron·자율 알림 발신(home) |
+| `#alert` | `1540223647350915134` | 멘션 시에만 응답, 답변은 스레드로 격리 |
+
+설정은 전부 **env** 로 선언한다. seed initContainer 는 PVC 위 라이브 `config.yaml` 을 덮지
+않고, 어댑터의 config→env 매핑이 `not os.getenv(...)` 로 가드돼 있어 **env 가 라이브 config 를
+이긴다**. 따라서 파드 안에서 `hermes config set` 을 칠 필요가 없고 Git 이 SSOT 로 남는다.
+
+### 보안 기본값 (주의)
+
+- `DISCORD_ALLOWED_USERS` 가 비면 **fail-open** — 어댑터 원문: *"If both allowlists are empty,
+  everyone is allowed"*. 봇이 들어간 서버의 아무나, DM 으로도 셸 실행이 가능한 에이전트를
+  부릴 수 있다. **비운 채로 배포 금지**.
+- `DISCORD_ALLOW_BOTS=mentions` — Alertmanager 는 웹훅이라 discord.py 기준 `author.bot=True`.
+  기본값 `none` 이면 on_message 차단은 물론 **히스토리 백필에서도 제외**돼 알람 본문을 아예 못
+  읽는다(`include_other_bots = allow_bots_raw != "none"`). `all` 은 알람마다 자동 응답해 토큰이
+  폭주한다. `mentions` 만이 "읽기는 되고 깨우지는 않는" 조합이다.
+- 봇 초대 권한은 읽기/쓰기/스레드까지만. Manage 계열·Administrator 미부여.
 
 ## 인증 / 시크릿
 
@@ -31,7 +55,7 @@ Telegram은 **롱폴링 아웃바운드** → ingress 불필요. `terminal.backe
   refresh된 토큰·마이그레이션 config 미덮음.
 - **SealedSecret `hermes-secrets`** (ns hermes): `HERMES_ADMIN_USERNAME`, `HERMES_ADMIN_PASSWORD`,
   `auth.json`(Codex 크레덴셜 파일), `API_SERVER_KEY`, `HERMES_DASHBOARD_BASIC_AUTH_SECRET`.
-  (`TELEGRAM_BOT_TOKEN`은 후속 — env `optional: true` 배선.)
+  `DISCORD_BOT_TOKEN`.
 
 > ℹ️ Codex OAuth 토큰은 auth.json에서 자동 refresh. 4xx terminal 에러 시 refresh 토큰 dead 처리 →
 > `hermes auth add openai-codex` 재발급 후 auth.json 재봉인.
@@ -55,7 +79,8 @@ docker run --rm -it --user $(id -u):$(id -g) \
 ### 산출물 (Phase A 입력)
 - `~/hermes-codex/auth.json` (`credential_pool.openai-codex[]`, access+refresh 토큰)
 - admin user/pass (생성 위임 가능)
-- (후속) Telegram 봇 토큰 — 유출 이력 있으니 revoke 후 신규
+- Discord 봇 토큰 ([Developer Portal](https://discord.com/developers/applications), `MESSAGE CONTENT INTENT` 필수)
+- 본인 Discord 유저 ID (개발자 모드 → 우클릭 → ID 복사) — `DISCORD_ALLOWED_USERS`
 
 ---
 
@@ -68,11 +93,11 @@ cert는 `k8s/sealed-secrets/cert.pem`에 커밋되어 있어 VPN/클러스터 �
 → `sealed-secret.yaml`의 `auth.json` 키에 넣음. admin/API_SERVER_KEY/DASHBOARD_SECRET은 봉인 완료.
 → PR 머지하면 ArgoCD가 `apps/hermes.yaml` 자동 sync.
 
-Telegram 추가(후속 PR):
+Discord 봇 토큰 교체:
 ```bash
 seal() { KUBECONFIG=~/.kube/config-json kubeseal --raw --cert k8s/sealed-secrets/cert.pem \
   --name hermes-secrets --namespace hermes --scope strict; }
-echo -n "$TELEGRAM_BOT_TOKEN" | seal   # → sealed-secret.yaml encryptedData.TELEGRAM_BOT_TOKEN 추가
+echo -n "$DISCORD_BOT_TOKEN" | seal   # → sealed-secret.yaml encryptedData.DISCORD_BOT_TOKEN
 kubectl -n hermes rollout restart deploy/hermes   # optional env가 키를 집음
 ```
 
@@ -84,11 +109,11 @@ kubectl -n argocd patch app hermes --type=merge \
 argocd app wait hermes --sync --health --timeout=600
 # SealedSecret 복호화 확인 (empty 함정):
 kubectl -n hermes get secret hermes-secrets -o json | jq '.data | map_values(@base64d | length)'
-kubectl -n hermes logs deploy/hermes -c gateway | grep -i "anthropic\|telegram\|provider"
+kubectl -n hermes logs deploy/hermes -c gateway | grep -i "discord\|provider"
 ```
 - Codex(ChatGPT 구독)로 추론 동작 (subscription_included, 종량제 미사용)
 - `hermes.json-server.win` → Authentik 통과 후 대시보드 (admin: hermes / 봉인된 pass)
-- (후속) Telegram 봇 ↔ 파드 대화 왕복
+- Discord `#일반`에서 멘션 없이 대화 왕복, `#alert`에서 `@Hermes` 멘션 시 최근 알람 인용 응답
 
 ## 운영 메모
 
