@@ -60,6 +60,50 @@ config→env 다리(`if cfg is not None and not os.getenv(...)`)는 env 가 비�
 initContainer 는 라이브 파일을 덮지 않으니 Git 의 [config.yaml](manifests/config.yaml) 은
 PVC 가 비었을 때의 최초 시드일 뿐이다.
 
+## 클러스터 권한 (RBAC)
+
+에이전트가 알람을 보고 원인까지 짚으려면 클러스터를 읽어야 한다. 전용 ServiceAccount
+`hermes` 를 쓴다(`default` SA 아님). 정의는 [rbac.yaml](manifests/rbac.yaml).
+
+| 범위 | 내용 |
+|---|---|
+| 읽기 (클러스터 전체) | 빌트인 `view` + `hermes-read-infra` |
+| 쓰기 (10개 ns) | `hermes-workload-restart` 를 RoleBinding 으로 부착 |
+
+빌트인 `view` 는 `secrets`·`pods/exec`·`pods/portforward`·`pods/attach` 를 포함하지 않는다
+(실측 확인). 다만 `nodes`·`persistentvolumes`·`longhorn.io` CR 도 빠져 있어, 이 홈랩의
+주된 장애(노드 NotReady, DiskPressure, Longhorn faulted)를 진단할 수 없다. 그래서
+`hermes-read-infra` 로 그 셋만 읽기 전용으로 보탠다.
+
+쓰기는 재시작 계열로 제한한다 — `patch` (deployments/statefulsets/daemonsets 와 그
+`scale` 서브리소스), `delete pods`. 앱 자체를 지우거나 만들 수는 없다.
+
+쓰기 대상 ns: `immich` `seafile` `home-assistant` `minecraft` `mosquitto` `nightscout`
+`gbrain` `hermes` `health-hub` `observability`.
+**제외**: `kube-system` `argocd` `cert-manager` `authentik` `longhorn-system`
+`sealed-secrets` `amang-*` `essentia` — 클러스터 자체나 운영 중인 서비스라 에이전트가
+만질 자리가 아니다.
+
+`kubectl` 바이너리는 이미지에 없다. `kubectl` initContainer 가 `alpine/k8s` 에서
+emptyDir 로 복사하고, gateway 의 `PATH` 앞에 `/kube-bin` 을 붙인다. 런타임 다운로드가
+없으므로 버전이 이미지 태그로 고정된다. (`rancher/kubectl` 은 셸이 없어 복사가 불가능하다.)
+
+### 확인 / 회수
+
+```bash
+SA=system:serviceaccount:hermes:hermes
+kubectl auth can-i list nodes                 --as=$SA           # yes
+kubectl auth can-i get secrets                --as=$SA -A        # no
+kubectl auth can-i create pods/exec           --as=$SA -A        # no
+kubectl auth can-i patch deployments          --as=$SA -n immich # yes
+kubectl auth can-i patch deployments          --as=$SA -n argocd # no
+kubectl auth can-i delete deployments         --as=$SA -n immich # no
+```
+
+권한을 되돌리려면 [rbac.yaml](manifests/rbac.yaml) 에서 해당 바인딩을 지우면 된다.
+SA 토큰은 파드에 마운트돼 있고 에이전트 셸(uid 10000)이 읽을 수 있으므로, **RBAC 이
+유일한 관문**이다. 토큰 접근 자체를 막을 방법은 없다.
+
 ### 보안 기본값 (주의)
 
 - `DISCORD_ALLOWED_USERS` 가 비면 **fail-open** — 어댑터 원문: *"If both allowlists are empty,
