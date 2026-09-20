@@ -22,6 +22,15 @@ spec:
         app.kubernetes.io/name: hermes
         app.kubernetes.io/part-of: hermes
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values: ["amd64"]
+
       # Hermes user is uid/gid 10000; fsGroup makes the PVC group-writable.
       securityContext:
         fsGroup: 10000
