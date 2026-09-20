@@ -60,16 +60,6 @@ config→env 다리(`if cfg is not None and not os.getenv(...)`)는 env 가 비�
 initContainer 는 라이브 파일을 덮지 않으니 Git 의 [config.yaml](manifests/config.yaml) 은
 PVC 가 비었을 때의 최초 시드일 뿐이다.
 
-현재 대시보드에서 설정해야 하는 값:
-
-| 키 | 값 | 이유 |
-|---|---|---|
-| `discord.free_response_channels` | `1540220813993840664` | `#일반` 에서 멘션 없이 응답 |
-| `discord.require_mention` | `true` | `#alert` 는 멘션 있을 때만 (기본값) |
-
-PVC 를 새로 만들거나 Hermes 의 config 마이그레이션이 이 키를 비우면 `#일반` 이 다시 조용해진다.
-증상은 "메시지를 보내도 gateway 로그에 수신 기록조차 없음" 이다.
-
 ### 보안 기본값 (주의)
 
 - `DISCORD_ALLOWED_USERS` 가 비면 **fail-open** — 어댑터 원문: *"If both allowlists are empty,
