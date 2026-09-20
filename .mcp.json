@@ -15,6 +15,10 @@
     "grafana": {
       "command": "direnv",
       "args": ["exec", ".", "mcp-grafana"]
+    },
+    "discord": {
+      "command": "direnv",
+      "args": ["exec", ".", "discord-mcp"]
     }
   }
 }

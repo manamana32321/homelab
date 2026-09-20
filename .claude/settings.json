@@ -5,7 +5,20 @@
       "mcp__claude_ai_Google_Calendar__*",
       "mcp__claude_ai_Vercel__*",
       "mcp__claude_ai_Figma__*",
-      "mcp__claude_ai_Notion__*"
+      "mcp__claude_ai_Notion__*",
+      "mcp__discord__discord_bulk_delete_messages",
+      "mcp__discord__discord_delete_message",
+      "mcp__discord__discord_delete_channel",
+      "mcp__discord__discord_create_channel",
+      "mcp__discord__discord_edit_channel",
+      "mcp__discord__discord_clone_channel",
+      "mcp__discord__discord_move_channel",
+      "mcp__discord__discord_set_channel_position",
+      "mcp__discord__discord_set_role_permission",
+      "mcp__discord__discord_set_member_permission",
+      "mcp__discord__discord_reset_channel_permissions",
+      "mcp__discord__discord_lock_channel_permissions",
+      "mcp__discord__discord_copy_permissions"
     ]
   },
   "enabledPlugins": {
