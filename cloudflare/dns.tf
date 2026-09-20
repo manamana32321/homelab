@@ -145,15 +145,6 @@ resource "cloudflare_record" "longhorn" {
   comment = "Longhorn storage UI"
 }
 
-resource "cloudflare_record" "frigate" {
-  zone_id = cloudflare_zone.main.id
-  name    = "frigate"
-  type    = "A"
-  content = var.default_ip
-  proxied = false
-  comment = "Frigate NVR"
-}
-
 resource "cloudflare_record" "home_assistant" {
   zone_id = cloudflare_zone.main.id
   name    = "ha"
