@@ -297,7 +297,7 @@ resources:
 - **Python + pip install 인라인** (brain-agent 등): `memory: 256Mi-512Mi` 권장
 - **Postgres·TimescaleDB**: `request 256Mi / limit 1Gi+`
 - **Prometheus**: metric 볼륨에 따라 `500Mi+`
-- **minio-operator**: CPU `limit: "1"` + `replicaCount: 2` 권장. RSS는 ~25Mi지만 CFS throttle이 60s leader lease 윈도우 안의 renew를 놓치면 leader-lost callback 후 재캠페인 goroutine deadlock → TCP는 살아있지만 reconcile 멈추는 zombie pod 발생. 과거 "PolicyBinding watch CPU 소모"로 잘못 진단된 패턴 — 실제 원인은 leader-election 재캠페인 deadlock. v7.1.1 binary는 HTTP health endpoint 미노출이라 livenessProbe로 자동 감지 불가, 대신 2-replica failover + PrometheusRule `MinIOOperatorLeaseStale`(lease renewTime 5분+ stale)로 대응
+- **minio-operator**: CPU `limit: "1"` + `replicaCount: 1`. RSS는 ~25Mi지만, lease 갱신이 60s 윈도우 안의 15s 데드라인을 놓치면 v7.1.1은 `OnStoppedLeading` 이후 `<-stopCh`에 영구 블록된다 — 종료도 재선출 재진입도 없이 reconcile이 멈추고 CPU limit에 붙어 계속 도는 zombie pod이 된다. v7.1.1 binary는 HTTP health endpoint를 노출하지 않아 livenessProbe로 감지할 수 없어 [`manifests/zombie-reaper.yaml`](minio-operator/manifests/zombie-reaper.yaml)이 `minio-operator-lock` lease 상태로 판별해 파드를 지운다. **replica가 1이어야 좀비 파드와 lease 소유자가 같은 개체라 이 판별이 성립한다** — 2 이상이면 팔로워만 좀비가 됐을 때 리더가 lease를 정상 갱신해 리퍼 눈에 healthy로 보인다. PrometheusRule `MinIOOperatorLeaseStale`(renewTime 5분+ stale)은 리퍼까지 실패한 경우를 잡는다
 
 ---
 
