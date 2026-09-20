@@ -7,6 +7,7 @@ resources:
   - service.yaml
   - ingress.yaml
   - sealed-secret.yaml
+  - rbac.yaml
 
 configMapGenerator:
   - name: hermes-config
