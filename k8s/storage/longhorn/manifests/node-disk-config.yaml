@@ -3,7 +3,6 @@
 #
 # server1 SSD: 100GB 할당 (/var/lib/longhorn)
 # server2 SSD: 100GB 할당 (/var/lib/longhorn)
-# raspi-1: Longhorn 스토리지 제외 (scheduling disabled)
 ---
 apiVersion: longhorn.io/v1beta2
 kind: Node
@@ -36,13 +35,3 @@ spec:
       path: /var/lib/longhorn
       storageReserved: 45000000000   # ~45GB 예약
       tags: []
----
-apiVersion: longhorn.io/v1beta2
-kind: Node
-metadata:
-  name: raspi-1
-  namespace: longhorn-system
-spec:
-  name: raspi-1
-  allowScheduling: false  # raspi-1은 스토리지 노드 제외
-  disks: {}
