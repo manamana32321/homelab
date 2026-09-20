@@ -16,8 +16,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "{{ $labels.instance }} is down"
-            description: "{{ $labels.instance }} has been unreachable for 2 minutes (source: {{ $labels.job }})."
+            summary: "엔드포인트 응답 없음"
+            description: "{{ $labels.instance }} ({{ $labels.job }})이 2분간 probe 실패."
 
         - alert: TLSCertExpiringSoon
           expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
@@ -25,8 +25,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "TLS cert expiring: {{ $labels.instance }}"
-            description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days."
+            summary: "TLS 인증서 만료 임박"
+            description: "{{ $labels.instance }} 인증서가 {{ $value | humanize }}일 뒤 만료."
 
         - alert: SlowResponse
           expr: avg_over_time(probe_duration_seconds[5m]) > 3
@@ -34,8 +34,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Slow response: {{ $labels.instance }}"
-            description: "{{ $labels.instance }} avg response time is {{ $value | humanize }}s over last 5 minutes."
+            summary: "엔드포인트 응답 지연"
+            description: "{{ $labels.instance }} 5분 평균 응답 {{ $value | humanize }}초."
 
     # 스토리지 알림 (kube-prometheus-stack 기본에 PVC/디스크 임계치 rule 없음)
     - name: storage
@@ -46,8 +46,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "PVC almost full: {{ $labels.persistentvolumeclaim }}"
-            description: "PVC {{ $labels.persistentvolumeclaim }} in {{ $labels.namespace }} is {{ $value | humanizePercentage }} full."
+            summary: "PVC 용량 임박"
+            description: "{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} {{ $value | humanizePercentage }} 사용."
 
         - alert: NodeUnderDiskPressure
           expr: kube_node_status_condition{condition="DiskPressure",job="kube-state-metrics",status="true"} == 1
@@ -55,8 +55,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Node under disk pressure: {{ $labels.node }}"
-            description: "kubelet on {{ $labels.node }} is evicting pods to reclaim ephemeral-storage."
+            summary: "노드 DiskPressure"
+            description: "{{ $labels.node }} kubelet이 ephemeral-storage 회수를 위해 파드를 축출 중."
 
         - alert: NodeDiskAlmostFull
           # SSD(`/`): 95% — Longhorn replica sparse 누적은 Trim Filesystem으로 회수 가능, 늦게 알려도 무방.
@@ -66,8 +66,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Disk almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
-            description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+            summary: "디스크 용량 임박"
+            description: "{{ $labels.instance }} {{ $labels.mountpoint }} {{ $value | humanizePercentage }} 사용."
 
         - alert: HDDAlmostFull
           # HDD(`/mnt/hdd-*`): 75% — 미디어 누적이라 회수 불가, 일찍 경고해 정리/확장 시간 확보.
@@ -76,8 +76,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "HDD almost full: {{ $labels.instance }} {{ $labels.mountpoint }}"
-            description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+            summary: "HDD 용량 임박"
+            description: "{{ $labels.instance }} {{ $labels.mountpoint }} {{ $value | humanizePercentage }} 사용."
 
     # SMART 디스크 건강 알림 (ATA HDD 특화 — NVMe 기본 알림은 smartctl-exporter chart에 내장)
     - name: smart
@@ -93,8 +93,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Pending sectors: {{ $labels.device }} ({{ $labels.instance }})"
-            description: "{{ $labels.device }} has {{ $value }} pending sector(s). Potential disk failure."
+            summary: "디스크 pending 섹터 발생"
+            description: "{{ $labels.instance }} {{ $labels.device }} pending 섹터 {{ $value }}개."
 
         - alert: DiskReallocatedSectors
           expr: >-
@@ -105,8 +105,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Reallocated sectors: {{ $labels.device }} ({{ $labels.instance }})"
-            description: "{{ $labels.device }} has {{ $value }} reallocated sector(s)."
+            summary: "디스크 재할당 섹터 발생"
+            description: "{{ $labels.instance }} {{ $labels.device }} 재할당 섹터 {{ $value }}개."
 
         - alert: DiskReallocatedSectorsCritical
           expr: smartctl_device_attribute{attribute_name="Reallocated_Sector_Ct", attribute_value_type="raw"} > 100
@@ -114,8 +114,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "CRITICAL: Many reallocated sectors on {{ $labels.device }}"
-            description: "{{ $labels.device }} has {{ $value }} reallocated sectors. Replace disk."
+            summary: "디스크 재할당 섹터 다수"
+            description: "{{ $labels.instance }} {{ $labels.device }} 재할당 섹터 {{ $value }}개."
 
         # SMART overall verdict — 벤더 normalized threshold가 깨질 때 발화.
         # reallocation 외의 실패 모드(spin-up 열화, read error rate, retry count 등)도
@@ -128,8 +128,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "SMART overall FAILED: {{ $labels.device }} ({{ $labels.instance }})"
-            description: "{{ $labels.device }} SMART overall-health 판정이 FAIL. 즉시 디스크 교체 준비. `smartctl -A /dev/{{ $labels.device }}`로 어떤 attribute가 threshold를 넘었는지 확인."
+            summary: "SMART 종합 판정 FAIL"
+            description: "{{ $labels.instance }} {{ $labels.device }} SMART overall-health = FAILED."
 
     - name: power
       rules:
@@ -139,8 +139,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Undervoltage: {{ $labels.instance }}"
-            description: "{{ $labels.instance }} 전원 전압이 최근 15분 내 임계 이하로 떨어졌다. 브라운아웃 재부팅 위험. 5.1V/3A 정격 어댑터와 케이블 상태를 점검하고, 노드 부하와 USB 주변기기 전류 소모를 확인할 것."
+            summary: "전원 언더볼티지"
+            description: "{{ $labels.instance }} 전원 전압이 최근 15분 내 임계 이하로 하강."
 
     # CrowdSec IPS 알림
     - name: crowdsec
@@ -152,8 +152,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "CrowdSec: 다수 IP 차단 중 (로컬 탐지)"
-            description: "5분간 {{ $value | humanize }}건의 로컬 차단 판단 발생."
+            summary: "CrowdSec 차단 급증"
+            description: "5분간 로컬 차단 판단 {{ $value | humanize }}건."
 
         - alert: CrowdSecLAPIDown
           expr: up{job=~".*crowdsec-lapi.*"} == 0
@@ -162,7 +162,7 @@ spec:
             severity: critical
           annotations:
             summary: "CrowdSec LAPI 응답 없음"
-            description: "CrowdSec LAPI가 3분간 메트릭을 노출하지 않음. bouncer가 fail-open 상태."
+            description: "LAPI가 3분간 메트릭을 노출하지 않음."
 
     # 리소스 알림 (kube-prometheus-stack 기본 NodeMemory rule은 예측 기반이라 직관적이지 않음)
     - name: resources
@@ -173,8 +173,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "High memory: {{ $labels.instance }}"
-            description: "Memory usage on {{ $labels.instance }} is {{ $value | humanizePercentage }}."
+            summary: "노드 메모리 사용률 높음"
+            description: "{{ $labels.instance }} 메모리 {{ $value | humanizePercentage }} 사용."
 
         # chart 룰 CPUThrottlingHigh(info, 5m window)는 짧은 버스트성 스로틀링까지
         # 잡아 info noise로 묻힌다. wedge된 컨트롤러(예: minio-operator의
@@ -196,8 +196,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Sustained CPU throttling: {{ $labels.namespace }}/{{ $labels.pod }}"
-            description: "{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }})가 2시간+ 동안 {{ $value | humanizePercentage }} CPU 스로틀 중. CPU limit에 붙어 wedge되었거나 limit이 과소 설정됨 — pod 재시작 또는 limit 증설 필요."
+            summary: "컨테이너 CPU 스로틀 지속"
+            description: "{{ $labels.namespace }}/{{ $labels.pod }} {{ $labels.container }}가 2시간 동안 {{ $value | humanizePercentage }} 스로틀."
 
     # ArgoCD 앱 health — chart의 ArgoAppMissing/ArgoAppNotSynced로는 못 잡는
     # Degraded/Missing/Unknown 상태를 12h 기다리지 않고 catch.
@@ -212,8 +212,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "ArgoCD app degraded: {{ $labels.name }} ({{ $labels.health_status }})"
-            description: "Application {{ $labels.name }} (ns: {{ $labels.dest_namespace }}) is in {{ $labels.health_status }} state for 10+ minutes. argocd.json-server.win에서 상세 확인."
+            summary: "ArgoCD 애플리케이션 degraded"
+            description: "{{ $labels.name }} (ns {{ $labels.dest_namespace }})이 10분 이상 {{ $labels.health_status }} 상태."
 
     # Image Updater silent CD failure 감지.
     # 정책상 모든 커스텀 앱이 Image Updater에 의존하므로 (k8s/CLAUDE.md 참조),
@@ -229,8 +229,8 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Image Updater: ArgoCD API write 실패 누적"
-            description: "15분간 {{ $value | humanize }}건의 ArgoCD API 에러. digest override write-back 실패 가능 → 새 image 빌드돼도 배포 안 됨. ServiceAccount RBAC/token 점검 필요."
+            summary: "Image Updater ArgoCD API 에러"
+            description: "15분간 ArgoCD API 에러 {{ $value | humanize }}건."
 
         # per-app 처리 에러 sustained — registry pull-secret 만료, annotation 오타,
         # GHCR 일시 장애 등. application 라벨로 어느 앱이 문제인지 분리해서 알림.
@@ -240,8 +240,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Image Updater errors: {{ $labels.application }}"
-            description: "{{ $labels.application }}에서 30분간 {{ $value | humanize }}건의 처리 에러. annotation/pull-secret/GHCR 접근 점검 필요."
+            summary: "Image Updater 처리 에러"
+            description: "{{ $labels.application }} 30분간 처리 에러 {{ $value | humanize }}건."
 
         # pod up이지만 폴링 멈춤 — 내부 hang, config 오류, network 문제.
         # 정상 시 7개 app × 2분 폴링 = ~210 요청/h이므로 15분간 0이면 명백히 stuck.
@@ -251,8 +251,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Image Updater stuck: registry 폴링 멈춤"
-            description: "{{ $labels.registry }}에 대한 폴링이 15분 이상 0건. pod up이지만 내부 stuck 가능. `kubectl logs -n argocd -l app.kubernetes.io/name=argocd-image-updater` 확인."
+            summary: "Image Updater 레지스트리 폴링 정지"
+            description: "{{ $labels.registry }} 폴링이 15분 이상 0건."
 
     # minio-operator zombie 감지 — leader pod이 CPU throttling으로 lease를 잃은 뒤
     # 재캠페인 goroutine이 deadlock에 빠지면 TCP는 살아있지만 reconcile 멈춤.
@@ -266,8 +266,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "minio-operator leader lease 5분+ stale"
-            description: "lease {{ $labels.namespace }}/{{ $labels.lease }}이 {{ $value | humanizeDuration }} 동안 갱신 안 됨."
+            summary: "minio-operator lease 갱신 정지"
+            description: "{{ $labels.namespace }}/{{ $labels.lease }}이 {{ $value | humanizeDuration }} 동안 미갱신."
 
     # gbrain-sync cron 신선도 감지 — git(brain repo) → Postgres 인덱스 동기화가
     # 지속적으로 실패하면 brain 검색 결과가 stale해진다.
@@ -284,5 +284,5 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "gbrain-sync 1시간+ 성공 없음"
-            description: "gbrain-sync cron이 {{ $value | humanizeDuration }} 동안 성공하지 못함. brain 인덱스가 stale해지는 중. `kubectl -n gbrain get jobs`로 최근 실패 확인 후 로그(`kubectl -n gbrain logs job/<name>`) 점검."
+            summary: "gbrain-sync 성공 없음"
+            description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과."
