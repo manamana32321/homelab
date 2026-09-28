@@ -19,8 +19,6 @@ metadata:
   #   argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd-diff-preview/watch-pattern: "k8s/essentia/.*"
 spec:
   project: default
   source:

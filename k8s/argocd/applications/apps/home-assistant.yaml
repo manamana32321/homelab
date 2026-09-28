@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: home-assistant
   namespace: argocd
-  annotations:
-    argocd-diff-preview/watch-pattern: "k8s/home-assistant/values.yaml"
 spec:
   project: default
   sources:

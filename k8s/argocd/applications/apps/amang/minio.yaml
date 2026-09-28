@@ -3,8 +3,6 @@ kind: ApplicationSet
 metadata:
   name: amang-minio
   namespace: argocd
-  annotations:
-    argocd-diff-preview/watch-pattern: "k8s/minio-tenants/.*"
 spec:
   generators:
     - list:
@@ -15,8 +13,6 @@ spec:
     metadata:
       name: amang-minio-{{env}}
       namespace: argocd
-      annotations:
-        argocd-diff-preview/watch-pattern: "k8s/minio-tenants/.*"
     spec:
       destination:
         namespace: amang-api-{{env}}

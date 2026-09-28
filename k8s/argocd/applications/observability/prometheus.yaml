@@ -5,8 +5,6 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd-diff-preview/watch-pattern: "k8s/observability/prometheus/values.yaml, k8s/observability/prometheus/manifests/.*"
 spec:
   project: default
   sources:

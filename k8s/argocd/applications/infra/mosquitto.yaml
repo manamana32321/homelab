@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: mosquitto
   namespace: argocd
-  annotations:
-    argocd-diff-preview/watch-pattern: "k8s/mosquitto/manifests/.*"
 spec:
   project: default
   sources:
