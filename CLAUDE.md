@@ -18,6 +18,7 @@ homelab/
 │   ├── versions.tf          # Provider 및 R2 backend 설정
 │   ├── variables.tf         # 변수 정의 (sensitive 포함)
 │   ├── dns.tf               # Zone 및 DNS 레코드
+│   ├── waf.tf               # WAF custom rules (KR 외 차단 + 예외)
 │   └── outputs.tf           # Zone ID 등 출력
 ├── k8s/                     # Kubernetes manifests (ArgoCD GitOps)
 │   ├── argocd/
