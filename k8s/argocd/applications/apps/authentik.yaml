@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-diff-preview/watch-pattern: "k8s/authentik/values.yaml, k8s/authentik/manifests/.*"
 spec:
   project: default
   sources:

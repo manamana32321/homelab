@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-diff-preview/watch-pattern: "k8s/storage/local-path-hdd-samsung/.*"
 spec:
   project: default
   source:

@@ -7,6 +7,8 @@ metadata:
   # (per k8s/CLAUDE.md — Image Updater is for our own GHCR images only).
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-diff-preview/watch-pattern: "k8s/hermes/manifests/.*"
 spec:
   project: default
   source:

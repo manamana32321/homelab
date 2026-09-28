@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-diff-preview/watch-pattern: "k8s/crowdsec/values.yaml, k8s/crowdsec/manifests/.*"
 spec:
   project: default
   sources:
