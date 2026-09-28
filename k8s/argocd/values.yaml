@@ -12,6 +12,7 @@ configs:
   params:
     server.insecure: "true"
   cm:
+    timeout.reconciliation: 1800s
     dex.config: |
       connectors:
         - type: github
@@ -26,6 +27,8 @@ configs:
     #   g, your-org:members, role:admin
     policy.default: role:admin
     scopes: "[groups]"
+  secret:
+    githubSecret: $argocd-webhook-github:secret
   repositories:
     homelab:
       url: https://github.com/manamana32321/homelab
@@ -61,6 +64,21 @@ extraObjects:
         metadata:
           name: github-oauth-app
           namespace: argocd
+
+  - apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      name: argocd-webhook-github
+      namespace: argocd
+    spec:
+      encryptedData:
+        secret: AgB/33ZzlauSW4+H4be3TEL73jdaE6h7RXGlm1ph8FjjZr0mlsTeE/O3usWpVRvRFNTK/ggOslZ8e05vd7u7AcSPI1Bf1Pprmjulb1oSB+WlCHyzBkbVMm1cVFs/28HgelQRr5evjevN6Y8+QWWYXyLSvwjYdX5+boMGRPZB7+jaB81isYTR2tqgkifYI8W/ezRRN+dy0rKGE/tluSHtU7k5RMrgGH062O0MECPxFCzW2z+48mDGpDFBlpadm4BNX7JsPdcmu7HCzeU5EGb7jt/UojHJ0JYv72nhhGI8eSVSXML5YSc0ot+3hbzFuYPc1KciKIxX9h3VnWRYBHIlx2HDIcQN9eFCV+7qXvDFl3tq/Dv1kichdM0Hc+t5bYS312DsPIx6TlShGAwwe0Z2BPYbGkT0vDSCT+93I/ZxBFlUFdJQaeH3h68vYqggxB05v7mqrU7gE+rVfnDBgAOU7WPPTv33ugx2Cj6yL9l1lunB9AWXZt7O/tzdXdvUBdfbsZV9RVTd3hqw4elznCe4Bqyp3Lk2JG5YmBFn/MgDrWymjxgu/OwS6AtaFjuFoHgHWXduYcYMK44P+Nn5503uTW2+ZMw6/O6GXFKvPzQkWlrh0UCWcddlRzexuyEKKPYCgViJmEI5OEejPjhoea0XKM+uFt870eJGhCoo2ecx1oy2phuXCU/8SPITItNRWip7o9E3Fw1njAzbgLUIb0VvIZpRZnQKYBSEP7hEhogK1Odag1vX7kOH/Nr01ff5NNdPAH0ImROfVDfAiTZW6BoP0Wos
+      template:
+        metadata:
+          name: argocd-webhook-github
+          namespace: argocd
+          labels:
+            app.kubernetes.io/part-of: argocd
 
   # App of Apps - 다른 Application들을 자동으로 배포
   - apiVersion: argoproj.io/v1alpha1
