@@ -49,3 +49,6 @@ longhornDriver:
   tolerations: []
   nodeSelector: {}
   priorityClass: system-node-critical
+
+networkPolicies:
+  restrictInternalTraffic: false
