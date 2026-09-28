@@ -24,20 +24,6 @@ resource "cloudflare_ruleset" "waf_custom" {
   }
 
   rules {
-    ref         = "8609e939524444ca86b3eb8ea6dac776"
-    description = "Amang API 차단 허용"
-    expression  = "(http.host wildcard r\"*.json-server.win\")"
-    action      = "skip"
-    action_parameters {
-      phases = ["http_ratelimit"]
-    }
-    logging {
-      enabled = true
-    }
-    enabled = false
-  }
-
-  rules {
     ref         = "31f6cb807572460dbe3edc7046d40612"
     description = "대한민국만 허용"
     expression  = "(ip.src.country ne \"KR\")"
