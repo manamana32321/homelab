@@ -34,6 +34,10 @@ homelab/
 │   ├── versions.tf
 │   ├── variables.tf
 │   └── monitors.tf              # argocd.json-server.win monitor (Coral 후신)
+├── github/                  # Terraform - GitHub repo webhook (ArgoCD push 알림)
+│   ├── versions.tf
+│   ├── variables.tf
+│   └── webhooks.tf              # homelab, skku-amang/main → argocd /api/webhook
 ├── .envrc                   # 공개 환경변수 (TF_VAR_*)
 └── .envrc.local             # 민감한 credentials (gitignored)
 ```
@@ -42,9 +46,10 @@ homelab/
 
 | 대상 | 방식 | 트리거 |
 |------|------|--------|
-| `k8s/` | ArgoCD GitOps (자동 sync) | Git push → ArgoCD가 감지 |
+| `k8s/` | ArgoCD GitOps (자동 sync) | Git push → GitHub webhook 즉시 refresh (폴링 30분은 안전망) |
 | `cloudflare/` | 수동 `terraform apply` | - |
 | `betterstack/` | 수동 `terraform apply` | - |
+| `github/` | 수동 `terraform apply` | - |
 
 ## Cloudflare/Terraform
 
