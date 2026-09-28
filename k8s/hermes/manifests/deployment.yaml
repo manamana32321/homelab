@@ -9,7 +9,7 @@ metadata:
 spec:
   # Live on OpenAI Codex (ChatGPT subscription OAuth, billing subscription_included).
   # Credential seeded as /opt/data/auth.json from the SealedSecret.
-  replicas: 1
+  replicas: 0
   # RWO PVC shared by both containers → single node, no rolling.
   strategy:
     type: Recreate

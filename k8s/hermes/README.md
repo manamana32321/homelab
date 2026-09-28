@@ -1,5 +1,15 @@
 # Hermes Agent
 
+> **파킹 중 (2026-09-28~)** — ChatGPT 구독 해지로 Codex 추론이 불가해져 `hermes` 와
+> `kubernetes-mcp` 를 `replicas: 0` 으로 내렸다. **삭제한 것은 없다** — PVC(`hermes-data`,
+> 기억·세션·스킬·auth.json), SealedSecret, Ingress, Authentik application, RBAC,
+> NetworkPolicy, DNS 레코드 모두 그대로다.
+>
+> 재개: 두 매니페스트의 `replicas` 를 `1` 로 되돌리고 머지하면 끝. 단 Codex OAuth 토큰
+> (`/opt/data/auth.json`)이 만료됐을 수 있으므로 `hermes auth add openai-codex` 재발급 후
+> SealedSecret 재봉인이 필요할 수 있다. 구독 없이 쓰려면 provider 교체가 먼저다
+> (Gemini 무료티어가 유일한 $0 경로 — 상세는 아래 "구독제 무료 추론" 절).
+
 개인 상시 AI 비서 ([NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent), MIT).
 영구기억 + 자율 스킬 + 메신저 게이트웨이 + credential pool. **Codex(ChatGPT 구독 OAuth)**로 추론
 (billing `subscription_included`, 종량제 API 키 미사용).
