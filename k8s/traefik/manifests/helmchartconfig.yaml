@@ -41,7 +41,12 @@ spec:
         readOnly: true
     # Force the two replicas onto distinct nodes. Required (not preferred) so the
     # scheduler can never stack both on one node — which would re-create the SPOF.
-    # Satisfiable: 3 nodes, 2 replicas.
+    # Satisfiable: 2 nodes, 2 replicas.
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+        maxSurge: 0
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
