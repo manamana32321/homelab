@@ -1,5 +1,6 @@
 prometheus-node-exporter-lua
 prometheus-node-exporter-lua-ethtool
+prometheus-node-exporter-lua-filesystem
 prometheus-node-exporter-lua-hostapd_ubus_stations
 prometheus-node-exporter-lua-nat_traffic
 prometheus-node-exporter-lua-netstat
