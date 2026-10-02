@@ -36,12 +36,20 @@ apk add $(cat openwrt/packages-extra.txt | tr '\n' ' ')
 | 지표 | 쓰임 |
 | --- | --- |
 | `node_ethtool_rxpause` / `txpause` (device=lan1~4) | PAUSE 프레임. 공유기가 LAN 을 멈추게 하는 순간을 공유기 쪽에서 직접 본다 |
+| `node_cpu_seconds_total{mode="softirq"}` | 네트워크 처리에 쓰인 CPU. WED 오프로드 필요성 판단 근거 |
 | `node_network_receive_bytes_total` (device=phy1-ap0, lan*) | 무선→유선 중계량 |
-| `node_cpu_seconds_total` | CPU 포화 여부. WED 오프로드 필요성 판단 근거 |
+| `wifi_station_signal_dbm` / `_transmit_kilobits_per_second` | **기기별** 무선 신호·전송률 (MAC 라벨) |
+| `wifi_network_noise_dbm` / `_quality` | 라디오별 잡음·품질 |
+| `node_nat_traffic{src,dest}` | 호스트별 트래픽 (conntrack 기반) |
 | `node_thermal_zone_temp` | SoC 온도, 스로틀링 감지 |
 | `node_nf_conntrack_entries` / `_limit` | 연결 추적 테이블 포화 |
+| `node_openwrt_info` | 보드·펌웨어 버전 |
 
-클라이언트별 신호·전송률은 장치 단위로만 노출돼(값 0) 쓸 수 없다.
+`node_nat_traffic` 은 라벨이 IP 쌍이라 목적지마다 시계열이 늘어난다. 폭주해도 이 타겟만 실패하도록 Prometheus 쪽에 `sample_limit: 5000` 을 둔다 (현재 약 1,400 샘플).
+
+## 대시보드
+
+[Grafana 11147 (OpenWRT)](https://grafana.com/grafana/dashboards/11147) 을 `gnetId` 로 프로비저닝한다 — `k8s/observability/grafana/values.yaml` 의 `dashboards.infrastructure`. 이 대시보드가 요구하는 수집기 6종이 `packages-extra.txt` 에 포함돼 있다.
 
 ## 로그
 
