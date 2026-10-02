@@ -87,7 +87,6 @@ serviceMonitor:
     - name: seafile
       url: http://seafile.seafile.svc.cluster.local
       module: http_2xx_no_tls
-    # home-assistant: replicaCount 0 (PR #84b4125, 2026-05-23 인시던트 후속) — startupProbe 추가 + 부활 시 복원
     - name: k8s-dashboard
       url: http://headlamp.headlamp.svc.cluster.local
       module: http_2xx_no_tls
@@ -112,9 +111,6 @@ serviceMonitor:
     - name: tempo
       url: http://tempo.observability.svc.cluster.local:3200/ready
       module: http_2xx_no_tls
-    - name: mosquitto
-      url: mosquitto.mosquitto.svc.cluster.local:1883
-      module: tcp_connect
     - name: health-hub
       url: http://health-hub.health-hub.svc.cluster.local:8080/healthz
       module: http_2xx_no_tls

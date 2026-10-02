@@ -129,7 +129,7 @@ kubelet probe 가 NetworkPolicy 에 막히면 파드가 CrashLoop 에 빠지므�
 쓰기는 재시작 계열로 제한한다 — `patch` (deployments/statefulsets/daemonsets 와 그
 `scale` 서브리소스), `delete pods`. 앱 자체를 지우거나 만들 수는 없다.
 
-쓰기 대상 ns: `immich` `seafile` `home-assistant` `minecraft` `mosquitto` `nightscout`
+쓰기 대상 ns: `immich` `seafile` `minecraft` `nightscout`
 `gbrain` `hermes` `health-hub` `observability`.
 **제외**: `kube-system` `argocd` `cert-manager` `authentik` `longhorn-system`
 `sealed-secrets` `amang-*` `essentia`.
