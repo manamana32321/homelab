@@ -16,6 +16,7 @@
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
 | DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
+| WED 오프로드 | 켜짐 (`openwrt/modules.d/mt7915e-wed`) |
 
 2283(Immich LAN 평문 엔드포인트)은 포워딩하지 않는다.
 
@@ -36,7 +37,7 @@ apk add $(cat openwrt/packages-extra.txt | tr '\n' ' ')
 | 지표 | 쓰임 |
 | --- | --- |
 | `node_ethtool_rxpause` / `txpause` (device=lan1~4) | PAUSE 프레임. 공유기가 LAN 을 멈추게 하는 순간을 공유기 쪽에서 직접 본다 |
-| `node_cpu_seconds_total{mode="softirq"}` | 네트워크 처리에 쓰인 CPU. WED 오프로드 필요성 판단 근거 |
+| `node_cpu_seconds_total{mode="softirq"}` | 네트워크 처리에 쓰인 CPU |
 | `node_network_receive_bytes_total` (device=phy1-ap0, lan*) | 무선→유선 중계량 |
 | `wifi_station_signal_dbm` / `_transmit_kilobits_per_second` | **기기별** 무선 신호·전송률 (MAC 라벨) |
 | `wifi_network_noise_dbm` / `_quality` | 라디오별 잡음·품질 |
@@ -74,6 +75,8 @@ hostapd(접속·인증·DFS), dnsmasq(DHCP·DNS), 커널(mt76·링크 이벤트)
 - 받는 쪽 파드가 어느 노드에 있든 상관없다. ServiceLB 가 전 노드에 `svclb-*` DaemonSet 을 띄우고 `externalTrafficPolicy: Cluster` 로 클러스터 내부로 넘긴다
 - UDP 라 수신처가 죽어도 공유기는 모르고 그냥 흘려보낸다. TCP 는 재시도하지만 수신처가 막히면 `logd` 가 블로킹될 수 있어 공유기 안정성을 우선했다
 
+`modules.d/` 는 `/etc/modules.d/` 에 들어간다. 모듈 파라미터라 적용에 재부팅이 필요하다.
+
 ## 설정 복원
 
 ```bash
@@ -108,7 +111,3 @@ New-NetFirewallRule -DisplayName "TFTP-recovery" -Direction Inbound -Protocol UD
 ```
 
 순정 복귀도 같은 절차에 ipTIME 순정 `.bin` 을 넣으면 된다.
-
-## 미적용
-
-**WED (Wireless Ethernet Dispatch) 하드웨어 오프로드.** 커널은 `CONFIG_NET_MEDIATEK_SOC_WED=y` 로 빌드돼 있으나 mt76 드라이버 기본값이 꺼짐이다. `/etc/modules.d/` 에 `mt7915e wed_enable=1` 이 필요하고, 적용 후 `dmesg | grep -i wed` 와 대용량 무선 업로드로 검증한다.
