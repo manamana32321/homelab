@@ -21,6 +21,28 @@
 
 UPnP 는 `miniupnpd` 가 미설치라 동작하지 않는다. WAN 쪽 관리 접근은 방화벽 기본값 `wan: input REJECT` 로 차단된다.
 
+## 메트릭
+
+`prometheus-node-exporter-lua` 가 `192.168.0.1:9100/metrics` 를 LAN 에만 바인딩해 제공한다 (`listen_interface lan`). Prometheus 가 static 대상으로 긁는다 — `k8s/observability/prometheus/values.yaml` 의 `additionalScrapeConfigs`.
+
+설치 패키지는 `packages-extra.txt` 에 있다.
+
+```bash
+apk add $(cat openwrt/packages-extra.txt | tr '\n' ' ')
+```
+
+진단에 쓰는 지표:
+
+| 지표 | 쓰임 |
+| --- | --- |
+| `node_ethtool_rxpause` / `txpause` (device=lan1~4) | PAUSE 프레임. 공유기가 LAN 을 멈추게 하는 순간을 공유기 쪽에서 직접 본다 |
+| `node_network_receive_bytes_total` (device=phy1-ap0, lan*) | 무선→유선 중계량 |
+| `node_cpu_seconds_total` | CPU 포화 여부. WED 오프로드 필요성 판단 근거 |
+| `node_thermal_zone_temp` | SoC 온도, 스로틀링 감지 |
+| `node_nf_conntrack_entries` / `_limit` | 연결 추적 테이블 포화 |
+
+클라이언트별 신호·전송률은 장치 단위로만 노출돼(값 0) 쓸 수 없다.
+
 ## 설정 복원
 
 ```bash

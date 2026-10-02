@@ -1,0 +1,5 @@
+prometheus-node-exporter-lua
+prometheus-node-exporter-lua-ethtool
+prometheus-node-exporter-lua-hostapd_ubus_stations
+prometheus-node-exporter-lua-netstat
+prometheus-node-exporter-lua-thermal
