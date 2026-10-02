@@ -12,7 +12,7 @@
 | 시간대 | `Asia/Seoul` (KST-9) |
 | LAN | `192.168.0.1/24` |
 | WAN | `eth1`, DHCP |
-| 무선 | `5G` (5GHz, 채널 48) / `2.4G` (2.4GHz, 자동), WPA2-PSK + CCMP, 국가 KR |
+| 무선 | `5G` (5GHz, 채널 48) / `2.4G` (2.4GHz, 채널 6), WPA2-PSK + CCMP, 국가 KR |
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
 | DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
