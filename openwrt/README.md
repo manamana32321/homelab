@@ -17,6 +17,7 @@
 | DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
 | WED 오프로드 | 켜짐 (`openwrt/modules.d/mt7915e-wed`) |
+| IPv6 | 끔 — WAN DHCPv6 없음, LAN RA·DHCPv6 `disabled`, ULA 없음 |
 
 2283(Immich LAN 평문 엔드포인트)은 포워딩하지 않는다.
 
@@ -87,7 +88,7 @@ ssh -i ~/.ssh/openwrt_ax3000sm root@192.168.0.1 \
    uci commit; reload_config"
 ```
 
-`network` 의 `dhcp_default_duid` 와 `ula_prefix` 는 기기가 생성한 값이다. 그대로 복원하면 IPv6 주소가 유지된다.
+`network` 의 `dhcp_default_duid` 는 기기가 생성한 값이다. 그대로 복원한다.
 
 ## 펌웨어 설치
 
