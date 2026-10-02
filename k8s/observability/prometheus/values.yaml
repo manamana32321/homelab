@@ -49,6 +49,15 @@ prometheus:
     nodeSelector:
       kubernetes.io/hostname: json-server-1
 
+    # 공유기(OpenWrt)는 클러스터 밖이라 ServiceMonitor 로 잡히지 않는다.
+    # prometheus-node-exporter-lua 가 LAN 에만 9100 을 열어둔다.
+    additionalScrapeConfigs:
+      - job_name: openwrt
+        static_configs:
+          - targets: ["192.168.0.1:9100"]
+            labels:
+              instance: ax3000sm
+
   # Prometheus는 자체 인증 기능이 없어 ingress가 곧 무인증 공개 API가 된다.
   # Alertmanager와 동일하게 외부 노출하지 않고 port-forward로만 접근한다:
   #   kubectl port-forward -n observability svc/prometheus-kube-prometheus-prometheus 9090:9090

@@ -24,6 +24,12 @@ ports:
     containerPort: 8889
     servicePort: 8889
     protocol: TCP
+  # 공유기(OpenWrt logd) 원격 syslog 수신. 1024 미만 특권 포트를 피해 5514 사용.
+  syslog:
+    enabled: true
+    containerPort: 5514
+    servicePort: 5514
+    protocol: UDP
 
 ingress:
   enabled: true
@@ -56,10 +62,26 @@ config:
               - "*"
             max_age: 7200
 
+    # 공유기 logd 는 RFC3164(구형 BSD) 로 보낸다. 연도·타임존이 없어 location 이 필요하다.
+    syslog:
+      protocol: rfc3164
+      location: Asia/Seoul
+      udp:
+        listen_address: 0.0.0.0:5514
+
   processors:
     batch:
       timeout: 10s
       send_batch_size: 512
+
+    resource/openwrt:
+      attributes:
+        - key: service.name
+          value: openwrt
+          action: upsert
+        - key: host.name
+          value: ax3000sm
+          action: upsert
 
   exporters:
     otlphttp/logs:
@@ -92,6 +114,10 @@ config:
       logs:
         receivers: [otlp]
         processors: [batch]
+        exporters: [otlphttp/logs]
+      logs/syslog:
+        receivers: [syslog]
+        processors: [resource/openwrt, batch]
         exporters: [otlphttp/logs]
       metrics:
         receivers: [otlp]

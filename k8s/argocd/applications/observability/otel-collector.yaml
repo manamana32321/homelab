@@ -22,7 +22,7 @@ spec:
       targetRevision: main
       path: k8s/observability/otel-collector
       directory:
-        include: "{service-monitor.yaml}"
+        include: "{service-monitor.yaml,syslog-lan-service.yaml}"
   destination:
     server: https://kubernetes.default.svc
     namespace: observability

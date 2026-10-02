@@ -6,6 +6,9 @@ config system
 	option ttylogin '0'
 	option log_size '128'
 	option urandom_seed '0'
+	option log_ip '192.168.0.27'
+	option log_port '5514'
+	option log_proto 'udp'
 
 config timeserver 'ntp'
 	option enabled '1'
