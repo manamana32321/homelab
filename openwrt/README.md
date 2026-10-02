@@ -59,6 +59,12 @@ system.@system[0].log_proto = udp
 
 hostapd(접속·인증·DFS), dnsmasq(DHCP·DNS), 커널(mt76·링크 이벤트)이 여기로 흐른다.
 
+### 한계
+
+- `log_ip` 는 IP 하나만 받고 페일오버가 없다. **json-server-1 이 꺼지면 공유기 로그가 유실된다.** 다만 `loki-0` 와 Prometheus 가 같은 노드에 있어 그 노드가 죽으면 저장할 곳도 없다 — 새로 생기는 단일 장애점은 아니다. 떠다니는 주소가 필요하면 MetalLB VIP 가 전제다 (ServiceLB 는 노드 IP 를 그대로 쓴다)
+- 받는 쪽 파드가 어느 노드에 있든 상관없다. ServiceLB 가 전 노드에 `svclb-*` DaemonSet 을 띄우고 `externalTrafficPolicy: Cluster` 로 클러스터 내부로 넘긴다
+- UDP 라 수신처가 죽어도 공유기는 모르고 그냥 흘려보낸다. TCP 는 재시도하지만 수신처가 막히면 `logd` 가 블로킹될 수 있어 공유기 안정성을 우선했다
+
 ## 설정 복원
 
 ```bash
