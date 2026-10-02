@@ -92,35 +92,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: kubernetes-mcp-workload-restart
-  namespace: home-assistant
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: kubernetes-mcp-workload-restart
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-mcp
-    namespace: hermes
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kubernetes-mcp-workload-restart
   namespace: minecraft
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: kubernetes-mcp-workload-restart
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-mcp
-    namespace: hermes
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kubernetes-mcp-workload-restart
-  namespace: mosquitto
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
