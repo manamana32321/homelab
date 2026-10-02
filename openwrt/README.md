@@ -7,14 +7,14 @@
 ## 현재 설정
 
 | 항목 | 값 |
-|---|---|
+| --- | --- |
 | hostname | `ax3000sm` |
 | 시간대 | `Asia/Seoul` (KST-9) |
-| LAN | `192.168.1.1/24` (교체 시 `192.168.0.1/24` 로 변경) |
+| LAN | `192.168.0.1/24` |
 | WAN | `eth1`, DHCP |
 | 무선 | `5G` (5GHz, 채널 48) / `2.4G` (2.4GHz, 자동), WPA2-PSK + CCMP, 국가 KR |
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
-| DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.44` mocha-snail / `.46` json-server-2 |
+| DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
 
 2283(Immich LAN 평문 엔드포인트)은 포워딩하지 않는다.

@@ -65,3 +65,8 @@ config host 'mochasnail'
 	option mac '7c:d9:5c:b1:96:5a'
 	option ip '192.168.0.44'
 
+config host 'raspi1'
+	option name 'raspi-1'
+	option mac 'd8:3a:dd:c1:68:25'
+	option ip '192.168.0.37'
+
