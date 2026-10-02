@@ -53,6 +53,9 @@ prometheus:
     # prometheus-node-exporter-lua 가 LAN 에만 9100 을 열어둔다.
     additionalScrapeConfigs:
       - job_name: openwrt
+        # node_nat_traffic 의 라벨이 {src, dest} IP 쌍이라 목적지마다 시계열이 늘어난다.
+        # 폭주해도 이 타겟만 실패하도록 상한을 둔다 (현재 약 1,400 샘플).
+        sample_limit: 5000
         static_configs:
           - targets: ["192.168.0.1:9100"]
             labels:

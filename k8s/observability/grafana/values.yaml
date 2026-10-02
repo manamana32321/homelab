@@ -181,6 +181,13 @@ dashboards:
       datasource:
         - name: DS_PROMETHEUS
           value: Prometheus
+    # OpenWrt (공유기, prometheus-node-exporter-lua) - https://grafana.com/grafana/dashboards/11147
+    openwrt:
+      gnetId: 11147
+      revision: 1
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
   observability:
     # Blackbox Exporter (HTTP prober) - https://grafana.com/grafana/dashboards/13659
     blackbox-http-prober:
