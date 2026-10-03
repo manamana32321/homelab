@@ -20,6 +20,10 @@ spec:
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       ref: values
+    # Source 3: SealedSecret manifests
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/argocd/manifests
 
   destination:
     namespace: argocd
