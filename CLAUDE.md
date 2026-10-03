@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 homelab/
 ├── cloudflare/              # Terraform - Cloudflare DNS 관리
-│   ├── versions.tf          # Provider 및 R2 backend 설정
+│   ├── versions.tf          # Provider 및 S3 backend 설정
 │   ├── variables.tf         # 변수 정의 (sensitive 포함)
 │   ├── dns.tf               # Zone 및 DNS 레코드
 │   ├── waf.tf               # WAF custom rules (KR 외 차단 + 예외)
@@ -59,7 +59,7 @@ homelab/
 # 환경변수 로드
 direnv allow
 
-# 초기화 (R2 backend)
+# 초기화 (S3 backend)
 cd cloudflare && terraform init
 
 # 변경사항 확인
@@ -73,16 +73,15 @@ terraform apply
 **.envrc** (committed):
 - `TF_VAR_cloudflare_account_id` - Cloudflare 계정 ID
 - `TF_VAR_zone_name` - 도메인 (json-server.win)
+- `AWS_PROFILE` - `homelab` (state backend 접근, `~/.aws/credentials`)
 
 **.envrc.local** (gitignored):
 - `TF_VAR_cloudflare_api_token` - API 토큰 (Zone:DNS:Edit 권한)
 - `TF_VAR_default_ip` - 기본 A 레코드 IP
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` - R2 접근용
-- `AWS_ENDPOINT_URL_S3` - R2 엔드포인트
 
 ### Notes
 - Cloudflare Email Routing 레코드 (MX route1/2/3, dkim_cf2024)는 Cloudflare가 관리하므로 Terraform에서 제외
-- R2는 S3 호환이므로 `backend "s3"` 사용
+- Terraform state는 S3 버킷 `homelab-tfstate-361769566809` (ap-northeast-2). 디렉토리별로 key 분리 (`cloudflare/`, `aws/`, `betterstack/`, `github/`, `tailscale/`)
 
 ## Kubernetes (k8s/)
 
