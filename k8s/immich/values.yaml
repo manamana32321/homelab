@@ -3,7 +3,7 @@ controllers:
     containers:
       main:
         image:
-          tag: v3.1.0
+          tag: v3.2.4
         env:
           DB_HOSTNAME: postgres-svc
           DB_PORT: "5432"
