@@ -72,6 +72,9 @@ serviceMonitor:
     - name: argocd
       url: http://argocd-server.argocd.svc.cluster.local
       module: http_2xx_no_tls
+    - name: kargo
+      url: http://kargo-api.kargo.svc.cluster.local
+      module: http_2xx_no_tls
     - name: grafana
       url: http://grafana.observability.svc.cluster.local/login
       module: http_2xx_no_tls

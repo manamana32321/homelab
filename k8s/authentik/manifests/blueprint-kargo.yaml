@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blueprint-kargo
+  namespace: authentik
+data:
+  kargo.yaml: |
+    version: 1
+    metadata:
+      name: "Kargo OIDC"
+    entries:
+      # Kargo는 PKCE만 쓰고 client secret이 없음 → public client
+      - model: authentik_providers_oauth2.oauth2provider
+        state: present
+        identifiers:
+          name: kargo-provider
+        attrs:
+          name: kargo-provider
+          client_type: public
+          client_id: kargo
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          # 공개키(JWKS)로 검증하도록 RS256 서명
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+          redirect_uris:
+            - matching_mode: strict
+              url: https://kargo.json-server.win/login
+            # kargo CLI 로그인 (로컬 임의 포트)
+            - matching_mode: regex
+              url: ^http://localhost(:\d+)?/auth/callback$
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: kargo
+        attrs:
+          name: Kargo
+          slug: kargo
+          meta_launch_url: https://kargo.json-server.win
+          provider: !Find [authentik_providers_oauth2.oauth2provider, [name, kargo-provider]]
+          policy_engine_mode: any
+
+      # 로그인 자체를 Authentik 관리자 그룹으로 제한 (Kargo 쪽 admin 매핑과 동일 그룹)
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, kargo]]
+          group: !Find [authentik_core.group, [name, authentik Admins]]

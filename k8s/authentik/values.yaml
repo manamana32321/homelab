@@ -76,3 +76,4 @@ blueprints:
   configMaps:
     - blueprint-forward-auth
     - blueprint-github-source
+    - blueprint-kargo
