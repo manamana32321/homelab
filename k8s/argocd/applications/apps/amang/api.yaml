@@ -9,17 +9,8 @@ spec:
   generators:
     - list:
         elements:
-          # production은 Kargo 전환 전까지 main + Image Updater 유지
           - env: production
-            branch: main
-          # staging은 Kargo가 승격한 env/staging 브랜치 (skku-amang/main infra/kargo/)
           - env: staging
-            branch: env/staging
-  # Image Updater(argocd write-back)가 spec.source.kustomize에 digest를 써 넣는 앱만 무시
-  ignoreApplicationDifferences:
-    - name: api-production
-      jsonPointers:
-        - /spec/source/kustomize
   template:
     metadata:
       name: api-{{.env}}
@@ -31,10 +22,11 @@ spec:
       destination:
         namespace: amang-api-{{.env}}
         server: https://kubernetes.default.svc
+      # Kargo가 승격한 env/<env> 브랜치 (skku-amang/main infra/kargo/)
       source:
         path: "infra/k8s/api/overlays/{{.env}}"
         repoURL: https://github.com/skku-amang/main
-        targetRevision: "{{.branch}}"
+        targetRevision: "env/{{.env}}"
       project: default
       syncPolicy:
         automated:
@@ -43,10 +35,3 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - PrunePropagationPolicy=foreground
-  templatePatch: |
-    {{- if eq .env "production" }}
-    metadata:
-      annotations:
-        argocd-image-updater.argoproj.io/image-list: api=ghcr.io/skku-amang/amang-api:latest
-        argocd-image-updater.argoproj.io/api.update-strategy: digest
-    {{- end }}
