@@ -1,0 +1,22 @@
+# amang API의 staging → production 승격 파이프라인 (Kargo Project amang)
+# Project가 amang 네임스페이스를 직접 만들므로 CreateNamespace 쓰지 않음 (project.yaml sync-wave -1)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amang-kargo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/skku-amang/main
+    targetRevision: main
+    path: infra/kargo
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: amang
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
