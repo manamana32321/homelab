@@ -104,13 +104,14 @@ cert는 30일마다 로테이션. 만료 시 VPN 연결 + `kubeseal --fetch-cert
 ### 레코드 추가 패턴
 
 ```hcl
-resource "cloudflare_record" "<unique_name>" {
+resource "cloudflare_dns_record" "<unique_name>" {
   zone_id = cloudflare_zone.main.id
   name    = "<subdomain>"
   type    = "A"
   content = var.default_ip
   proxied = false  # 아래 가이드
   comment = "<짧은 설명>"
+  ttl     = 1      # provider v5 필수. 1 = auto (proxied 레코드는 반드시 1)
 }
 ```
 
