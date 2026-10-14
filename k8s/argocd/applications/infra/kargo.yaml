@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kargo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: oci://ghcr.io/akuity/kargo-charts/kargo
+      targetRevision: "1.12.4"
+      path: .
+      helm:
+        releaseName: kargo
+        valueFiles:
+          - $homelab/k8s/kargo/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kargo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # Kargo CRD가 커서 client-side apply의 last-applied annotation 한도(256KiB)를 넘음
+      - ServerSideApply=true

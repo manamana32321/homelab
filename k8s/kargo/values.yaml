@@ -1,0 +1,54 @@
+# Kargo — 환경 간 승격(staging → production) 컨트롤러
+# chart values 전체: https://github.com/akuity/kargo/blob/v1.12.4/charts/kargo/values.yaml
+api:
+  host: kargo.json-server.win
+
+  # 로그인은 Authentik OIDC만. 비상시엔 kubectl로 Kargo CR 직접 조작
+  adminAccount:
+    enabled: false
+
+  # 프로젝트 credentials는 SealedSecret으로 선언 관리 → UI/API로 Secret 만들 일 없음
+  secretManagementEnabled: false
+
+  oidc:
+    enabled: true
+    # Authentik OAuth2 provider: k8s/authentik/manifests/blueprint-kargo.yaml
+    issuerURL: https://auth.json-server.win/application/o/kargo/
+    clientID: kargo
+    # Authentik은 groups를 profile scope에 담아 줌. 별도 groups scope 없음
+    additionalScopes: []
+    admins:
+      claims:
+        groups:
+          - authentik Admins
+
+  # TLS는 traefik에서 종료
+  tls:
+    enabled: false
+    terminatedUpstream: true
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-dns01
+      traefik.ingress.kubernetes.io/redirect-entry-point: https
+    pathType: Prefix
+    tls:
+      enabled: true
+      selfSignedCert: false
+      secretName: kargo-tls
+
+# GitHub push 등 외부 webhook 수신 (kargo-api ingress의 /webhooks 경로). TLS는 traefik에서 종료
+externalWebhooksServer:
+  tls:
+    enabled: false
+    terminatedUpstream: true
+
+controller:
+  gitClient:
+    name: Kargo
+    email: kargo@json-server.win
+  # Argo Rollouts 미설치. 검증은 Argo CD 앱 Healthy로만 판정
+  rollouts:
+    integrationEnabled: false

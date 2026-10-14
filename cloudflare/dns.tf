@@ -57,6 +57,15 @@ resource "cloudflare_record" "argocd" {
   proxied = true
 }
 
+resource "cloudflare_record" "kargo" {
+  zone_id = cloudflare_zone.main.id
+  name    = "kargo"
+  type    = "A"
+  content = var.default_ip
+  proxied = true
+  comment = "Kargo 환경 승격 UI"
+}
+
 resource "cloudflare_record" "auth" {
   zone_id = cloudflare_zone.main.id
   name    = "auth"
