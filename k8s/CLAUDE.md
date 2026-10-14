@@ -325,7 +325,7 @@ kubectl get all -A -l app.kubernetes.io/part-of=automation
 
 ### 사용 의무
 
-- **커스텀 앱 이미지 = ArgoCD Image Updater 필수**. 단, staging → production 승격 순서가 필요한 앱은 **Kargo**로 대체 (현재 amang api: [apps/amang/kargo.yaml](argocd/applications/apps/amang/kargo.yaml), 파이프라인 정의는 skku-amang/main `infra/kargo/`). Kargo가 렌더링한 `env/<stage>` 브랜치를 ArgoCD가 바라보며, 그 앱에는 Image Updater를 붙이지 않는다
+- **커스텀 앱 이미지 = ArgoCD Image Updater 필수**. 단, staging → production 승격 순서가 필요한 앱은 **Kargo**로 대체 (현재 amang api: [apps/amang/kargo.yaml](argocd/applications/apps/amang/kargo.yaml), 파이프라인 정의는 skku-amang/main `infra/kargo/`). ArgoCD는 Kargo가 승격한 `env/<stage>` 브랜치의 overlay를 바라보며, 그 앱에는 Image Updater를 붙이지 않는다
 - `latest` 태그 + 수동 재시작 **금지**
 - 공개 이미지 (nginx, postgres 등)는 Image Updater 불필요 (Helm chart의 `image.tag`로 pin)
 
