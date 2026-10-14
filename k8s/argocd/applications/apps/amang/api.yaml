@@ -4,31 +4,39 @@ metadata:
   name: amang-api
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - list:
         elements:
+          # production은 Kargo 전환 전까지 main overlay + Image Updater 유지
           - env: production
             branch: main
+            path: infra/k8s/api/overlays/production
+          # staging은 Kargo가 렌더링한 매니페스트 (skku-amang/main infra/kargo/)
           - env: staging
-            branch: main
+            branch: env/staging
+            path: .
+  # Image Updater(argocd write-back)가 spec.source.kustomize에 digest를 써 넣는 앱만 무시
   ignoreApplicationDifferences:
-    - jsonPointers:
+    - name: api-production
+      jsonPointers:
         - /spec/source/kustomize
   template:
     metadata:
-      name: api-{{env}}
+      name: api-{{.env}}
       namespace: argocd
       annotations:
-        argocd-image-updater.argoproj.io/image-list: api=ghcr.io/skku-amang/amang-api:latest
-        argocd-image-updater.argoproj.io/api.update-strategy: digest
+        # Kargo argocd-update step이 이 앱을 갱신할 수 있게 허용
+        kargo.akuity.io/authorized-stage: amang:{{.env}}
     spec:
       destination:
-        namespace: amang-api-{{env}}
+        namespace: amang-api-{{.env}}
         server: https://kubernetes.default.svc
       source:
-        path: "infra/k8s/api/overlays/{{env}}"
+        path: "{{.path}}"
         repoURL: https://github.com/skku-amang/main
-        targetRevision: "{{branch}}"
+        targetRevision: "{{.branch}}"
       project: default
       syncPolicy:
         automated:
@@ -37,3 +45,10 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - PrunePropagationPolicy=foreground
+  templatePatch: |
+    {{- if eq .env "production" }}
+    metadata:
+      annotations:
+        argocd-image-updater.argoproj.io/image-list: api=ghcr.io/skku-amang/amang-api:latest
+        argocd-image-updater.argoproj.io/api.update-strategy: digest
+    {{- end }}

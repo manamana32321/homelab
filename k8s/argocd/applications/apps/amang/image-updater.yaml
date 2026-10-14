@@ -6,7 +6,7 @@ metadata:
 spec:
   namespace: argocd
   applicationRefs:
-    - namePattern: "api-*"
+    - namePattern: "api-production"
       images:
         - alias: api
           imageName: ghcr.io/skku-amang/amang-api:latest
