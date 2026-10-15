@@ -31,10 +31,10 @@ resource "cloudflare_dns_record" "wildcard_amang" {
 resource "cloudflare_dns_record" "amang_staging" {
   zone_id = cloudflare_zone.main.id
   name    = "amang.staging"
-  type    = "CNAME"
-  content = "cname.vercel-dns.com"
+  type    = "A"
+  content = var.default_ip
   proxied = false
-  comment = "AMANG staging web (Vercel preview deployment)"
+  comment = "AMANG staging web (홈랩 K3s, skku-amang/main#749). 롤백: CNAME cname.vercel-dns.com"
   ttl     = 1
 }
 
