@@ -32,6 +32,9 @@ data:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+            # discovery의 scopes_supported에 offline_access가 있어야 Kargo UI가 이 scope를 요청하고
+            # refresh 토큰(30일)으로 ID 토큰(1시간)을 자동 갱신한다. 없으면 1시간마다 재로그인
+            - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-offline_access]]
 
       - model: authentik_core.application
         state: present
