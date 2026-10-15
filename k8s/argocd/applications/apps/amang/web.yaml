@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: amang-web
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          # production web은 아직 Vercel. 홈랩으로 옮길 때 추가 (skku-amang/main#749)
+          - env: staging
+  template:
+    metadata:
+      name: web-{{.env}}
+      namespace: argocd
+      annotations:
+        # Kargo argocd-update step이 이 앱을 갱신할 수 있게 허용
+        kargo.akuity.io/authorized-stage: amang:{{.env}}
+    spec:
+      destination:
+        namespace: amang-web-{{.env}}
+        server: https://kubernetes.default.svc
+      # Kargo가 승격한 env/<env> 브랜치 (skku-amang/main infra/kargo/)
+      source:
+        path: "infra/k8s/web/overlays/{{.env}}"
+        repoURL: https://github.com/skku-amang/main
+        targetRevision: "env/{{.env}}"
+      project: default
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
