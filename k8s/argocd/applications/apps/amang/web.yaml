@@ -9,7 +9,7 @@ spec:
   generators:
     - list:
         elements:
-          # production web은 아직 Vercel. 홈랩으로 옮길 때 추가 (skku-amang/main#749)
+          - env: production
           - env: staging
   template:
     metadata:
