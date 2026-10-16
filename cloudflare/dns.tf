@@ -189,9 +189,10 @@ resource "cloudflare_dns_record" "files" {
 resource "cloudflare_dns_record" "amang" {
   zone_id = cloudflare_zone.main.id
   name    = "amang"
-  type    = "CNAME"
-  content = "0e652236f019368a.vercel-dns-017.com"
+  type    = "A"
+  content = var.default_ip
   proxied = false
+  comment = "AMANG production web (홈랩 K3s, skku-amang/main#749). 롤백: CNAME 0e652236f019368a.vercel-dns-017.com"
   ttl     = 600
 }
 
