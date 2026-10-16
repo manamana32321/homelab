@@ -1,0 +1,22 @@
+# 아망 web 방문 통계. staging·production 사이트를 한 인스턴스에 등록하므로 환경 분리 없음 (skku-amang/main#769)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amang-umami
+  namespace: argocd
+spec:
+  destination:
+    # SealedSecret이 이 namespace로 봉인돼 있다 (skku-amang/main infra/k8s/umami/sealed-credentials.yaml)
+    namespace: amang-umami
+    server: https://kubernetes.default.svc
+  source:
+    path: infra/k8s/umami
+    repoURL: https://github.com/skku-amang/main
+    targetRevision: main
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
