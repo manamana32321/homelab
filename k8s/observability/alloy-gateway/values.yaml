@@ -1,0 +1,255 @@
+crds:
+  create: false
+
+alloy:
+  enableReporting: false
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+    - name: syslog
+      port: 5514
+      targetPort: 5514
+      protocol: UDP
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 473
+    runAsGroup: 473
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+      add: ["NET_RAW"]
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
+
+  configMap:
+    content: |
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      otelcol.receiver.otlp "default" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        http {
+          endpoint = "0.0.0.0:4318"
+          cors {
+            allowed_origins = ["https://json-server.win"]
+            allowed_headers = ["*"]
+            max_age         = 7200
+          }
+        }
+        output {
+          logs    = [otelcol.processor.batch.default.input]
+          metrics = [otelcol.processor.batch.default.input]
+          traces  = [otelcol.processor.batch.default.input]
+        }
+      }
+
+      otelcol.processor.batch "default" {
+        timeout         = "10s"
+        send_batch_size = 512
+        output {
+          logs    = [otelcol.exporter.otlphttp.loki.input]
+          metrics = [otelcol.exporter.otlphttp.prometheus.input]
+          traces  = [otelcol.exporter.otlp.tempo.input]
+        }
+      }
+
+      otelcol.exporter.otlphttp "loki" {
+        client {
+          endpoint = "http://loki.observability.svc.cluster.local:3100/otlp"
+        }
+      }
+
+      otelcol.exporter.otlphttp "prometheus" {
+        client {
+          endpoint = "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/otlp"
+        }
+      }
+
+      otelcol.exporter.otlp "tempo" {
+        client {
+          endpoint = "tempo.observability.svc.cluster.local:4317"
+          tls {
+            insecure = true
+          }
+        }
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+      discovery.relabel "syslog" {
+        targets = []
+
+        rule {
+          source_labels = ["__syslog_message_app_name"]
+          target_label  = "unit"
+        }
+        rule {
+          source_labels = ["__syslog_message_severity"]
+          target_label  = "level"
+        }
+      }
+
+      loki.source.syslog "openwrt" {
+        listener {
+          address       = "0.0.0.0:5514"
+          protocol      = "udp"
+          syslog_format = "rfc3164"
+          labels        = {
+            service_name = "openwrt",
+            source       = "openwrt",
+            node         = "ax3000sm",
+          }
+        }
+        relabel_rules = discovery.relabel.syslog.rules
+        forward_to    = [loki.write.default.receiver]
+      }
+
+      loki.source.kubernetes_events "events" {
+        forward_to = [loki.process.events.receiver]
+      }
+
+      loki.process "events" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.logfmt {
+          mapping = {
+            kind   = "",
+            reason = "",
+            type   = "",
+          }
+        }
+        stage.labels {
+          values = {
+            kind   = "",
+            reason = "",
+            type   = "",
+          }
+        }
+        stage.static_labels {
+          values = { source = "k8s-events" }
+        }
+        stage.label_drop {
+          values = ["instance"]
+        }
+      }
+
+      prometheus.exporter.blackbox "probes" {
+        config = `
+          modules:
+            http_2xx:
+              prober: http
+              timeout: 10s
+              http:
+                valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+                follow_redirects: true
+                preferred_ip_protocol: ip4
+                fail_if_not_ssl: true
+            http_2xx_no_tls:
+              prober: http
+              timeout: 5s
+              http:
+                valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+                follow_redirects: true
+                preferred_ip_protocol: ip4
+            http_any_response:
+              prober: http
+              timeout: 10s
+              http:
+                valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+                valid_status_codes: [200, 301, 302, 400, 401, 403, 404]
+                follow_redirects: false
+                preferred_ip_protocol: ip4
+                fail_if_not_ssl: true
+            tcp_connect:
+              prober: tcp
+              timeout: 5s
+            icmp_ping:
+              prober: icmp
+              timeout: 5s
+        `
+
+        targets = [
+          {name = "argocd", address = "http://argocd-server.argocd.svc.cluster.local", module = "http_2xx_no_tls"},
+          {name = "kargo", address = "http://kargo-api.kargo.svc.cluster.local", module = "http_2xx_no_tls"},
+          {name = "grafana", address = "http://grafana.observability.svc.cluster.local/login", module = "http_2xx_no_tls"},
+          {name = "prometheus", address = "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/-/ready", module = "http_2xx_no_tls"},
+          {name = "authentik", address = "http://authentik-server.authentik.svc.cluster.local/-/health/live/", module = "http_2xx_no_tls"},
+          {name = "immich", address = "http://immich-server.immich.svc.cluster.local:2283/api/server/ping", module = "http_2xx_no_tls"},
+          {name = "seafile", address = "http://seafile.seafile.svc.cluster.local", module = "http_2xx_no_tls"},
+          {name = "k8s-dashboard", address = "http://headlamp.headlamp.svc.cluster.local", module = "http_2xx_no_tls"},
+          {name = "cloudbeaver", address = "http://cloudbeaver.cloudbeaver.svc.cluster.local:8978", module = "http_2xx_no_tls"},
+          {name = "amang-api", address = "http://api-server.amang-api-production.svc.cluster.local:8000/health", module = "http_2xx_no_tls"},
+          {name = "amang-api-staging", address = "http://api-server.amang-api-staging.svc.cluster.local:8000/health", module = "http_2xx_no_tls"},
+          {name = "amang-umami", address = "http://umami.amang-umami.svc.cluster.local:3000/api/heartbeat", module = "http_2xx_no_tls"},
+          {name = "amang-redis", address = "redis.amang-redis-production.svc.cluster.local:6379", module = "tcp_connect"},
+          {name = "amang-redis-staging", address = "redis.amang-redis-staging.svc.cluster.local:6379", module = "tcp_connect"},
+          {name = "loki", address = "http://loki.observability.svc.cluster.local:3100/ready", module = "http_2xx_no_tls"},
+          {name = "tempo", address = "http://tempo.observability.svc.cluster.local:3200/ready", module = "http_2xx_no_tls"},
+          {name = "health-hub", address = "http://health-hub.health-hub.svc.cluster.local:8080/healthz", module = "http_2xx_no_tls"},
+          {name = "gbrain-mcp", address = "http://gbrain-mcp.gbrain.svc.cluster.local/healthz", module = "http_2xx_no_tls"},
+          {name = "lan-gateway", address = "192.168.0.1", module = "icmp_ping"},
+          {name = "node-json-server-1", address = "192.168.0.27", module = "icmp_ping"},
+          {name = "node-json-server-2", address = "192.168.0.46", module = "icmp_ping"},
+        ]
+      }
+
+      discovery.relabel "probes" {
+        targets = prometheus.exporter.blackbox.probes.targets
+
+        rule {
+          source_labels = ["__param_target"]
+          target_label  = "instance"
+        }
+        rule {
+          source_labels = ["job"]
+          regex         = "integrations/blackbox/(.+)"
+          target_label  = "target"
+        }
+        rule {
+          target_label = "job"
+          replacement  = "blackbox"
+        }
+      }
+
+      prometheus.scrape "probes" {
+        targets         = discovery.relabel.probes.output
+        scrape_interval = "60s"
+        scrape_timeout  = "30s"
+        forward_to      = [prometheus.remote_write.prometheus.receiver]
+      }
+
+      prometheus.remote_write "prometheus" {
+        endpoint {
+          url = "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/write"
+        }
+      }
+
+image:
+  tag: v1.20.1
+
+controller:
+  type: deployment
+  replicas: 1
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus

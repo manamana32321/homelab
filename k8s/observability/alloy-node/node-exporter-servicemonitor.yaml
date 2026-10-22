@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: alloy-node-exporter
+  namespace: observability
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alloy
+      app.kubernetes.io/instance: alloy-node
+  endpoints:
+    - port: http-metrics
+      path: /api/v0/component/prometheus.exporter.unix.node/metrics
+      interval: 30s
+      relabelings:
+        - targetLabel: job
+          replacement: alloy-node-exporter

@@ -1,0 +1,278 @@
+crds:
+  create: false
+
+alloy:
+  storagePath: /var/lib/alloy
+  enableReporting: false
+  mounts:
+    varlog: true
+    extra:
+      - name: storage
+        mountPath: /var/lib/alloy
+      - name: machine-id
+        mountPath: /etc/machine-id
+        readOnly: true
+      - name: containerd-log
+        mountPath: /var/lib/rancher/k3s/agent/containerd
+        readOnly: true
+      - name: proc
+        mountPath: /host/proc
+        readOnly: true
+      - name: sys
+        mountPath: /host/sys
+        readOnly: true
+      - name: root
+        mountPath: /host/root
+        mountPropagation: HostToContainer
+        readOnly: true
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
+
+  configMap:
+    content: |
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+        }
+        external_labels = {
+          node      = sys.env("HOSTNAME"),
+          collector = "alloy",
+        }
+      }
+
+      discovery.kubernetes "pods" {
+        role = "pod"
+        selectors {
+          role  = "pod"
+          field = "spec.nodeName=" + sys.env("HOSTNAME")
+        }
+      }
+
+      discovery.relabel "pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_controller_name"]
+          regex         = "([0-9a-z-.]+?)(-[0-9a-f]{8,10})?"
+          target_label  = "__tmp_controller_name"
+        }
+        rule {
+          source_labels = [
+            "__meta_kubernetes_pod_label_app_kubernetes_io_name",
+            "__meta_kubernetes_pod_label_app",
+            "__tmp_controller_name",
+            "__meta_kubernetes_pod_name",
+          ]
+          regex        = "^;*([^;]+)(;.*)?$"
+          target_label = "app"
+        }
+        rule {
+          source_labels = [
+            "__meta_kubernetes_pod_label_app_kubernetes_io_instance",
+            "__meta_kubernetes_pod_label_instance",
+          ]
+          regex        = "^;*([^;]+)(;.*)?$"
+          target_label = "instance"
+        }
+        rule {
+          source_labels = [
+            "__meta_kubernetes_pod_label_app_kubernetes_io_component",
+            "__meta_kubernetes_pod_label_component",
+          ]
+          regex        = "^;*([^;]+)(;.*)?$"
+          target_label = "component"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node_name"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["namespace", "app"]
+          separator     = "/"
+          target_label  = "job"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+          separator     = "/"
+          replacement   = "/var/log/pods/*$1/*.log"
+          target_label  = "__path__"
+        }
+        rule {
+          target_label = "source"
+          replacement  = "pods"
+        }
+      }
+
+      loki.source.file "pods" {
+        targets       = discovery.relabel.pods.output
+        forward_to    = [loki.process.pods.receiver]
+        tail_from_end = true
+        file_match {
+          enabled = true
+        }
+      }
+
+      loki.process "pods" {
+        forward_to = [loki.write.default.receiver]
+        stage.cri {}
+      }
+
+      discovery.relabel "journal" {
+        targets = []
+
+        rule {
+          source_labels = ["__journal__systemd_unit"]
+          target_label  = "unit"
+        }
+        rule {
+          source_labels = ["__journal__transport"]
+          regex         = "kernel"
+          replacement   = "kernel"
+          target_label  = "unit"
+        }
+        rule {
+          source_labels = ["__journal_priority_keyword"]
+          target_label  = "level"
+        }
+      }
+
+      loki.source.journal "journal" {
+        path          = "/var/log/journal"
+        relabel_rules = discovery.relabel.journal.rules
+        labels        = { source = "journal" }
+        forward_to    = [loki.process.journal.receiver]
+      }
+
+      loki.process "journal" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.match {
+          selector = "{unit=\"avahi-daemon.service\"}"
+          action   = "drop"
+        }
+      }
+
+      loki.source.file "containerd" {
+        targets = [{
+          __path__ = "/var/lib/rancher/k3s/agent/containerd/containerd.log",
+          source   = "containerd",
+        }]
+        forward_to    = [loki.process.containerd.receiver]
+        tail_from_end = true
+      }
+
+      loki.process "containerd" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.logfmt {
+          mapping = { level = "" }
+        }
+        stage.labels {
+          values = { level = "" }
+        }
+      }
+
+      loki.source.file "apt" {
+        targets = [{
+          __path__ = "/var/log/apt/history.log",
+          source   = "apt",
+        }]
+        forward_to    = [loki.process.apt.receiver]
+        tail_from_end = true
+      }
+
+      loki.process "apt" {
+        forward_to = [loki.write.default.receiver]
+
+        stage.multiline {
+          firstline     = "^Start-Date:"
+          max_wait_time = "10s"
+        }
+      }
+
+      loki.source.file "dpkg" {
+        targets = [{
+          __path__ = "/var/log/dpkg.log",
+          source   = "dpkg",
+        }]
+        forward_to    = [loki.write.default.receiver]
+        tail_from_end = true
+      }
+
+      prometheus.exporter.unix "node" {
+        procfs_path    = "/host/proc"
+        sysfs_path     = "/host/sys"
+        rootfs_path    = "/host/root"
+        udev_data_path = "/host/root/run/udev/data"
+
+        filesystem {
+          mount_points_exclude = "^/(dev|proc|sys|run/containerd/.+|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"
+          fs_types_exclude     = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$"
+        }
+      }
+
+image:
+  tag: v1.20.1
+
+controller:
+  type: daemonset
+  hostNetwork: true
+  hostPID: true
+  dnsPolicy: ClusterFirstWithHostNet
+  priorityClassName: system-node-critical
+  volumes:
+    extra:
+      - name: storage
+        hostPath:
+          path: /var/lib/alloy-node
+          type: DirectoryOrCreate
+      - name: machine-id
+        hostPath:
+          path: /etc/machine-id
+          type: File
+      - name: containerd-log
+        hostPath:
+          path: /var/lib/rancher/k3s/agent/containerd
+          type: Directory
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: root
+        hostPath:
+          path: /
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus
