@@ -6,6 +6,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "5.27.0"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = "3.5.0"
+    }
   }
 
   # S3 backend - credentials via AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars
