@@ -61,6 +61,11 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # hc_webhook.go 가 수신 페이로드 원본을 DEBUG_PAYLOAD_DIR(기본 /tmp/hc-webhook-payloads)에
+          # 떨어뜨리는데 readOnlyRootFilesystem 이라 조용히 실패해 왔음. 러닝머신 세션 유실 추적용
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           env:
             - name: DB_HOST
               value: timescaledb
@@ -152,3 +157,7 @@ spec:
               port: mcp
             initialDelaySeconds: 5
             periodSeconds: 30
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
