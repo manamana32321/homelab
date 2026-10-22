@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+mode=${1:-auto}
+if [ "$mode" = auto ]; then
+  h=$(date +%-H)
+  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ]; then mode=on; else mode=off; fi
+fi
+P="org.gnome.Mutter.DisplayConfig /org/gnome/Mutter/DisplayConfig org.gnome.Mutter.DisplayConfig PowerSaveMode"
+case "$mode" in
+  on)  busctl --user set-property $P i 0; systemctl --user start grafana-kiosk.service ;;
+  off) systemctl --user stop grafana-kiosk.service; busctl --user set-property $P i 3 ;;
+  *)   echo "usage: kiosk-screen [auto|on|off]" >&2; exit 2 ;;
+esac
