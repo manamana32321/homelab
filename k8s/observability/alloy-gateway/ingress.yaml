@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alloy-gateway-otlp
+  namespace: observability
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: otel.json-server.win
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alloy-gateway
+                port:
+                  name: otlp-http
+  tls:
+    - secretName: alloy-gateway-otlp-tls
+      hosts:
+        - otel.json-server.win

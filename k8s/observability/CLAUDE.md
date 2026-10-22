@@ -96,45 +96,44 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 ## 아키텍처
 
 ```
-                    ┌───────────────────────┐
-                    │  OpenTelemetry        │
-      App ─────────▶│  Collector            │
-     (OTLP)         │ (텔레메트리 수집/변환)  │
-                    └───────────┬───────────┘
-                                │
-       ┌────────────────────────┼────────────────────────┐
-       ▼                        ▼                        ▼
-┌─────────────┐          ┌─────────────┐          ┌─────────────┐
-│  Prometheus │          │    Loki     │          │    Tempo    │
-│  (메트릭)    │          │   (로그)    │          │  (트레이스)  │
-└──────┬──────┘          └──────┬──────┘          └──────┬──────┘
-       │                        ▲                        │
-       │                        │                        │
-       │                 ┌──────┴──────┐                 │
-       │                 │  Promtail   │                 │
-       │                 │ (노드 로그)  │                 │
-       │                 └─────────────┘                 │
-       │                                                 │
-       └────────────────────────┬────────────────────────┘
-                                │
-                         ┌──────▼──────┐
-                         │   Grafana   │
-                         │  (대시보드)  │
-                         └─────────────┘
+ App (OTLP) ─────┐                          ┌──▶ Prometheus (OTLP·remote write 수신)
+ OpenWrt syslog ─┼──▶ alloy-gateway ×1 ─────┼──▶ Loki
+ k8s Event ──────┤    (blackbox 프로브)      └──▶ Tempo
+                 │
+ 파드 로그 ───────┐
+ journald ───────┼──▶ alloy-node (노드당 1) ──▶ Loki
+ containerd·apt ─┘    prometheus.exporter.unix ◀── Prometheus scrape (ServiceMonitor)
+
+ ServiceMonitor 대상 ◀── Prometheus scrape
+ Prometheus · Loki · Tempo ──▶ Grafana
 ```
 
 ## 컴포넌트
 
 | 컴포넌트 | 용도 | 룰 출처 |
 |---|---|---|
-| OTel Collector | OTLP 수신, 메트릭/로그/트레이스 분배 | - |
+| alloy-node (DaemonSet) | 파드 로그·journald·containerd·apt·dpkg → Loki, 호스트 메트릭 노출 (`job="node-exporter"`) | chart (node-exporter 룰) |
+| alloy-gateway (Deployment) | OTLP 수신, OpenWrt syslog, blackbox 프로브, k8s Event → Loki | `homelab-alerts` (blackbox) |
 | Prometheus (kube-prometheus-stack) | 메트릭 저장 + Alertmanager + 기본 알림 룰 | chart |
 | Loki | 로그 저장 | (없음) |
 | Tempo | 트레이스 저장 | (없음) |
-| Promtail | 노드 로그 수집 → Loki | (없음) |
 | Grafana | 대시보드 시각화 (알림 미사용) | - |
-| Blackbox Exporter | HTTP/TCP probe | `homelab-alerts` (도메인 특화) |
 | smartctl-exporter | SMART 디스크 건강 | chart + `homelab-alerts` |
+
+### Loki 라벨
+
+| source | 라벨 |
+|---|---|
+| `pods` | `app component container filename instance job namespace node node_name pod stream` |
+| `journal` | `node unit level` (`avahi-daemon.service` 제외) |
+| `containerd` | `node level` |
+| `apt`, `dpkg` | `node` |
+| `openwrt` | `service_name=openwrt node=ax3000sm unit level` |
+| `k8s-events` | `namespace kind reason type` |
+
+### blackbox 대상
+
+[alloy-gateway/values.yaml](alloy-gateway/values.yaml) `prometheus.exporter.blackbox "probes"` 의 `targets`. 메트릭 라벨 `job="blackbox"`, `instance=<주소>`, `target=<이름>`.
 
 ## 알림 채널
 
@@ -164,8 +163,14 @@ Prometheus·Alertmanager는 자체 인증 기능이 없어 ingress가 곧 무인
 
 ```yaml
 env:
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
   - name: OTEL_EXPORTER_OTLP_ENDPOINT
-    value: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4317"
+    value: "http://alloy-gateway.observability.svc.cluster.local:4318"
+  - name: OTEL_RESOURCE_ATTRIBUTES
+    value: "service.namespace=<프로젝트>,deployment.environment.name=<환경>,service.instance.id=$(POD_NAME)"
 ```
 
 ### 클러스터 외부
@@ -186,8 +191,9 @@ kubectl port-forward -n observability svc/prometheus-kube-prometheus-prometheus 
 # Loki 상태
 kubectl logs -n observability -l app.kubernetes.io/name=loki
 
-# OTel Collector 로그
-kubectl logs -n observability -l app.kubernetes.io/name=opentelemetry-collector
+# Alloy 로그 (UI: kubectl port-forward -n observability svc/alloy-gateway 12345)
+kubectl logs -n observability -l app.kubernetes.io/instance=alloy-gateway -c alloy
+kubectl logs -n observability -l app.kubernetes.io/instance=alloy-node -c alloy
 
 # Alertmanager 큐 상태
 kubectl port-forward -n observability svc/prometheus-kube-prometheus-alertmanager 9093:9093

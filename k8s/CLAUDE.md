@@ -247,12 +247,12 @@ livenessProbe:
 
 ---
 
-## 외부·내부 프로빙 (Blackbox Exporter)
+## 외부·내부 프로빙 (Blackbox)
 
 ### 내부 관측 (현재 운영)
 
-- `blackbox-exporter` Deployment (observability ns)
-- 등록: `k8s/observability/blackbox-exporter/values.yaml`의 `targets` 배열
+- `alloy-gateway` 의 `prometheus.exporter.blackbox` (observability ns)
+- 등록: `k8s/observability/alloy-gateway/values.yaml`의 `prometheus.exporter.blackbox "probes"` → `targets` 배열
 - 현재 대상: argocd / grafana / prometheus (cluster.local URL)
 - 목적: 서비스 self-health
 
@@ -473,5 +473,5 @@ sources:
 6. [ ] 커스텀 이미지면 Image Updater 설정
 7. [ ] Storage 필요 시 StorageClass 선택 + nodeSelector (hostPath면 필수)
 8. [ ] DB 마이그레이션 있으면 Job + PreSync hook
-9. [ ] Blackbox-exporter 내부 targets에 서비스 추가
+9. [ ] alloy-gateway blackbox `targets`에 서비스 추가
 10. [ ] ArgoCD Application 생성 (`apps/`·`infra/`·`observability/` 중 적절히)

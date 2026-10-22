@@ -16,4 +16,4 @@ spec:
       interval: 30s
       relabelings:
         - targetLabel: job
-          replacement: alloy-node-exporter
+          replacement: node-exporter
