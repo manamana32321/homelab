@@ -96,15 +96,17 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 ## 아키텍처
 
 ```
- App (OTLP) ─────┐                          ┌──▶ Prometheus (OTLP·remote write 수신)
- OpenWrt syslog ─┼──▶ alloy-gateway ×1 ─────┼──▶ Loki
- k8s Event ──────┤    (blackbox 프로브)      └──▶ Tempo
-                 │
- 파드 로그 ───────┐
- journald ───────┼──▶ alloy-node (노드당 1) ──▶ Loki
- containerd·apt ─┘    prometheus.exporter.unix ◀── Prometheus scrape (ServiceMonitor)
+ App OTLP ───────┐
+ OpenWrt syslog ─┼──▶ alloy-gateway ×1 ──┬──▶ Prometheus (OTLP·remote write)
+ k8s Event ──────┘    blackbox probes    ├──▶ Loki
+                                         └──▶ Tempo
 
- ServiceMonitor 대상 ◀── Prometheus scrape
+ Pod logs ───────┐
+ journald ───────┤
+ containerd ─────┼──▶ alloy-node (DaemonSet) ──▶ Loki
+ apt · dpkg ─────┘    └ prometheus.exporter.unix ◀── Prometheus scrape
+
+ ServiceMonitor targets ◀── Prometheus scrape
  Prometheus · Loki · Tempo ──▶ Grafana
 ```
 
