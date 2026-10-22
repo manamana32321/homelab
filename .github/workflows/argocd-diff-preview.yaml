@@ -6,6 +6,7 @@ on:
     paths:
       - "k8s/**"
       - ".github/workflows/argocd-diff-preview.yaml"
+      - ".github/argocd-diff-preview/**"
 
 permissions:
   contents: read
@@ -38,10 +39,11 @@ jobs:
             -v "$(pwd)/main:/base-branch" \
             -v "$(pwd)/pull-request:/target-branch" \
             -v "$(pwd)/output:/output" \
+            -v "$(pwd)/pull-request/.github/argocd-diff-preview/values.yaml:/argocd-config/values.yaml" \
             -e TARGET_BRANCH="refs/pull/${{ github.event.number }}/merge" \
             -e REPO="${{ github.repository }}" \
             -e ARGOCD_CHART_VERSION=9.0.6 \
-            dagandersen/argocd-diff-preview:v0.2.15 \
+            dagandersen/argocd-diff-preview:v0.2.17 \
             --diff-ignore 'checksum/.*: [a-f0-9]+'
 
       - name: Upload raw diff as artifact
