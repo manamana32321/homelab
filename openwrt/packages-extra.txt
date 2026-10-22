@@ -1,3 +1,4 @@
+ddns-scripts-cloudflare
 prometheus-node-exporter-lua
 prometheus-node-exporter-lua-ethtool
 prometheus-node-exporter-lua-filesystem

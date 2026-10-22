@@ -13,3 +13,9 @@ output "cert_manager_token" {
   value       = cloudflare_account_token.cert_manager.value
   sensitive   = true
 }
+
+output "ddns_token" {
+  description = "OpenWrt DDNS 토큰. 공유기 ddns.cf_origin.password 용"
+  value       = cloudflare_account_token.ddns.value
+  sensitive   = true
+}

@@ -5,11 +5,25 @@ resource "cloudflare_zone" "main" {
   }
 }
 
+resource "cloudflare_dns_record" "origin" {
+  zone_id = cloudflare_zone.main.id
+  name    = "origin"
+  type    = "A"
+  content = var.default_ip
+  proxied = false
+  comment = "집 공인 IP — OpenWrt DDNS 가 갱신"
+  ttl     = 60
+
+  lifecycle {
+    ignore_changes = [content]
+  }
+}
+
 resource "cloudflare_dns_record" "root" {
   zone_id = cloudflare_zone.main.id
   name    = "json-server.win"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "IpTime A1004"
   ttl     = 1
@@ -21,8 +35,8 @@ resource "cloudflare_dns_record" "root" {
 resource "cloudflare_dns_record" "wildcard_amang" {
   zone_id = cloudflare_zone.main.id
   name    = "*.amang"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "AMANG production services (api.amang, s3.amang, minio.amang)"
   ttl     = 1
@@ -31,8 +45,8 @@ resource "cloudflare_dns_record" "wildcard_amang" {
 resource "cloudflare_dns_record" "amang_staging" {
   zone_id = cloudflare_zone.main.id
   name    = "amang.staging"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "AMANG staging web (홈랩 K3s, skku-amang/main#749). 롤백: CNAME cname.vercel-dns.com"
   ttl     = 1
@@ -41,8 +55,8 @@ resource "cloudflare_dns_record" "amang_staging" {
 resource "cloudflare_dns_record" "wildcard_amang_staging" {
   zone_id = cloudflare_zone.main.id
   name    = "*.amang.staging"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "AMANG staging services (api.amang.staging, s3.amang.staging, minio.amang.staging)"
   ttl     = 1
@@ -51,8 +65,8 @@ resource "cloudflare_dns_record" "wildcard_amang_staging" {
 resource "cloudflare_dns_record" "argocd" {
   zone_id = cloudflare_zone.main.id
   name    = "argocd"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   ttl     = 1
 }
@@ -60,8 +74,8 @@ resource "cloudflare_dns_record" "argocd" {
 resource "cloudflare_dns_record" "kargo" {
   zone_id = cloudflare_zone.main.id
   name    = "kargo"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "Kargo 환경 승격 UI"
   ttl     = 1
@@ -70,8 +84,8 @@ resource "cloudflare_dns_record" "kargo" {
 resource "cloudflare_dns_record" "auth" {
   zone_id = cloudflare_zone.main.id
   name    = "auth"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "Authentik SSO"
   ttl     = 1
@@ -80,8 +94,8 @@ resource "cloudflare_dns_record" "auth" {
 resource "cloudflare_dns_record" "db" {
   zone_id = cloudflare_zone.main.id
   name    = "db"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "CloudBeaver DB admin"
   ttl     = 1
@@ -90,8 +104,8 @@ resource "cloudflare_dns_record" "db" {
 resource "cloudflare_dns_record" "hermes" {
   zone_id = cloudflare_zone.main.id
   name    = "hermes"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "Hermes Agent admin dashboard (Authentik forward-auth)"
   ttl     = 1
@@ -100,8 +114,8 @@ resource "cloudflare_dns_record" "hermes" {
 resource "cloudflare_dns_record" "minecraft" {
   zone_id = cloudflare_zone.main.id
   name    = "mc"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   ttl     = 1
 }
@@ -110,8 +124,8 @@ resource "cloudflare_dns_record" "minecraft" {
 resource "cloudflare_dns_record" "minecraft_map" {
   zone_id = cloudflare_zone.main.id
   name    = "mcmap"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "BlueMap 3D web viewer for Minecraft"
   ttl     = 1
@@ -120,8 +134,8 @@ resource "cloudflare_dns_record" "minecraft_map" {
 resource "cloudflare_dns_record" "k8s" {
   zone_id = cloudflare_zone.main.id
   name    = "k8s"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Headlamp - proxy off to avoid Cloudflare challenge on API calls"
   ttl     = 1
@@ -130,8 +144,8 @@ resource "cloudflare_dns_record" "k8s" {
 resource "cloudflare_dns_record" "prometheus" {
   zone_id = cloudflare_zone.main.id
   name    = "prometheus"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   ttl     = 1
 }
@@ -139,8 +153,8 @@ resource "cloudflare_dns_record" "prometheus" {
 resource "cloudflare_dns_record" "grafana" {
   zone_id = cloudflare_zone.main.id
   name    = "grafana"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   ttl     = 1
 }
@@ -148,8 +162,8 @@ resource "cloudflare_dns_record" "grafana" {
 resource "cloudflare_dns_record" "otel" {
   zone_id = cloudflare_zone.main.id
   name    = "otel"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   ttl     = 1
 }
@@ -158,8 +172,8 @@ resource "cloudflare_dns_record" "otel" {
 resource "cloudflare_dns_record" "longhorn" {
   zone_id = cloudflare_zone.main.id
   name    = "longhorn"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Longhorn storage UI"
   ttl     = 1
@@ -168,8 +182,8 @@ resource "cloudflare_dns_record" "longhorn" {
 resource "cloudflare_dns_record" "photos" {
   zone_id = cloudflare_zone.main.id
   name    = "photos"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Immich photo management"
   ttl     = 1
@@ -178,8 +192,8 @@ resource "cloudflare_dns_record" "photos" {
 resource "cloudflare_dns_record" "files" {
   zone_id = cloudflare_zone.main.id
   name    = "files"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Seafile file sync"
   ttl     = 1
@@ -189,8 +203,8 @@ resource "cloudflare_dns_record" "files" {
 resource "cloudflare_dns_record" "amang" {
   zone_id = cloudflare_zone.main.id
   name    = "amang"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "AMANG production web (홈랩 K3s, skku-amang/main#749). 롤백: CNAME 0e652236f019368a.vercel-dns-017.com"
   ttl     = 600
@@ -254,8 +268,8 @@ resource "cloudflare_dns_record" "vercel_verify" {
 resource "cloudflare_dns_record" "health" {
   zone_id = cloudflare_zone.main.id
   name    = "health"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "Health Hub dashboard"
   ttl     = 1
@@ -265,8 +279,8 @@ resource "cloudflare_dns_record" "health" {
 resource "cloudflare_dns_record" "essentia" {
   zone_id = cloudflare_zone.main.id
   name    = "essentia"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "Essentia frontend"
   ttl     = 1
@@ -275,8 +289,8 @@ resource "cloudflare_dns_record" "essentia" {
 resource "cloudflare_dns_record" "essentia_api" {
   zone_id = cloudflare_zone.main.id
   name    = "api.essentia"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Essentia API (proxied=false for 2-level subdomain TLS)"
   ttl     = 1
@@ -285,8 +299,8 @@ resource "cloudflare_dns_record" "essentia_api" {
 resource "cloudflare_dns_record" "essentia_s3" {
   zone_id = cloudflare_zone.main.id
   name    = "s3.essentia"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Essentia MinIO S3 (proxied=false for cert-manager)"
   ttl     = 1
@@ -295,8 +309,8 @@ resource "cloudflare_dns_record" "essentia_s3" {
 resource "cloudflare_dns_record" "essentia_minio" {
   zone_id = cloudflare_zone.main.id
   name    = "minio.essentia"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = false
   comment = "Essentia MinIO Console (proxied=false for cert-manager)"
   ttl     = 1
@@ -306,8 +320,8 @@ resource "cloudflare_dns_record" "essentia_minio" {
 resource "cloudflare_dns_record" "gbrain" {
   zone_id = cloudflare_zone.main.id
   name    = "gbrain"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "gbrain HTTP MCP — Bearer auth (caddy sidecar), Cloudflare proxied"
   ttl     = 1
@@ -319,8 +333,8 @@ resource "cloudflare_dns_record" "gbrain" {
 resource "cloudflare_dns_record" "learningx" {
   zone_id = cloudflare_zone.main.id
   name    = "learningx"
-  type    = "A"
-  content = var.default_ip
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
   proxied = true
   comment = "LearningX MCP landing — essentia-web ingress (Next host rewrite)"
   ttl     = 1

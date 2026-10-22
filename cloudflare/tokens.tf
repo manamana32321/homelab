@@ -28,3 +28,19 @@ resource "cloudflare_account_token" "cert_manager" {
     })
   }]
 }
+
+resource "cloudflare_account_token" "ddns" {
+  account_id = var.cloudflare_account_id
+  name       = "OpenWrt DDNS (homelab)"
+
+  policies = [{
+    effect = "allow"
+    permission_groups = [
+      { id = data.cloudflare_account_api_token_permission_groups_list.zone_read.result[0].id },
+      { id = data.cloudflare_account_api_token_permission_groups_list.dns_write.result[0].id },
+    ]
+    resources = jsonencode({
+      "com.cloudflare.api.account.zone.${cloudflare_zone.main.id}" = "*"
+    })
+  }]
+}
