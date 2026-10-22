@@ -41,7 +41,7 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 
 파드의 외부 이름 해석도 이 경로를 타고 간다 — CoreDNS 가 `forward . /etc/resolv.conf` 로 노드 리졸버에 넘긴다.
 
-## OS 기준선
+## 노드 공통 설정
 
 | 항목 | 값 | json-server-1 | json-server-2 |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 | rsyslog | `apt-get purge rsyslog` | #401 후 | 2026-10-22 |
 | journald 상한 | `journald/size.conf` → `/etc/systemd/journald.conf.d/` | #401 후 | 2026-10-22 |
 
-### 기준선 적용
+### 공통 설정 적용
 
 ```bash
 ssh json@<IP> 'sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target'
@@ -74,7 +74,7 @@ scp nodes/journald/size.conf json@<IP>:/tmp/
 ssh json@<IP> 'sudo install -D -m 644 /tmp/size.conf /etc/systemd/journald.conf.d/size.conf && sudo systemctl restart systemd-journald'
 ```
 
-### 기준선 확인
+### 공통 설정 확인
 
 ```bash
 ssh json@<IP> 'systemctl is-enabled sleep.target suspend.target; busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspend; swapon --show; busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandlePowerKey'
