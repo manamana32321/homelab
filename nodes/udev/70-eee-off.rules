@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="net", KERNEL=="eno1|enp3s0", RUN+="/usr/sbin/ethtool --set-eee $name eee off"

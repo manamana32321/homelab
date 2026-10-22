@@ -1,0 +1,14 @@
+general:
+  kiosk-mode: full
+  autofit: true
+  incognito: true
+  gpu-enabled: true
+  ozone-platform: wayland
+  hide-time-picker: true
+  hide-variables: true
+  hide-links: true
+
+target:
+  login-method: apikey
+  playlist: false
+  URL: https://grafana.json-server.win/d/24049b2d-f6e0-484b-88d5-a932d67348db/k8s-dashboard?refresh=1m
