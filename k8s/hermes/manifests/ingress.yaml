@@ -5,7 +5,6 @@ metadata:
   namespace: hermes
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
     # Authentik SSO/MFA in front of Hermes' own admin login (defense-in-depth).
     traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
 spec:

@@ -6,7 +6,6 @@ metadata:
   namespace: health-hub
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
 spec:
   ingressClassName: traefik
   rules:
@@ -46,7 +45,6 @@ metadata:
   name: health-hub-dashboard
   namespace: health-hub
   annotations:
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
     traefik.ingress.kubernetes.io/router.middlewares: authentik-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: traefik
