@@ -37,6 +37,11 @@ alertmanager:
 
 prometheus:
   prometheusSpec:
+    enableOTLPReceiver: true
+    enableRemoteWriteReceiver: true
+    otlp:
+      promoteResourceAttributes:
+        - deployment.environment.name
     retention: 15d
     storageSpec:
       volumeClaimTemplate:

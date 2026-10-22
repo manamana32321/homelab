@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy-node
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: alloy
+      targetRevision: 1.13.1
+      helm:
+        releaseName: alloy-node
+        valueFiles:
+          - $homelab/k8s/observability/alloy-node/values.yaml
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/observability/alloy-node
+      directory:
+        exclude: values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
