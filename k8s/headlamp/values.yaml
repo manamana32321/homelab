@@ -9,7 +9,6 @@ ingress:
   ingressClassName: traefik
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-dns01
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
   hosts:
     - host: k8s.json-server.win
       paths:

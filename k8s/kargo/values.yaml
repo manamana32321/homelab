@@ -32,7 +32,6 @@ api:
     ingressClassName: traefik
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-dns01
-      traefik.ingress.kubernetes.io/redirect-entry-point: https
     pathType: Prefix
     tls:
       enabled: true

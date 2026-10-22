@@ -29,7 +29,6 @@ server:
       enabled: true
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-dns01
-        traefik.ingress.kubernetes.io/redirect-entry-point: https
       hosts:
         - host: photos.json-server.win
           paths:
