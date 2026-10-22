@@ -14,11 +14,12 @@ spec:
         format: json
     ports:
       web:
-        redirections:
-          entryPoint:
-            to: websecure
-            scheme: https
-            permanent: true
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
     additionalArguments:
       - "--entrypoints.websecure.http.middlewares=kube-system-crowdsec-bouncer@kubernetescrd"
       - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=1h"
