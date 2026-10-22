@@ -5,11 +5,15 @@ on:
     paths:
       - "k8s/**"
       - ".github/workflows/k8s-validate.yaml"
+      - ".github/helm-api-versions.txt"
+      - "scripts/helm-dead-values.py"
   push:
     branches: [main]
     paths:
       - "k8s/**"
       - ".github/workflows/k8s-validate.yaml"
+      - ".github/helm-api-versions.txt"
+      - "scripts/helm-dead-values.py"
   workflow_dispatch:
 
 permissions:
@@ -74,6 +78,23 @@ jobs:
               -schema-location default \
               -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
               -summary -output text
+
+  helm-dead-values:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Helm values that have no effect on the rendered chart
+        run: |
+          set -euo pipefail
+          python3 -c 'import yaml' 2>/dev/null || pip install pyyaml
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python3 scripts/helm-dead-values.py --changed-since "origin/${{ github.base_ref }}"
+          else
+            python3 scripts/helm-dead-values.py
+          fi
 
   gitleaks:
     runs-on: ubuntu-latest
