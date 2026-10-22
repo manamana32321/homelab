@@ -75,6 +75,25 @@ jobs:
               -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
               -summary -output text
 
+  traefik-values-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate HelmChartConfig against upstream Traefik values schema
+        run: |
+          set -euo pipefail
+          k3s=$(yq 'select(.metadata.name=="k3s-server").spec.version' k8s/system-upgrade/plans.yaml)
+          curl -sfL "https://raw.githubusercontent.com/k3s-io/k3s/${k3s/+/%2B}/manifests/traefik.yaml" > /tmp/k3s-traefik.yaml
+          chart=$(yq 'select(.metadata.name=="traefik").spec.chart' /tmp/k3s-traefik.yaml | sed -E 's/.*\+up([0-9.]+)\.tgz$/\1/')
+          echo "k3s ${k3s} → upstream traefik chart ${chart}"
+          helm pull traefik --repo https://traefik.github.io/charts --version "$chart" --untar --untardir /tmp/up
+          yq 'select(.metadata.name=="traefik").spec.valuesContent' /tmp/k3s-traefik.yaml > /tmp/k3s-values.yaml
+          yq '.spec.valuesContent' k8s/traefik/manifests/helmchartconfig.yaml > /tmp/ours.yaml
+          yq eval-all '. as $i ireduce ({}; . * $i)' \
+            /tmp/up/traefik/values.yaml /tmp/k3s-values.yaml /tmp/ours.yaml -o json > /tmp/merged.json
+          pipx run check-jsonschema --schemafile /tmp/up/traefik/values.schema.json /tmp/merged.json
+
   gitleaks:
     runs-on: ubuntu-latest
     # Manual dispatch would do a full-history scan; skip to avoid noise from
