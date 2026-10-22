@@ -30,7 +30,7 @@ homelab/
 │   ├── external-secrets/        # AWS Secrets Manager 연동 (옵션)
 │   ├── reflector/               # Secret 복제 설정
 │   ├── dashboard/               # Kubernetes Dashboard
-│   └── observability/           # 모니터링 스택 (OTel, Prometheus, Loki, Tempo)
+│   └── observability/           # 모니터링 스택 (Alloy, Prometheus, Loki, Tempo)
 ├── betterstack/             # Terraform - Better Stack Uptime (외부 probe)
 │   ├── versions.tf
 │   ├── variables.tf
@@ -131,10 +131,11 @@ kubeseal --format yaml \
 
 ### Observability Stack
 ```
-App (OTLP) → OTel Collector → Prometheus (메트릭)
+App (OTLP) → alloy-gateway → Prometheus (메트릭)
                             → Loki (로그)
                             → Tempo (트레이스)
-                            → Grafana (대시보드)
+노드 로그·메트릭 → alloy-node → Loki / Prometheus
+                               → Grafana (대시보드)
 ```
 
 ### 주요 URL
@@ -144,7 +145,7 @@ App (OTLP) → OTel Collector → Prometheus (메트릭)
 | Grafana | grafana.json-server.win |
 | Prometheus | (외부 노출 안 함, kubectl port-forward) |
 | K8s Dashboard | k8s.json-server.win |
-| OTel Collector | otel.json-server.win |
+| OTLP (alloy-gateway) | otel.json-server.win |
 
 ## Common Commands
 

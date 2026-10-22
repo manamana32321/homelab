@@ -56,7 +56,7 @@ apk add $(cat openwrt/packages-extra.txt | tr '\n' ' ')
 
 ## 로그
 
-공유기 로그는 기본적으로 RAM 링버퍼(`logd -S 128`)에만 있어 재부팅하면 사라진다. 내장 원격 전송으로 클러스터 otel-collector 에 보낸다.
+공유기 로그는 기본적으로 RAM 링버퍼(`logd -S 128`)에만 있어 재부팅하면 사라진다. 내장 원격 전송으로 클러스터 alloy-gateway 에 보낸다.
 
 ```text
 system.@system[0].log_ip   = 192.168.0.27
@@ -66,7 +66,7 @@ system.@system[0].log_proto = udp
 
 **새 데몬을 올리지 않는다.** 이미 돌고 있는 `logd` 가 UDP 로 한 번 더 쓰는 것이라 공유기 부하가 측정되지 않는 수준이다 (적용 전후 메모리·프로세스 수 동일).
 
-받는 쪽은 otel-collector 의 `syslog` 수신기다 (`protocol: rfc3164` — OpenWrt `logd` 는 구형 BSD 형식으로 보낸다). 로그는 `service.name=openwrt` 라벨로 Loki 에 들어간다.
+받는 쪽은 alloy-gateway 의 `loki.source.syslog` 다 (`syslog_format = "rfc3164"` — OpenWrt `logd` 는 구형 BSD 형식으로 보낸다). 로그는 `{service_name="openwrt", source="openwrt"}` 로 Loki 에 들어가고 `unit`(프로그램 이름)·`level` 라벨이 붙는다.
 
 hostapd(접속·인증·DFS), dnsmasq(DHCP·DNS), 커널(mt76·링크 이벤트)이 여기로 흐른다.
 

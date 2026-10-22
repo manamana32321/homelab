@@ -10,9 +10,8 @@ kubeProxy:
 kubeEtcd:
   enabled: false
 
-prometheus-node-exporter:
-  dnsPolicy: Default
-  priorityClassName: system-node-critical
+nodeExporter:
+  enabled: false
 
 grafana:
   enabled: false

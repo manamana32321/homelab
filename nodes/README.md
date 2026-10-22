@@ -48,10 +48,10 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 | 절전 target | `systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target` | 2026-10-22 | 2026-10-22 |
 | swap | `swapoff -a`, `/etc/fstab` swap 줄 주석, `/swap.img` 삭제 | 2026-10-22 | 2026-10-22 |
 | 데스크톱 서비스 | `systemctl mask` `cups.socket` `cups.path` `cups` `cups-browsed` `ModemManager` `apport` `kerneloops` (존재하는 것만) | 2026-10-22 | 2026-10-22 |
-| rsyslog | `apt-get purge rsyslog` | #401 후 | 2026-10-22 |
+| rsyslog | `apt-get purge rsyslog` | 2026-10-22 | 2026-10-22 |
 | 전원 버튼 | `logind/power-key.conf` → `/etc/systemd/logind.conf.d/`, `systemctl reload systemd-logind` | 2026-10-22 | 2026-10-22 |
 | NIC EEE | `udev/70-eee-off.rules` → `/etc/udev/rules.d/`, `udevadm control --reload` | 2026-10-22 | 2026-10-22 |
-| journald 상한 | `journald/size.conf` → `/etc/systemd/journald.conf.d/`, `systemctl restart systemd-journald` | #401 후 | 2026-10-22 |
+| journald 상한 | `journald/size.conf` → `/etc/systemd/journald.conf.d/`, `systemctl restart systemd-journald` | 2026-10-22 | 2026-10-22 |
 
 ## 키오스크 (json-server-2)
 

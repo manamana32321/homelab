@@ -18,6 +18,11 @@ spec:
     - repoURL: https://github.com/manamana32321/homelab
       targetRevision: main
       ref: homelab
+    - repoURL: https://github.com/manamana32321/homelab
+      targetRevision: main
+      path: k8s/observability/alloy-gateway
+      directory:
+        exclude: values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
