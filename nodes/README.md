@@ -75,7 +75,7 @@ HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafan
 | --- | --- | --- |
 | `google-chrome-stable` | apt `https://dl.google.com/linux/chrome/deb/ stable main` | 키 `linux_signing_key.pub` → `/usr/share/keyrings/google-chrome.gpg` |
 | `grafana-kiosk` v1.0.13 | `/usr/local/bin/grafana-kiosk` | GitHub release `grafana-kiosk.linux.amd64` |
-| Grafana 토큰 | `/etc/grafana-kiosk/env` (`KIOSK_APIKEY_APIKEY=`) | 서비스 계정 `kiosk-json-server-2` (Viewer) |
+| Grafana 비밀번호 | `/etc/grafana-kiosk/env` (`KIOSK_LOGIN_PASSWORD=`) | 로컬 사용자 `kiosk-json-server-2` (Viewer). Server Admin → Users → New user |
 | RDP TLS | `/home/kiosk/.local/share/gnome-remote-desktop/rdp-tls.{crt,key}` | 아래 |
 | RDP 자격 증명 | kiosk login 키링 (평문) | 아래 |
 | RDP 비밀번호 (클라이언트) | WSL `~/.local/share/homelab/j2-rdp.env`, Windows `cmdkey TERMSRV/192.168.0.46` | |
