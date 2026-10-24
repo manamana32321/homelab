@@ -1,0 +1,3 @@
+redis:
+  image:
+    repository: mirror.gcr.io/library/redis
