@@ -120,13 +120,12 @@ resource "cloudflare_dns_record" "minecraft" {
   ttl     = 1
 }
 
-# BlueMap 웹 뷰어 — HTTP. proxied=false + cert-manager DNS01 (다른 서비스와 동일 패턴 유지)
 resource "cloudflare_dns_record" "minecraft_map" {
   zone_id = cloudflare_zone.main.id
   name    = "mcmap"
   type    = "CNAME"
   content = "origin.${var.zone_name}"
-  proxied = false
+  proxied = true
   comment = "BlueMap 3D web viewer for Minecraft"
   ttl     = 1
 }
@@ -136,8 +135,8 @@ resource "cloudflare_dns_record" "k8s" {
   name    = "k8s"
   type    = "CNAME"
   content = "origin.${var.zone_name}"
-  proxied = false
-  comment = "Headlamp - proxy off to avoid Cloudflare challenge on API calls"
+  proxied = true
+  comment = "Headlamp"
   ttl     = 1
 }
 
@@ -174,7 +173,7 @@ resource "cloudflare_dns_record" "longhorn" {
   name    = "longhorn"
   type    = "CNAME"
   content = "origin.${var.zone_name}"
-  proxied = false
+  proxied = true
   comment = "Longhorn storage UI"
   ttl     = 1
 }
