@@ -13,6 +13,15 @@ config:
           reason: "home public IP"
           expression:
             - evt.Meta.source_ip in LookupHost("origin.json-server.win")
+      # Headlamp requests every locale of its prometheus plugin on page load
+      # and most 404, which alone trips crowdsecurity/http-probing.
+      headlamp-plugin-locales.yaml: |
+        name: homelab/headlamp-plugin-locales
+        description: "Ignore Headlamp plugin locale 404s"
+        whitelist:
+          reason: "Headlamp plugin locale 404"
+          expression:
+            - evt.Meta.target_fqdn == "k8s.json-server.win" && evt.Meta.http_status == "404" && evt.Meta.http_path matches "^/static-plugins/[^/]+/locales/"
 
 agent:
   # Single Deployment tailing Traefik access logs from Loki (shipped by Alloy
