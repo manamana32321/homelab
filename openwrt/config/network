@@ -23,4 +23,5 @@ config interface 'lan'
 config interface 'wan'
 	option device 'eth1'
 	option proto 'dhcp'
+	option norelease '1'
 

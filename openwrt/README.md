@@ -2,7 +2,7 @@
 
 집 공유기 설정. OpenWrt 25.12.5 `mediatek/filogic` 타겟, 보드 `iptime_ax3000sm`.
 
-`config/` 는 기기의 `/etc/config/` 를 그대로 받은 것이다. **무선 비밀번호만 `REPLACE_ME` 플레이스홀더**이고 나머지는 실제 값이다.
+`config/` 는 기기의 `/etc/config/` 를 그대로 받은 것이다. **무선 비밀번호와 DDNS 토큰만 `REPLACE_ME` 플레이스홀더**이고 나머지는 실제 값이다.
 
 ## 현재 설정
 
@@ -11,7 +11,8 @@
 | hostname | `ax3000sm` |
 | 시간대 | `Asia/Seoul` (KST-9) |
 | LAN | `192.168.0.1/24` |
-| WAN | `eth1`, DHCP |
+| WAN | `eth1`, DHCP, `norelease` (링크 끊김 시 IP 반납 안 함) |
+| DDNS | `origin.json-server.win` A 레코드 갱신 (`cloudflare.com-v4`, WAN up 시 + 5분 주기). 나머지 레코드는 이 이름의 CNAME — `cloudflare/dns.tf` |
 | 무선 | `5G` (5GHz, 채널 48) / `2.4G` (2.4GHz, 채널 6), WPA2-PSK + CCMP, 국가 KR |
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
 | DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
@@ -85,8 +86,11 @@ scp -i ~/.ssh/openwrt_ax3000sm openwrt/config/* root@192.168.0.1:/etc/config/
 ssh -i ~/.ssh/openwrt_ax3000sm root@192.168.0.1 \
   "uci set wireless.default_radio0.key='<무선비밀번호>'; \
    uci set wireless.default_radio1.key='<무선비밀번호>'; \
+   uci set ddns.cf_origin.password='<DDNS토큰>'; \
    uci commit; reload_config"
 ```
+
+DDNS 토큰은 `cd cloudflare && terraform output -raw ddns_token`.
 
 `network` 의 `dhcp_default_duid` 는 기기가 생성한 값이다. 그대로 복원한다.
 
