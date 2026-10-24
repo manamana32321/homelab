@@ -226,35 +226,11 @@ data:
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(increase(cs_filesource_hits_total[$__interval])) by (instance)",
+              "expr": "sum(increase({__name__=~\"cs_.+source_hits_total|cs_cloudwatch_stream_hits_total\"}[$__interval])) by (datasource_type, acquis_type)",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{instance}}",
+              "legendFormat": "{{datasource_type}}/{{acquis_type}}",
               "refId": "A"
-            },
-            {
-              "exemplar": true,
-              "expr": "sum(increase(cs_journalctlsource_hits_total[$__interval])) by (instance)",
-              "hide": false,
-              "interval": "",
-              "legendFormat": "{{instance}}",
-              "refId": "B"
-            },
-            {
-              "exemplar": true,
-              "expr": "sum(increase(cs_cloudwatch_stream_hits_total[$__interval])) by (instance)",
-              "hide": false,
-              "interval": "",
-              "legendFormat": "{{instance}}",
-              "refId": "C"
-            },
-            {
-              "exemplar": true,
-              "expr": "sum(increase(cs_syslogsource_hits_total[$__interval])) by (instance)",
-              "hide": false,
-              "interval": "",
-              "legendFormat": "{{instance}}",
-              "refId": "D"
             }
           ],
           "thresholds": [],
