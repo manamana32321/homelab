@@ -1,5 +1,19 @@
 container_runtime: containerd
 
+config:
+  parsers:
+    s02-enrich:
+      # Home devices reaching Cloudflare-proxied hosts egress via the home
+      # public IP. It is dynamic, so resolve the DDNS-managed origin record
+      # (openwrt/config/ddns) instead of hardcoding it.
+      home-ip-whitelist.yaml: |
+        name: homelab/home-ip-whitelist
+        description: "Whitelist the home public IP (origin.json-server.win)"
+        whitelist:
+          reason: "home public IP"
+          expression:
+            - evt.Meta.source_ip in LookupHost("origin.json-server.win")
+
 agent:
   # Single Deployment tailing Traefik access logs from Loki (shipped by Alloy
   # from every node), so the agent is independent of where Traefik runs and
