@@ -20,6 +20,40 @@ spec:
               to: websecure
               scheme: https
               permanent: true
+      # Cloudflare-proxied hosts arrive from CF edges; trust their
+      # X-Forwarded-For so the access log ClientHost is the real client.
+      # Keep in sync with forwardedHeadersTrustedIPs in middleware-crowdsec.yaml.
+      # https://www.cloudflare.com/ips/
+      websecure:
+        forwardedHeaders:
+          trustedIPs:
+            - 173.245.48.0/20
+            - 103.21.244.0/22
+            - 103.22.200.0/22
+            - 103.31.4.0/22
+            - 141.101.64.0/18
+            - 108.162.192.0/18
+            - 190.93.240.0/20
+            - 188.114.96.0/20
+            - 197.234.240.0/22
+            - 198.41.128.0/17
+            - 162.158.0.0/15
+            - 104.16.0.0/13
+            - 104.24.0.0/14
+            - 172.64.0.0/13
+            - 131.0.72.0/22
+            - 2400:cb00::/32
+            - 2606:4700::/32
+            - 2803:f800::/32
+            - 2405:b500::/32
+            - 2405:8100::/32
+            - 2a06:98c0::/29
+            - 2c0f:f248::/32
+    # Local: kube-proxy skips SNAT so Traefik sees the client IP. Only nodes
+    # with a Traefik pod accept traffic, hence the nodeSelector below.
+    service:
+      spec:
+        externalTrafficPolicy: Local
     additionalArguments:
       - "--entrypoints.websecure.http.middlewares=kube-system-crowdsec-bouncer@kubernetescrd"
       - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=1h"
@@ -32,10 +66,7 @@ spec:
     # bouncer plugin can read the LAPI key from a file path instead of
     # inlining the plaintext in the Middleware CRD.
     deployment:
-      # HA: 2 replicas so a single node going NotReady cannot leave the
-      # ingress with 0 backends (caused a site-wide Cloudflare 523 on 2026-06-21
-      # when json-server-2 briefly flapped and the lone traefik pod was evicted).
-      replicas: 2
+      replicas: 1
       additionalVolumes:
         - name: crowdsec-bouncer-key
           secret:
@@ -47,18 +78,14 @@ spec:
       - name: crowdsec-bouncer-key
         mountPath: /run/secrets/crowdsec
         readOnly: true
-    # Force the two replicas onto distinct nodes. Required (not preferred) so the
-    # scheduler can never stack both on one node — which would re-create the SPOF.
-    # Satisfiable: 2 nodes, 2 replicas.
+    # Pinned to the node the router port-forwards 80/443 to
+    # (openwrt/config/firewall pf_http/pf_https → 192.168.0.27). With
+    # externalTrafficPolicy: Local a Traefik pod elsewhere receives nothing,
+    # and none here drops all ingress. Surge first so rollouts never hit 0.
+    nodeSelector:
+      kubernetes.io/hostname: json-server-1
     updateStrategy:
       type: RollingUpdate
       rollingUpdate:
-        maxUnavailable: 1
-        maxSurge: 0
-    affinity:
-      podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: traefik
-            topologyKey: kubernetes.io/hostname
+        maxUnavailable: 0
+        maxSurge: 1

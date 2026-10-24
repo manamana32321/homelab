@@ -1,27 +1,20 @@
 container_runtime: containerd
 
 agent:
-  # Run as a single Deployment co-located with Traefik (podAffinity) instead of a
-  # per-node DaemonSet. The agent's only job is reading Traefik access logs, and
-  # Traefik runs on exactly one node. A DaemonSet also placed agents on raspi-1/j1
-  # where there are no Traefik logs to read — pure overhead — and their stable pod
-  # names caused a permanent `cscli lapi register: user already exist` crashloop
-  # after restarts wiped the emptyDir credentials (LAPI machine DB persists on PV).
-  # podAffinity makes the single agent follow Traefik wherever it is scheduled.
+  # Single Deployment tailing Traefik access logs from Loki (shipped by Alloy
+  # from every node), so the agent is independent of where Traefik runs and
+  # needs no /var/log hostPath.
   isDeployment: true
-  affinity:
-    podAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
-          namespaces:
-            - kube-system
-          topologyKey: kubernetes.io/hostname
-  acquisition:
-    - namespace: kube-system
-      podName: traefik-*
-      program: traefik
+  hostVarLog: false
+  acquisition: []
+  additionalAcquisition:
+    - source: loki
+      url: http://loki.observability.svc:3100
+      query: '{namespace="kube-system", container="traefik"}'
+      # Default 30s stops the source (agent restarts) on a brief Loki restart.
+      max_failure_duration: 5m
+      labels:
+        type: traefik
   env:
     - name: COLLECTIONS
       value: "crowdsecurity/traefik crowdsecurity/http-cve"
