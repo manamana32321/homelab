@@ -12,6 +12,14 @@ spec:
       access:
         enabled: true
         format: json
+    metrics:
+      prometheus:
+        service:
+          enabled: true
+        serviceMonitor:
+          enabled: true
+          additionalLabels:
+            release: prometheus
     ports:
       web:
         http:
