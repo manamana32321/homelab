@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lifehub-api
+  namespace: health-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lifehub-api
+  template:
+    metadata:
+      labels:
+        app: lifehub-api
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z timescaledb 5432; do
+                echo "waiting for timescaledb:5432..."
+                sleep 2
+              done
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+      containers:
+        - name: api
+          image: ghcr.io/manamana32321/lifehub-api:latest
+          imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: DB_HOST
+              value: timescaledb
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: healthhub
+            - name: DB_NAME
+              value: healthhub
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: health-hub-secret
+                  key: DB_PASSWORD
+            - name: API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: health-hub-api-token
+                  key: API_TOKEN
+            - name: LISTEN_ADDR
+              value: ":8080"
+            - name: DEFAULT_TIMEZONE
+              value: Asia/Seoul
+            - name: DEBUG_PAYLOAD_DIR
+              value: /tmp/hc-webhook-payloads
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lifehub-api
+  namespace: health-hub
+spec:
+  selector:
+    app: lifehub-api
+  ports:
+    - port: 8080
+      targetPort: http
+      name: http
