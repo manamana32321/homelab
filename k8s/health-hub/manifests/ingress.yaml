@@ -16,14 +16,14 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: health-hub
+                name: lifehub-api
                 port:
                   number: 8080
           - path: /healthz
             pathType: Exact
             backend:
               service:
-                name: health-hub
+                name: lifehub-api
                 port:
                   number: 8080
           - path: /mcp
