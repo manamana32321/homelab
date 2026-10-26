@@ -22,7 +22,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dashboard
-          image: ghcr.io/manamana32321/health-hub-dashboard:latest
+          image: ghcr.io/manamana32321/lifehub-web:latest
           imagePullPolicy: Always
           securityContext:
             readOnlyRootFilesystem: true

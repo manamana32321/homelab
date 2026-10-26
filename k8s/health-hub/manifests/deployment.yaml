@@ -50,70 +50,10 @@ spec:
               cpu: 50m
               memory: 32Mi
       containers:
-        - name: health-hub
-          image: ghcr.io/manamana32321/health-hub:latest
-          imagePullPolicy: Always
-          securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-          ports:
-            - name: http
-              containerPort: 8080
-          # hc_webhook.go 가 수신 페이로드 원본을 DEBUG_PAYLOAD_DIR(기본 /tmp/hc-webhook-payloads)에
-          # 떨어뜨리는데 readOnlyRootFilesystem 이라 조용히 실패해 왔음. 러닝머신 세션 유실 추적용
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-          env:
-            - name: DB_HOST
-              value: timescaledb
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_USER
-              value: healthhub
-            - name: DB_NAME
-              value: healthhub
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: health-hub-secret
-                  key: DB_PASSWORD
-            - name: API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: health-hub-api-token
-                  key: API_TOKEN
-            - name: LISTEN_ADDR
-              value: ":8080"
-            - name: DEFAULT_TIMEZONE
-              value: Asia/Seoul
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 128Mi
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: http
-            initialDelaySeconds: 3
-            periodSeconds: 5
         - name: mcp
-          image: ghcr.io/manamana32321/health-hub:latest
+          image: ghcr.io/manamana32321/health-hub@sha256:c5bc4b017de06a18b1c4d1d24dcacecf9a567723792ad6e0b9915ae9d9ad20b0
           command: ["health-hub-mcp"]
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
@@ -157,7 +97,3 @@ spec:
               port: mcp
             initialDelaySeconds: 5
             periodSeconds: 30
-      volumes:
-        - name: tmp
-          emptyDir:
-            sizeLimit: 256Mi

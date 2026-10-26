@@ -203,7 +203,7 @@ alloy:
           {name = "amang-redis-staging", address = "redis.amang-redis-staging.svc.cluster.local:6379", module = "tcp_connect"},
           {name = "loki", address = "http://loki.observability.svc.cluster.local:3100/ready", module = "http_2xx_no_tls"},
           {name = "tempo", address = "http://tempo.observability.svc.cluster.local:3200/ready", module = "http_2xx_no_tls"},
-          {name = "health-hub", address = "http://health-hub.health-hub.svc.cluster.local:8080/healthz", module = "http_2xx_no_tls"},
+          {name = "health-hub", address = "http://lifehub-api.health-hub.svc.cluster.local:8080/healthz", module = "http_2xx_no_tls"},
           {name = "gbrain-mcp", address = "http://gbrain-mcp.gbrain.svc.cluster.local/healthz", module = "http_2xx_no_tls"},
           {name = "lan-gateway", address = "192.168.0.1", module = "icmp_ping"},
           {name = "node-json-server-1", address = "192.168.0.27", module = "icmp_ping"},
