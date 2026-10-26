@@ -17,7 +17,7 @@ spec:
     #                                    아래 SealedSecret 의 operator-oauth 를 마운트)
     - repoURL: https://pkgs.tailscale.com/helmcharts
       chart: tailscale-operator
-      targetRevision: 1.102.3
+      targetRevision: 1.104.2
       helm:
         releaseName: tailscale-operator
     # Source 2: SealedSecret(operator-oauth) + Connector(subnet router)
