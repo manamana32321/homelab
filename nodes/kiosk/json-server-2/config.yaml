@@ -15,4 +15,4 @@ target:
   login-method: local
   username: kiosk-json-server-2
   playlist: false
-  URL: https://grafana.json-server.win/d/24049b2d-f6e0-484b-88d5-a932d67348db/k8s-dashboard?refresh=1m
+  URL: https://grafana.json-server.win/d/24049b2d-f6e0-484b-88d5-a932d67348db/k8s-dashboard?from=now-7d&to=now&refresh=1m
