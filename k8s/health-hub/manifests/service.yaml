@@ -7,9 +7,6 @@ spec:
   selector:
     app: health-hub
   ports:
-    - port: 8080
-      targetPort: http
-      name: http
     - port: 8081
       targetPort: mcp
       name: mcp
