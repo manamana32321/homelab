@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blueprint-sessions
+  namespace: authentik
+data:
+  sessions.yaml: |
+    version: 1
+    metadata:
+      name: "Login Session Duration"
+    entries:
+      - model: authentik_stages_user_login.userloginstage
+        state: present
+        identifiers:
+          name: default-authentication-login
+        attrs:
+          session_duration: days=30
+      - model: authentik_stages_user_login.userloginstage
+        state: present
+        identifiers:
+          name: default-source-authentication-login
+        attrs:
+          session_duration: days=30
+      - model: authentik_stages_user_login.userloginstage
+        state: present
+        identifiers:
+          name: default-source-enrollment-login
+        attrs:
+          session_duration: days=30
