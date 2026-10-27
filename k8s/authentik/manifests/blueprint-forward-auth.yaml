@@ -211,3 +211,20 @@ data:
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, health-hub-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, hermes-provider]]
+
+      - model: authentik_core.application
+        state: absent
+        identifiers:
+          slug: loop
+      - model: authentik_core.application
+        state: absent
+        identifiers:
+          slug: windmill
+      - model: authentik_providers_proxy.proxyprovider
+        state: absent
+        identifiers:
+          name: loop-provider
+      - model: authentik_providers_proxy.proxyprovider
+        state: absent
+        identifiers:
+          name: windmill-provider
