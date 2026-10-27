@@ -76,3 +76,4 @@ blueprints:
     - blueprint-forward-auth
     - blueprint-github-source
     - blueprint-kargo
+    - blueprint-sessions
