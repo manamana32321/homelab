@@ -95,7 +95,7 @@ $U grdctl rdp enable
 
 ## 키오스크 (mocha-snail)
 
-Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용. 08:00 켜짐, 23:00 꺼짐 (Weston 정지 + HDMI 커넥터 off).
+Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용. 23:00 절전(suspend-to-RAM), 07:59:30 RTC 알람으로 복귀.
 
 | 레포 `nodes/kiosk/mocha-snail/` | 노드 경로 | 반영 |
 | --- | --- | --- |
@@ -124,10 +124,12 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | Wayland 직접 실행 | `No Wayland shell found` (Weston 5.0 에 `xdg_wm_base` 없음) | `--ozone-platform=x11` |
 | Wi-Fi 절전 | LAN RTT 55~160ms, 유휴 후 SSH 타임아웃 | `powersave 2` |
 | Xwayland 지연 기동 | `Failed creating new xdo instance` | `xprop -root` 응답 대기 |
-| 화면 끄기 | `fb0/blank`·`setterm --blank` 는 콘솔이 다시 켬 | `card0-HDMI-A-1/status` 에 `off` / `detect` |
-| 팬 소음 | `gpio-fan` on/off 2단, 기본 65°C (유휴 64°C 경계) | active trip 70°C (hyst 10°C) |
+| 화면 끄기 | `fb0/blank`·`setterm --blank` 는 콘솔이 다시 켬. `card0-HDMI-A-1/status`=`off` 는 `HDMI/DP Cable Plug Out` 분당 ~280회 → 모니터 켜짐/꺼짐 반복 | 절전 (`rtcwake -m no` + `systemctl suspend`) |
+| 팬 소음 | `gpio-fan` on/off 2단, 기본 65°C (유휴 64°C 경계) | active trip 70°C (hyst 10°C), 야간 절전 |
+| RTC 배터리 없음 | 전원 차단 후 `rtcwake -m off` 복귀 미검증 | `mem` 만 사용 (`snvs_rtc` 알람, deep) |
+| 야간 TargetDown | 절전 중 `up{job="coral"}`=0 | AlertmanagerConfig `discord` 하위 route `muteTimeIntervals: coral-night` |
 
-수동 전환: `sudo kiosk-screen on|off|auto`
+수동 전환: `sudo kiosk-screen on|sleep|auto`
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 mendel@192.168.0.44` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
 

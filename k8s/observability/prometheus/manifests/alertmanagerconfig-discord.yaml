@@ -30,6 +30,20 @@ spec:
     groupWait: 30s
     groupInterval: 5m
     repeatInterval: 12h
+    routes:
+      # Coral 키오스크는 23:00~07:59 절전(nodes/kiosk/mocha-snail/kiosk-screen)이라
+      # 그 사이 TargetDown 이 매일 뜬다.
+      - matchers:
+          - name: job
+            value: coral
+        muteTimeIntervals: [coral-night]
+  # CRD 에 location 필드가 없어 Alertmanager 기준 UTC. KST 22:55~08:10.
+  muteTimeIntervals:
+    - name: coral-night
+      timeIntervals:
+        - times:
+            - startTime: "13:55"
+              endTime: "23:10"
   receivers:
     - name: discord
       discordConfigs:
