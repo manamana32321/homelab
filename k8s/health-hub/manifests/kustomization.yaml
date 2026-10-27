@@ -10,7 +10,6 @@ resources:
   - timescaledb-statefulset.yaml
   - deployment.yaml
   - lifehub-api.yaml
-  - lifehub-habits-auto-cronjob.yaml
   - dashboard-deployment.yaml
   - service.yaml
   - ingress.yaml
