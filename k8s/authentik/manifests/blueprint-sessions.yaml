@@ -7,23 +7,61 @@ data:
   sessions.yaml: |
     version: 1
     metadata:
-      name: "Login Session Duration"
+      name: "Session Duration"
+    context:
+      duration: days=30
     entries:
       - model: authentik_stages_user_login.userloginstage
         state: present
         identifiers:
           name: default-authentication-login
         attrs:
-          session_duration: days=30
+          session_duration: !Context duration
       - model: authentik_stages_user_login.userloginstage
         state: present
         identifiers:
           name: default-source-authentication-login
         attrs:
-          session_duration: days=30
+          session_duration: !Context duration
       - model: authentik_stages_user_login.userloginstage
         state: present
         identifiers:
           name: default-source-enrollment-login
         attrs:
-          session_duration: days=30
+          session_duration: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: cloudbeaver-provider
+        attrs:
+          access_token_validity: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: health-hub-provider
+        attrs:
+          access_token_validity: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: hermes-provider
+        attrs:
+          access_token_validity: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: longhorn-provider
+        attrs:
+          access_token_validity: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: loop-provider
+        attrs:
+          access_token_validity: !Context duration
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: windmill-provider
+        attrs:
+          access_token_validity: !Context duration
