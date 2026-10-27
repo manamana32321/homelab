@@ -59,7 +59,7 @@ config host 'galaxybook2'
 
 config host 'mochasnail'
 	option name 'mocha-snail'
-	option mac '7c:d9:5c:b1:96:5a'
+	option mac '7c:d9:5c:b1:96:5b'
 	option ip '192.168.0.44'
 
 config host 'raspi1'
