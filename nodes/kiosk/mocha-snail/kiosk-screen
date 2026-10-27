@@ -3,11 +3,20 @@ set -e
 mode=${1:-auto}
 if [ "$mode" = auto ]; then
   h=$(date +%-H)
-  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ]; then mode=on; else mode=off; fi
+  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ]; then mode=on; else mode=sleep; fi
 fi
-S=/sys/class/drm/card0-HDMI-A-1/status
 case "$mode" in
-  on)  systemctl is-active -q weston.service || { echo detect > $S; systemctl start weston.service; } ;;
-  off) systemctl stop weston.service; echo off > $S ;;
-  *)   echo "usage: kiosk-screen [auto|on|off]" >&2; exit 2 ;;
+  on)
+    systemctl start weston.service
+    ;;
+  sleep)
+    w=$(date -d 07:59:30 +%s)
+    [ "$w" -gt "$(date +%s)" ] || w=$(date -d 'tomorrow 07:59:30' +%s)
+    rtcwake -m no -t "$w"
+    systemctl suspend
+    ;;
+  *)
+    echo "usage: kiosk-screen [auto|on|sleep]" >&2
+    exit 2
+    ;;
 esac
