@@ -53,15 +53,3 @@ data:
           name: longhorn-provider
         attrs:
           access_token_validity: !Context duration
-      - model: authentik_providers_proxy.proxyprovider
-        state: present
-        identifiers:
-          name: loop-provider
-        attrs:
-          access_token_validity: !Context duration
-      - model: authentik_providers_proxy.proxyprovider
-        state: present
-        identifiers:
-          name: windmill-provider
-        attrs:
-          access_token_validity: !Context duration
