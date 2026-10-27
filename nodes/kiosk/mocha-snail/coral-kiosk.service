@@ -1,0 +1,15 @@
+[Unit]
+Description=Coral kiosk
+After=weston.service
+BindsTo=weston.service
+
+[Service]
+User=mendel
+Environment=XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 DISPLAY=:0
+EnvironmentFile=/etc/coral-kiosk/env
+ExecStart=/usr/local/bin/coral-kiosk
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=weston.service
