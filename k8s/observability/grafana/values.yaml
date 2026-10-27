@@ -32,12 +32,13 @@ ingress:
         - grafana.json-server.win
       secretName: grafana-tls
 
-limits:
-  cpu: 200m
-  memory: 256Mi
-requests:
-  cpu: 200m
-  memory: 256Mi
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
 
 # https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 # in the beginning of grafana migration, we allow editing dashboards without provisioning

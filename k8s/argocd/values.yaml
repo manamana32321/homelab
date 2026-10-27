@@ -142,8 +142,6 @@ server:
     ingressClassName: traefik
     hostname: argocd.json-server.win
     tls: true
-    certificateName: argocd-server-tls
-    servicePort: 80
 
   extraArgs:
     - --insecure
@@ -173,12 +171,6 @@ applicationSet:
 ## Notifications controller (disabled - enable when GitHub App is configured)
 notifications:
   enabled: false
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
-      additionalLabels:
-        release: prometheus
 
   # secret:
   #   create: false
