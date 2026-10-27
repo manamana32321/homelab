@@ -1,0 +1,10 @@
+[Unit]
+Description=Kiosk screen schedule
+After=weston.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/kiosk-screen
+
+[Install]
+WantedBy=graphical.target
