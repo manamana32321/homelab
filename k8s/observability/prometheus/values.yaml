@@ -66,6 +66,11 @@ prometheus:
               # Node Exporter 계열 대시보드는 instance 를 "호스트:포트" 로 쪼개 변수로 쓴다.
               # 콜론을 빼면 패널 쿼리(instance=~"$node:$port")가 전부 빈다.
               instance: ax3000sm:9100
+      - job_name: coral
+        static_configs:
+          - targets: ["192.168.0.44:9100"]
+            labels:
+              instance: mocha-snail:9100
 
   # Prometheus는 자체 인증 기능이 없어 ingress가 곧 무인증 공개 API가 된다.
   # Alertmanager와 동일하게 외부 노출하지 않고 port-forward로만 접근한다:

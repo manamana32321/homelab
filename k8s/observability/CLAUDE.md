@@ -97,7 +97,8 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 
 ```
  App OTLP ───────┐
- OpenWrt syslog ─┼──▶ alloy-gateway (Deployment) ──┬──▶ Prometheus (OTLP, remote write)
+ OpenWrt syslog ─┤
+ Coral syslog ───┼──▶ alloy-gateway (Deployment) ──┬──▶ Prometheus (OTLP, remote write)
  k8s Event ──────┘    blackbox probes              ├──▶ Loki
                                                    └──▶ Tempo
 
@@ -107,6 +108,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
  apt, dpkg ──────┘    └ prometheus.exporter.unix ◀── Prometheus scrape
 
  ServiceMonitor targets ◀── Prometheus scrape
+ OpenWrt :9100, Coral :9100 ◀── Prometheus scrape (additionalScrapeConfigs)
  Prometheus, Loki, Tempo ──▶ Grafana
 ```
 
@@ -115,7 +117,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | 컴포넌트 | 용도 | 룰 출처 |
 |---|---|---|
 | alloy-node (DaemonSet) | 파드 로그·journald·containerd·apt·dpkg → Loki, 호스트 메트릭 노출 (`job="node-exporter"`) | chart (node-exporter 룰) |
-| alloy-gateway (Deployment) | OTLP 수신, OpenWrt syslog, blackbox 프로브, k8s Event → Loki | `homelab-alerts` (blackbox) |
+| alloy-gateway (Deployment) | OTLP 수신, syslog (OpenWrt `:5514`, Coral `:5515` — LAN LoadBalancer `alloy-gateway-syslog-lan`), blackbox 프로브, k8s Event → Loki | `homelab-alerts` (blackbox) |
 | Prometheus (kube-prometheus-stack) | 메트릭 저장 + Alertmanager + 기본 알림 룰 | chart |
 | Loki | 로그 저장 | (없음) |
 | Tempo | 트레이스 저장 | (없음) |
@@ -131,6 +133,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | `containerd` | `node level` |
 | `apt`, `dpkg` | `node` |
 | `openwrt` | `service_name=openwrt node=ax3000sm unit level` |
+| `coral` | `service_name=coral node=mocha-snail unit level` |
 | `k8s-events` | `namespace kind reason type` |
 
 ### blackbox 대상
