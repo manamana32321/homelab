@@ -108,6 +108,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
 | `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/system/` | `systemctl daemon-reload && systemctl enable kiosk-screen.service kiosk-screen.timer` |
 | `tmpfiles-fan.conf` | `/etc/tmpfiles.d/coral-fan.conf` | `systemd-tmpfiles --create /etc/tmpfiles.d/coral-fan.conf` |
+| `systemd-no-watchdog.conf` | `/etc/systemd/system.conf.d/no-watchdog.conf` | 재부팅 (한 번 켜진 imx2 watchdog 은 리셋 전까지 못 끔) |
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
@@ -128,6 +129,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | 팬 소음 | `gpio-fan` on/off 2단, 기본 65°C (유휴 64°C 경계) | active trip 70°C (hyst 10°C), 야간 절전 |
 | RTC 배터리 없음 | 전원 차단 후 `rtcwake -m off` 복귀 미검증 | `mem` 만 사용 (`snvs_rtc` 알람, deep) |
 | 야간 TargetDown | 절전 중 `up{job="coral"}`=0 | AlertmanagerConfig `discord` 하위 route `muteTimeIntervals: coral-night` |
+| 하드웨어 watchdog + 절전 | `imx2-wdt` 는 절전 중 최대 128초만 유지 → 128초 넘는 절전은 재부팅 (120초 시험은 통과, 9시간 절전은 2분 뒤 재부팅) | systemd `RuntimeWatchdogSec=0`. 멈춤은 `TargetDown` 으로 감지 |
 
 수동 전환: `sudo kiosk-screen on|sleep|auto`
 
