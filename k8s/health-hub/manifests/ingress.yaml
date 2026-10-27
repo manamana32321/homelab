@@ -63,3 +63,33 @@ spec:
     - secretName: health-hub-tls
       hosts:
         - health.json-server.win
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: health-hub-dashboard-public
+  namespace: health-hub
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: health.json-server.win
+      http:
+        paths:
+          - path: /manifest.webmanifest
+            pathType: Exact
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
+          - path: /icons
+            pathType: Prefix
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
+  tls:
+    - secretName: health-hub-tls
+      hosts:
+        - health.json-server.win
