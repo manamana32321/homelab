@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+google-chrome-stable --ozone-platform=x11 --app="$KIOSK_URL" \
+  --user-data-dir="$HOME/.config/coral-kiosk" --remote-debugging-port=9222 \
+  --no-first-run --noerrdialogs --hide-crash-restore-bubble &
+pid=$!
+timeout 60 sh -c 'until xprop -root >/dev/null 2>&1; do sleep 1; done'
+w=$(timeout 120 xdotool search --sync --onlyvisible --class '^Google-chrome$' | head -1)
+[ -n "$w" ]
+if xprop -id "$w" _NET_WM_STATE | grep -q FULLSCREEN; then
+  xdotool key --window "$w" F11
+  sleep 2
+fi
+xdotool windowactivate --sync "$w" key --window "$w" F11
+wait "$pid"

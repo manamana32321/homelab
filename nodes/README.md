@@ -92,3 +92,33 @@ $U grdctl rdp enable
 ```
 
 수동 전환: `$U kiosk-screen on|off|auto`
+
+## 키오스크 (mocha-snail)
+
+Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용.
+
+| 레포 `nodes/kiosk/mocha-snail/` | 노드 경로 | 반영 |
+| --- | --- | --- |
+| `apt-debian-buster-archive.list` | `/etc/apt/sources.list.d/debian-buster-archive.list` | `apt-get update` |
+| `apt-preferences-debian-buster-archive` | `/etc/apt/preferences.d/debian-buster-archive` | |
+| `apt-99archive-no-valid-until` | `/etc/apt/apt.conf.d/99archive-no-valid-until` | |
+| `coral-kiosk` | `/usr/local/bin/coral-kiosk` (755) | |
+| `coral-kiosk.service` | `/etc/systemd/system/coral-kiosk.service` | `systemctl daemon-reload && systemctl enable --now coral-kiosk` |
+| `env` | `/etc/coral-kiosk/env` | `systemctl restart coral-kiosk` |
+
+| 레포 밖 | 위치 | 생성 |
+| --- | --- | --- |
+| 비활성 저장소 | `/etc/apt/sources.list.d/multistrap-{main,bsp,edgetpu}.list.disabled` | `mendel-linux.org` NXDOMAIN, `packages.cloud.google.com` 403 |
+| 패키지 | `google-chrome-stable` `fonts-noto-cjk` `xdotool` `x11-utils` | `apt-get install` |
+| Chrome 저장소 | `/etc/apt/sources.list.d/google-chrome.sources` | `google-chrome-stable` 설치 시 자동 |
+| Wi-Fi | NM 프로필 `5G` | `nmcli con modify 5G wifi-sec.psk '<무선비밀번호>' 802-11-wireless.powersave 2` |
+| 유선 | NM 프로필 `Wired connection 1` | `nmcli con down "Wired connection 1"` |
+
+| 함정 | 증상 | 대응 |
+| --- | --- | --- |
+| `--kiosk` / 시작부터 fullscreen | X 상태는 정상, 모니터엔 바탕화면만 | `--app` 창 표시 후 `xdotool` F11 |
+| Wayland 직접 실행 | `No Wayland shell found` (Weston 5.0 에 `xdg_wm_base` 없음) | `--ozone-platform=x11` |
+| Wi-Fi 절전 | LAN RTT 55~160ms, 유휴 후 SSH 타임아웃 | `powersave 2` |
+| Xwayland 지연 기동 | `Failed creating new xdo instance` | `xprop -root` 응답 대기 |
+
+원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 mendel@192.168.0.44` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.

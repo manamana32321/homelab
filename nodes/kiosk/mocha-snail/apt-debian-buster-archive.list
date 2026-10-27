@@ -1,0 +1,2 @@
+deb [arch=arm64] http://archive.debian.org/debian buster main
+deb [arch=arm64] http://archive.debian.org/debian-security buster/updates main
