@@ -122,3 +122,24 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | Xwayland 지연 기동 | `Failed creating new xdo instance` | `xprop -root` 응답 대기 |
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 mendel@192.168.0.44` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
+
+### 관측성 (mocha-snail)
+
+| 레포 `nodes/kiosk/mocha-snail/` | 노드 경로 | 반영 |
+| --- | --- | --- |
+| `sysusers-node-exporter.conf` | `/etc/sysusers.d/node-exporter.conf` | `systemd-sysusers` |
+| `node-exporter.service` | `/etc/systemd/system/node-exporter.service` | `systemctl daemon-reload && systemctl enable --now node-exporter` |
+| `rsyslog-forward.conf` | `/etc/rsyslog.d/90-forward.conf` | `systemctl restart rsyslog` |
+
+| 레포 밖 | 위치 | 생성 |
+| --- | --- | --- |
+| `node_exporter` v1.12.1 | `/usr/local/bin/node_exporter` | GitHub release `node_exporter-1.12.1.linux-arm64.tar.gz`, `sha256sums.txt` 검증 |
+
+| 신호 | 경로 | 클러스터 쪽 |
+| --- | --- | --- |
+| 메트릭 | `192.168.0.44:9100` | `k8s/observability/prometheus/values.yaml` `job_name: coral` |
+| 로그 | rsyslog → `192.168.0.27:5515/udp` | `k8s/observability/alloy-gateway/` `loki.source.syslog "coral"`, `syslog-lan-service.yaml` |
+
+| 함정 | 증상 | 대응 |
+| --- | --- | --- |
+| `DynamicUser=yes` | systemd 수집기 `couldn't get dbus connection: ... broken pipe` | sysusers 고정 사용자 |

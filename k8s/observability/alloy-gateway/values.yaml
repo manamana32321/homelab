@@ -16,6 +16,10 @@ alloy:
       port: 5514
       targetPort: 5514
       protocol: UDP
+    - name: syslog-coral
+      port: 5515
+      targetPort: 5515
+      protocol: UDP
   securityContext:
     runAsNonRoot: true
     runAsUser: 473
@@ -116,6 +120,21 @@ alloy:
             service_name = "openwrt",
             source       = "openwrt",
             node         = "ax3000sm",
+          }
+        }
+        relabel_rules = discovery.relabel.syslog.rules
+        forward_to    = [loki.write.default.receiver]
+      }
+
+      loki.source.syslog "coral" {
+        listener {
+          address       = "0.0.0.0:5515"
+          protocol      = "udp"
+          syslog_format = "rfc3164"
+          labels        = {
+            service_name = "coral",
+            source       = "coral",
+            node         = "mocha-snail",
           }
         }
         relabel_rules = discovery.relabel.syslog.rules

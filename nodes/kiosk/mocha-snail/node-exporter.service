@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus node exporter
+After=network-online.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter --collector.systemd --collector.systemd.unit-include=(coral-kiosk|weston|kiosk-screen)[.](service|timer)
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

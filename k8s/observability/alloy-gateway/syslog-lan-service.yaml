@@ -10,6 +10,10 @@ spec:
       port: 5514
       targetPort: 5514
       protocol: UDP
+    - name: syslog-coral
+      port: 5515
+      targetPort: 5515
+      protocol: UDP
   selector:
     app.kubernetes.io/name: alloy
     app.kubernetes.io/instance: alloy-gateway
