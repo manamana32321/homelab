@@ -42,6 +42,11 @@ spec:
                 secretKeyRef:
                   name: health-hub-api-token
                   key: API_TOKEN
+            - name: KIOSK_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lifehub-kiosk
+                  key: KIOSK_KEY
           volumeMounts:
             - name: next-cache
               mountPath: /app/apps/web/.next/cache
