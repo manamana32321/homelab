@@ -1,0 +1,1 @@
+ACTION=="change", SUBSYSTEM=="drm", KERNEL=="card0", ENV{HOTPLUG}=="1", RUN+="/bin/systemctl --no-block start coral-kiosk-hotplug.service"

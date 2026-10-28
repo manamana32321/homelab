@@ -109,6 +109,11 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/system/` | `systemctl daemon-reload && systemctl enable kiosk-screen.service kiosk-screen.timer` |
 | `tmpfiles-fan.conf` | `/etc/tmpfiles.d/coral-fan.conf` | `systemd-tmpfiles --create /etc/tmpfiles.d/coral-fan.conf` |
 | `systemd-no-watchdog.conf` | `/etc/systemd/system.conf.d/no-watchdog.conf` | 재부팅 (한 번 켜진 imx2 watchdog 은 리셋 전까지 못 끔) |
+| `weston.ini` | `/etc/xdg/weston/weston.ini` | `systemctl restart weston` |
+| `weston-restart.conf` | `/etc/systemd/system/weston.service.d/restart.conf` | `systemctl daemon-reload` |
+| `udev-kiosk-hotplug.rules` | `/etc/udev/rules.d/90-coral-kiosk-hotplug.rules` | `udevadm control --reload` |
+| `coral-kiosk-hotplug.service` | `/etc/systemd/system/coral-kiosk-hotplug.service` | `systemctl daemon-reload` |
+| `coral-kiosk-refit` | `/usr/local/bin/coral-kiosk-refit` (755) | |
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
@@ -130,6 +135,10 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | RTC 배터리 없음 | 전원 차단 후 `rtcwake -m off` 복귀 미검증 | `mem` 만 사용 (`snvs_rtc` 알람, deep) |
 | 야간 TargetDown | 절전 중 `up{job="coral"}`=0 | AlertmanagerConfig `discord` 하위 route `muteTimeIntervals: coral-night` |
 | 하드웨어 watchdog + 절전 | `imx2-wdt` 는 절전 중 최대 128초만 유지 → 128초 넘는 절전은 재부팅 (120초 시험은 통과, 9시간 절전은 2분 뒤 재부팅) | systemd `RuntimeWatchdogSec=0`. 멈춤은 `TargetDown` 으로 감지 |
+| 모니터 전원 재투입 | HDMI Plug Out/In → Weston 출력 재생성, fullscreen 창 안 보임 | udev `HOTPLUG=1` → 3초 뒤 F11 두 번 (Chrome 재시작 없음) |
+| `card0-HDMI-A-1/status` 로 hotplug 흉내 | Weston `ABRT` | 시험은 실제 모니터 전원으로. Weston `Restart=on-failure` |
+| root 로 `xdotool` | `No protocol specified` (Xwayland 는 `mendel` 만 허용) | `runuser -u mendel` |
+| 주사율 미지정 | `mode=1920x1080` → 목록 첫 번째 1080p120 (297MHz) | `1920x1080@60`. 모니터(PAQ2718) EDID 범위 48~144Hz 라 30Hz 불가, QHD 는 드라이버 클럭 표에 없음 |
 
 수동 전환: `sudo kiosk-screen on|sleep|auto`
 
