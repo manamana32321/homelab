@@ -1,9 +1,16 @@
 #!/bin/sh
 set -e
+PHONE=BE:4F:43:38:44:31
+SEEN=${XDG_RUNTIME_DIR:-/tmp}/kiosk-phone-seen
+home() {
+  m=$(curl -fsm 5 http://192.168.0.1:9100/metrics) || return 0
+  if printf '%s\n' "$m" | grep -qF "mac=\"$PHONE\""; then touch "$SEEN"; return 0; fi
+  [ -f "$SEEN" ] && [ $(($(date +%s) - $(stat -c %Y "$SEEN"))) -lt 180 ]
+}
 mode=${1:-auto}
 if [ "$mode" = auto ]; then
   h=$(date +%-H)
-  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ]; then mode=on; else mode=off; fi
+  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ] && home; then mode=on; else mode=off; fi
 fi
 P="org.gnome.Mutter.DisplayConfig /org/gnome/Mutter/DisplayConfig org.gnome.Mutter.DisplayConfig PowerSaveMode"
 case "$mode" in
