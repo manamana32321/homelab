@@ -1,0 +1,12 @@
+#!/bin/sh
+grep -qx connected /sys/class/drm/card0-HDMI-A-1/status || exit 0
+systemctl is-active -q coral-kiosk.service || exit 0
+x() { runuser -u mendel -- env DISPLAY=:0 xdotool "$@"; }
+w=$(x search --onlyvisible --class '^Google-chrome$' | head -1)
+if [ -z "$w" ]; then
+  systemctl restart coral-kiosk.service
+  exit 0
+fi
+x windowactivate --sync "$w" key --window "$w" F11
+sleep 2
+x windowactivate --sync "$w" key --window "$w" F11
