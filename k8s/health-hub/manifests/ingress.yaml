@@ -69,6 +69,8 @@ kind: Ingress
 metadata:
   name: health-hub-dashboard-public
   namespace: health-hub
+  annotations:
+    traefik.ingress.kubernetes.io/router.priority: "1000"
 spec:
   ingressClassName: traefik
   rules:
