@@ -1,8 +1,9 @@
 [Unit]
-Description=Kiosk screen on 08:00, off 23:00
+Description=Kiosk screen: 08-23 while phone is on home Wi-Fi
 
 [Timer]
-OnCalendar=*-*-* 08,23:00:00
+OnCalendar=minutely
+AccuracySec=1s
 
 [Install]
 WantedBy=timers.target

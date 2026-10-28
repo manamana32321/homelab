@@ -55,7 +55,16 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 
 ## 키오스크 (json-server-2)
 
-HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafana. RDP 로 같은 화면 공유. 08:00 켜짐, 23:00 꺼짐.
+HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafana. RDP 로 같은 화면 공유.
+
+`kiosk-screen auto` 가 1분마다 판단한다. 08~23시 **그리고** 폰이 집 Wi-Fi 에 붙어 있으면 켜짐, 아니면 꺼짐.
+
+| 항목 | 값 |
+| --- | --- |
+| 재실 신호 | 공유기 `192.168.0.1:9100/metrics` 에 `mac="BE:4F:43:38:44:31"` (Z Flip5, SSID 별 고정 랜덤 MAC) |
+| 외출 판정 | 마지막으로 보인 뒤 3분 (`$XDG_RUNTIME_DIR/kiosk-phone-seen` mtime) |
+| 공유기 응답 실패 | 재실로 간주 (켜짐) |
+| 폰 교체·MAC 변경 | `kiosk-screen` 의 `PHONE` 수정. 현재 값은 Loki `{service_name="openwrt", unit="dnsmasq-dhcp"} \|= "DHCPACK"` 의 호스트명으로 확인 |
 
 | 레포 `nodes/kiosk/json-server-2/` | 노드 경로 | 반영 |
 | --- | --- | --- |
@@ -91,7 +100,7 @@ $U grdctl rdp disable-view-only
 $U grdctl rdp enable
 ```
 
-수동 전환: `$U kiosk-screen on|off|auto`
+수동 전환: `$U kiosk-screen on|off|auto` — 다음 1분 타이머가 `auto` 로 덮어쓴다. 오래 유지하려면 `$U systemctl --user stop kiosk-screen.timer`
 
 ## 키오스크 (mocha-snail)
 
