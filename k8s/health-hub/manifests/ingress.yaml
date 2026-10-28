@@ -89,6 +89,20 @@ spec:
                 name: health-hub-dashboard
                 port:
                   number: 3000
+          - path: /kiosk
+            pathType: Prefix
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
+          - path: /_next/static
+            pathType: Prefix
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
   tls:
     - secretName: health-hub-tls
       hosts:

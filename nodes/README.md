@@ -55,7 +55,7 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 
 ## 키오스크 (json-server-2)
 
-HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafana. RDP 로 같은 화면 공유. 08:00 켜짐, 23:00 꺼짐.
+HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 lifehub `/kiosk`. RDP 로 같은 화면 공유. 08:00 켜짐, 23:00 꺼짐.
 
 | 레포 `nodes/kiosk/json-server-2/` | 노드 경로 | 반영 |
 | --- | --- | --- |
@@ -64,8 +64,8 @@ HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafan
 | `gdm-custom.conf` | `/etc/gdm3/custom.conf` | |
 | `dconf-profile-user` | `/etc/dconf/profile/user` | `dconf update` |
 | `dconf-00-kiosk` | `/etc/dconf/db/local.d/00-kiosk` | `dconf update` |
-| `config.yaml` | `/etc/grafana-kiosk/config.yaml` | |
-| `grafana-kiosk.service` `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/user/` | |
+| `env.example` | `/etc/lifehub-kiosk/env` | 키 채워서 생성 (아래 키오스크 URL) |
+| `lifehub-kiosk.service` `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/user/` | |
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
 | `j2-kiosk.rdp` | 클라이언트 (Windows) | |
 
@@ -74,8 +74,6 @@ HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafan
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
 | `google-chrome-stable` | apt `https://dl.google.com/linux/chrome/deb/ stable main` | 키 `linux_signing_key.pub` → `/usr/share/keyrings/google-chrome.gpg` |
-| `grafana-kiosk` v1.0.13 | `/usr/local/bin/grafana-kiosk` | GitHub release `grafana-kiosk.linux.amd64` |
-| Grafana 비밀번호 | `/etc/grafana-kiosk/env` (`KIOSK_LOGIN_PASSWORD=`) | 로컬 사용자 `kiosk-json-server-2` (Viewer). Server Admin → Users → New user |
 | RDP TLS | `/home/kiosk/.local/share/gnome-remote-desktop/rdp-tls.{crt,key}` | 아래 |
 | RDP 자격 증명 | kiosk login 키링 (평문) | 아래 |
 | RDP 비밀번호 (클라이언트) | WSL `~/.local/share/homelab/j2-rdp.env`, Windows `cmdkey TERMSRV/192.168.0.46` | |
@@ -93,6 +91,17 @@ $U grdctl rdp enable
 
 수동 전환: `$U kiosk-screen on|off|auto`
 
+## 키오스크 URL
+
+`/etc/{lifehub,coral}-kiosk/env` 의 `KIOSK_URL=https://health.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
+
+| 값 | 위치 |
+| --- | --- |
+| `KIOSK_KEY` 원본 | WSL `~/.local/share/homelab/lifehub-kiosk.env` |
+| 클러스터 | `k8s/health-hub/manifests/sealed-secret-kiosk.yaml` → `health-hub-dashboard` env |
+
+키 교체: `KUBECONFIG=~/.kube/config-json kubeseal --raw --namespace health-hub --name lifehub-kiosk --scope strict` 로 새 키 봉인 → SealedSecret 갱신·머지 → 각 기기 env 수정 후 서비스 재시작.
+
 ## 키오스크 (mocha-snail)
 
 Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용. 23:00 절전(suspend-to-RAM), 07:59:30 RTC 알람으로 복귀.
@@ -104,7 +113,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `apt-99archive-no-valid-until` | `/etc/apt/apt.conf.d/99archive-no-valid-until` | |
 | `coral-kiosk` | `/usr/local/bin/coral-kiosk` (755) | |
 | `coral-kiosk.service` | `/etc/systemd/system/coral-kiosk.service` | `systemctl daemon-reload && systemctl enable --now coral-kiosk` |
-| `env` | `/etc/coral-kiosk/env` | `systemctl restart coral-kiosk` |
+| `env.example` | `/etc/coral-kiosk/env` | 키 채워서 생성 (위 키오스크 URL), `systemctl restart coral-kiosk` |
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
 | `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/system/` | `systemctl daemon-reload && systemctl enable kiosk-screen.service kiosk-screen.timer` |
 | `tmpfiles-fan.conf` | `/etc/tmpfiles.d/coral-fan.conf` | `systemd-tmpfiles --create /etc/tmpfiles.d/coral-fan.conf` |
