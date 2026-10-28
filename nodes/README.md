@@ -104,7 +104,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `apt-99archive-no-valid-until` | `/etc/apt/apt.conf.d/99archive-no-valid-until` | |
 | `coral-kiosk` | `/usr/local/bin/coral-kiosk` (755) | |
 | `coral-kiosk.service` | `/etc/systemd/system/coral-kiosk.service` | `systemctl daemon-reload && systemctl enable --now coral-kiosk` |
-| `env` | `/etc/coral-kiosk/env` | `systemctl restart coral-kiosk` |
+| `env.example` | `/etc/coral-kiosk/env` | 키 채워서 생성 (아래 lifehub 키), `systemctl restart coral-kiosk` |
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
 | `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/system/` | `systemctl daemon-reload && systemctl enable kiosk-screen.service kiosk-screen.timer` |
 | `tmpfiles-fan.conf` | `/etc/tmpfiles.d/coral-fan.conf` | `systemd-tmpfiles --create /etc/tmpfiles.d/coral-fan.conf` |
@@ -141,6 +141,17 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | 주사율 미지정 | `mode=1920x1080` → 목록 첫 번째 1080p120 (297MHz) | `1920x1080@60`. 모니터(PAQ2718) EDID 범위 48~144Hz 라 30Hz 불가, QHD 는 드라이버 클럭 표에 없음 |
 
 수동 전환: `sudo kiosk-screen on|sleep|auto`
+
+### lifehub 키
+
+`/etc/coral-kiosk/env` = `KIOSK_URL=https://health.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
+
+| 값 | 위치 |
+| --- | --- |
+| `KIOSK_KEY` 원본 | WSL `~/.local/share/homelab/lifehub-kiosk.env` |
+| 클러스터 | `k8s/health-hub/manifests/sealed-secret-kiosk.yaml` → `health-hub-dashboard` env |
+
+키 교체: `KUBECONFIG=~/.kube/config-json kubeseal --raw --namespace health-hub --name lifehub-kiosk --scope strict` 로 봉인 → SealedSecret 갱신·머지 → `/etc/coral-kiosk/env` 수정 → `systemctl restart coral-kiosk`.
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 mendel@192.168.0.44` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
 
