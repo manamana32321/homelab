@@ -82,15 +82,22 @@ spec:
                 name: health-hub-dashboard
                 port:
                   number: 3000
-          - path: /icons
-            pathType: Prefix
+          - path: /icons/192
+            pathType: Exact
+            backend:
+              service:
+                name: health-hub-dashboard
+                port:
+                  number: 3000
+          - path: /icons/512
+            pathType: Exact
             backend:
               service:
                 name: health-hub-dashboard
                 port:
                   number: 3000
           - path: /kiosk
-            pathType: Prefix
+            pathType: Exact
             backend:
               service:
                 name: health-hub-dashboard
