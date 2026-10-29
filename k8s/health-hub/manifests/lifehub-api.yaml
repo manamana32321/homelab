@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: health-hub-api-token
                   key: API_TOKEN
+            - name: SCREEN_SYNC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: health-hub-api-token
+                  key: SCREEN_SYNC_TOKEN
             - name: LISTEN_ADDR
               value: ":8080"
             - name: DEFAULT_TIMEZONE
