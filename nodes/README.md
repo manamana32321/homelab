@@ -64,7 +64,7 @@ HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafan
 | 재실 신호 | 공유기 `192.168.0.1:9100/metrics` 에 `mac="BE:4F:43:38:44:31"` (Z Flip5, SSID 별 고정 랜덤 MAC) |
 | 외출 판정 | 마지막으로 보인 뒤 3분 (`$XDG_RUNTIME_DIR/kiosk-phone-seen` mtime) |
 | 공유기 응답 실패 | 재실로 간주 (켜짐) |
-| 폰 교체·MAC 변경 | `kiosk-screen` 의 `PHONE` 수정. 현재 값은 Loki `{service_name="openwrt", unit="dnsmasq-dhcp"} \|= "DHCPACK"` 의 호스트명으로 확인 |
+| 폰 교체·MAC 변경 | j2·Coral 양쪽 `kiosk-screen` 의 `PHONE` 수정. 현재 값은 Loki `{service_name="openwrt", unit="dnsmasq-dhcp"} \|= "DHCPACK"` 의 호스트명으로 확인 |
 
 | 레포 `nodes/kiosk/json-server-2/` | 노드 경로 | 반영 |
 | --- | --- | --- |
@@ -104,7 +104,15 @@ $U grdctl rdp enable
 
 ## 키오스크 (mocha-snail)
 
-Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용. 23:00 절전(suspend-to-RAM), 07:59:30 RTC 알람으로 복귀.
+Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용.
+
+`kiosk-screen auto` 가 1분마다 판단한다. 재실 판정은 j2 와 같다 (`/run/kiosk-phone-seen`).
+
+| 시간 | 재실 | 상태 |
+| --- | --- | --- |
+| 08~23시 | 있음 | Weston 실행 (키오스크) |
+| 08~23시 | 없음 | Weston 정지 (빈 콘솔, 백라이트 켜짐) |
+| 23~08시 | - | 절전 (suspend-to-RAM), 08:00:05 RTC 알람으로 복귀 |
 
 | 레포 `nodes/kiosk/mocha-snail/` | 노드 경로 | 반영 |
 | --- | --- | --- |
@@ -123,6 +131,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `udev-kiosk-hotplug.rules` | `/etc/udev/rules.d/90-coral-kiosk-hotplug.rules` | `udevadm control --reload` |
 | `coral-kiosk-hotplug.service` | `/etc/systemd/system/coral-kiosk-hotplug.service` | `systemctl daemon-reload` |
 | `coral-kiosk-refit` | `/usr/local/bin/coral-kiosk-refit` (755) | |
+| `nm-dispatcher-timesyncd` | `/etc/NetworkManager/dispatcher.d/90-timesyncd` (755, root) | |
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
@@ -139,9 +148,14 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | Wayland 직접 실행 | `No Wayland shell found` (Weston 5.0 에 `xdg_wm_base` 없음) | `--ozone-platform=x11` |
 | Wi-Fi 절전 | LAN RTT 55~160ms, 유휴 후 SSH 타임아웃 | `powersave 2` |
 | Xwayland 지연 기동 | `Failed creating new xdo instance` | `xprop -root` 응답 대기 |
-| 화면 끄기 | `fb0/blank`·`setterm --blank` 는 콘솔이 다시 켬. `card0-HDMI-A-1/status`=`off` 는 `HDMI/DP Cable Plug Out` 분당 ~280회 → 모니터 켜짐/꺼짐 반복 | 절전 (`rtcwake -m no` + `systemctl suspend`) |
+| 화면 끄기 | `fb0/blank`·`setterm --blank` 는 콘솔이 다시 켬. `card0-HDMI-A-1/status`=`off` 는 `HDMI/DP Cable Plug Out` 분당 ~280회 → 모니터 켜짐/꺼짐 반복 | 야간은 절전 (`rtcwake -m no` + `systemctl suspend`), 낮 외출은 Weston 정지 |
+| 신호 끊기로 모니터 끄기 | Weston 정지 + vtcon unbind + `fb0/blank`=4 → `dpms`=Off 인데 모니터는 콘솔 유지. `status`=`off` (Weston 정지 상태, dmesg 무출력) 와 `i.mx8-hdp` unbind 는 모니터 켜짐/꺼짐 반복 (HDMI 5V 유지 → 입력 탐색 추정) | 소프트웨어로 모니터 대기 진입 불가. DDC 는 HDMI DDC 가 i2c 로 노출 안 됨 |
+| `i.mx8-hdp` unbind → bind | bind 에서 커널 멈춤, SSH·ping 무응답. watchdog 꺼져 있어 자동 복구 없음 | 쓰지 말 것. 전원 재투입 |
+| 절전 중 지난 `minutely` | 복귀 직후 한 번 실행됨 | 복귀 시각을 08:00 이후로 (07:59 복귀면 즉시 재절전) |
 | 팬 소음 | `gpio-fan` on/off 2단, 기본 65°C (유휴 64°C 경계) | active trip 70°C (hyst 10°C), 야간 절전 |
 | RTC 배터리 없음 | 전원 차단 후 `rtcwake -m off` 복귀 미검증 | `mem` 만 사용 (`snvs_rtc` 알람, deep) |
+| 전원 재투입 후 RTC 1970 | RTC 1970 상태에서 `rtcwake -m mem` → 복귀 안 함 (전원 재투입 필요). NTP 동기화 후 커널 `RTC_SYSTOHC` 가 RTC 를 맞추면 정상 복귀 | NTP 동기화가 전제 |
+| timesyncd 부팅 시 정지 | Wi-Fi 전에 기동 → `Packet count: 0` 으로 재시도 안 함 (NetworkManager 라 networkd 링크 신호 없음) | `wlan0` up 시 dispatcher 가 timesyncd 재시작 |
 | 야간 TargetDown | 절전 중 `up{job="coral"}`=0 | AlertmanagerConfig `discord` 하위 route `muteTimeIntervals: coral-night` |
 | 하드웨어 watchdog + 절전 | `imx2-wdt` 는 절전 중 최대 128초만 유지 → 128초 넘는 절전은 재부팅 (120초 시험은 통과, 9시간 절전은 2분 뒤 재부팅) | systemd `RuntimeWatchdogSec=0`. 멈춤은 `TargetDown` 으로 감지 |
 | 모니터 전원 재투입 | HDMI Plug Out/In → Weston 출력 재생성, fullscreen 창 안 보임 | udev `HOTPLUG=1` → 3초 뒤 F11 두 번 (Chrome 재시작 없음) |
@@ -149,7 +163,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | root 로 `xdotool` | `No protocol specified` (Xwayland 는 `mendel` 만 허용) | `runuser -u mendel` |
 | 주사율 미지정 | `mode=1920x1080` → 목록 첫 번째 1080p120 (297MHz) | `1920x1080@60`. 모니터(PAQ2718) EDID 범위 48~144Hz 라 30Hz 불가, QHD 는 드라이버 클럭 표에 없음 |
 
-수동 전환: `sudo kiosk-screen on|sleep|auto`
+수동 전환: `sudo kiosk-screen on|off|sleep|auto` — 다음 1분 타이머가 `auto` 로 덮어쓴다. 오래 유지하려면 `sudo systemctl stop kiosk-screen.timer`
 
 ### lifehub 키
 
