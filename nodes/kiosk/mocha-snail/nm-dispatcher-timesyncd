@@ -1,0 +1,3 @@
+#!/bin/sh
+[ "$1" = wlan0 ] && [ "$2" = up ] || exit 0
+systemctl restart systemd-timesyncd.service

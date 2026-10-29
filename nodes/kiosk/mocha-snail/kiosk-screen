@@ -1,22 +1,35 @@
 #!/bin/sh
 set -e
+PHONE=BE:4F:43:38:44:31
+SEEN=/run/kiosk-phone-seen
+home() {
+  m=$(curl -fsm 5 http://192.168.0.1:9100/metrics) || return 0
+  if printf '%s\n' "$m" | grep -qF "mac=\"$PHONE\""; then touch "$SEEN"; return 0; fi
+  [ -f "$SEEN" ] && [ $(($(date +%s) - $(stat -c %Y "$SEEN"))) -lt 180 ]
+}
 mode=${1:-auto}
 if [ "$mode" = auto ]; then
   h=$(date +%-H)
-  if [ "$h" -ge 8 ] && [ "$h" -lt 23 ]; then mode=on; else mode=sleep; fi
+  if [ "$h" -lt 8 ] || [ "$h" -ge 23 ]; then mode=sleep
+  elif home; then mode=on
+  else mode=off
+  fi
 fi
 case "$mode" in
   on)
     systemctl start weston.service
     ;;
+  off)
+    systemctl stop weston.service
+    ;;
   sleep)
-    w=$(date -d 07:59:30 +%s)
-    [ "$w" -gt "$(date +%s)" ] || w=$(date -d 'tomorrow 07:59:30' +%s)
+    w=$(date -d 08:00:05 +%s)
+    [ "$w" -gt "$(date +%s)" ] || w=$(date -d 'tomorrow 08:00:05' +%s)
     rtcwake -m no -t "$w"
     systemctl suspend
     ;;
   *)
-    echo "usage: kiosk-screen [auto|on|sleep]" >&2
+    echo "usage: kiosk-screen [auto|on|off|sleep]" >&2
     exit 2
     ;;
 esac
