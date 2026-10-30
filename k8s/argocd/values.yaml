@@ -23,16 +23,16 @@ configs:
       requestedScopes: ["openid", "profile", "email"]
     # 비밀번호 로그인 admin 끔. 비상시엔 kubectl로 argocd-cm/argocd-rbac-cm 수정 (README)
     admin.enabled: "false"
-    # AI 에이전트용 로컬 계정. 토큰 발급은 README "AI account token"
-    accounts.claude: apiKey
+    # 로컬 개발용 AI 에이전트 계정 (특정 AI 도구에 묶이지 않음). 토큰 발급은 README "AI account token"
+    accounts.ai-agent: apiKey
   rbac:
     # 정책에 없는 사용자는 아무 권한 없음
     policy.default: ""
     policy.csv: |
       g, authentik Admins, role:admin
-      p, role:claude, applications, sync, */*, allow
-      g, role:claude, role:readonly
-      g, claude, role:claude
+      p, role:ai-agent, applications, sync, */*, allow
+      g, role:ai-agent, role:readonly
+      g, ai-agent, role:ai-agent
     scopes: "[groups]"
   secret:
     githubSecret: $argocd-webhook-github:secret

@@ -43,10 +43,10 @@ Lockout recovery: edit `argocd-rbac-cm` / `argocd-cm` with kubectl after turning
 
 ### 5. AI account token
 
-`claude` is a local account (`accounts.claude: apiKey`) with `role:readonly` + application sync.
+`ai-agent` is a local account for AI coding agents in local dev, not tied to one tool (`accounts.ai-agent: apiKey`), with `role:readonly` + application sync.
 The account and its permissions are declared, but the token is signed by the Argo CD server, so it is issued once by hand
 (no expiry; re-issue if `argocd-secret`'s `server.secretkey` changes):
-UI → Settings → Accounts → `claude` → Tokens → Generate New.
+UI → Settings → Accounts → `ai-agent` → Tokens → Generate New.
 There is no OIDC client for `argocd login --sso`, so humans use the UI.
 
 Put the token in each worktree's `.envrc.local` (amang, homelab):
