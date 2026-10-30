@@ -92,6 +92,24 @@ cert는 30일마다 로테이션. 만료 시 VPN 연결 + `kubeseal --fetch-cert
 
 ---
 
+## 인증 — Authentik 우선
+
+셀프호스팅 도구의 로그인 우선순위: **Authentik OIDC > GitHub OIDC > 앱 자체 패스워드**. 원칙은 전역 CLAUDE.md, 이 절은 구현 방법.
+
+| 앱이 지원하는 것 | 패턴 | 예시 |
+|---|---|---|
+| OIDC (PKCE만, secret 없음) | public client blueprint | [blueprint-kargo.yaml](authentik/manifests/blueprint-kargo.yaml) |
+| OIDC (서버가 code 교환) | confidential client blueprint. `client_secret: !Env ...`를 `authentik-secret`에 넣고 같은 값을 앱 namespace에도 sealing (strict scope라 두 번) | ArgoCD (homelab#449) |
+| OIDC 없음 | Traefik `authentik-forwardauth` middleware + proxy provider | [blueprint-forward-auth.yaml](authentik/manifests/blueprint-forward-auth.yaml) (CloudBeaver) |
+
+- **로그인 제한은 Authentik에서**: `authentik_policies.policybinding`으로 앱에 그룹(관리자 도구는 `authentik Admins`)을 묶는다. 앱 쪽 RBAC 기본값은 권한 없음, 같은 그룹만 admin 매핑
+- 새 blueprint는 [authentik/values.yaml](authentik/values.yaml) `blueprints.configMaps`에 등록
+- 앱 내장 패스워드 admin은 OIDC 붙이면 끈다. 비상 복구는 kubectl
+- **forward-auth를 못 쓰는 경우**: 외부에 공개돼야 하는 경로(수집 엔드포인트, webhook, AI가 부르는 API)가 있으면 forward-auth가 막는다 → 앱 자체 패스워드 + 최소권한 계정
+- **AI 계정**: 사람 SSO 토큰을 공유하지 않는다 (갱신 토큰 만료·IdP 재시작으로 끊김). 앱의 로컬 계정 또는 ServiceAccount 토큰으로 `ai-agent`를 만들고 최소권한
+
+---
+
 ## DNS 레코드 관리 — 항상 Terraform
 
 > 참조 파일: [`cloudflare/dns.tf`](../cloudflare/dns.tf) (homelab repo 루트 기준).
