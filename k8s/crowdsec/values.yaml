@@ -32,6 +32,16 @@ config:
           reason: "bouncer 403"
           expression:
             - evt.Meta.http_status == "403" && int(evt.Unmarshaled.traefik.OriginStatus ?? -1) == 0
+      # Next.js App Router prefetches every <Link> in the viewport as a
+      # `?_rsc=` request, so opening a team list fires 40+ in seconds and trips
+      # crowdsecurity/http-crawl-non_statics, banning real (mobile CGNAT) users.
+      amang-rsc-prefetch.yaml: |
+        name: homelab/amang-rsc-prefetch
+        description: "Ignore Next.js RSC requests on AMANG web"
+        whitelist:
+          reason: "AMANG Next.js RSC prefetch"
+          expression:
+            - evt.Meta.target_fqdn in ["amang.json-server.win", "amang.staging.json-server.win"] && evt.Meta.http_path contains "_rsc="
 
 agent:
   # Single Deployment tailing Traefik access logs from Loki (shipped by Alloy
