@@ -13,19 +13,26 @@ configs:
     server.insecure: "true"
   cm:
     timeout.reconciliation: 1800s
-    dex.config: |
-      connectors:
-        - type: github
-          id: github
-          name: GitHub
-          config:
-            clientID: $clientID
-            clientSecret: $clientSecret
+    # 로그인은 Authentik OIDC만. 앱·로그인 제한 정의: k8s/authentik/manifests/blueprint-argocd.yaml
+    # Authentik은 groups를 profile scope에 담아 줌. 별도 groups scope 없음
+    oidc.config: |
+      name: Authentik
+      issuer: https://auth.json-server.win/application/o/argocd/
+      clientID: argocd
+      clientSecret: $argocd-oidc-authentik:clientSecret
+      requestedScopes: ["openid", "profile", "email"]
+    # 비밀번호 로그인 admin 끔. 비상시엔 kubectl로 argocd-cm/argocd-rbac-cm 수정 (README)
+    admin.enabled: "false"
+    # 로컬 개발용 AI 에이전트 계정 (특정 AI 도구에 묶이지 않음). 토큰 발급은 README "AI account token"
+    accounts.ai-agent: apiKey
   rbac:
-    # TODO: RBAC 정책 설정
-    # policy.csv: |
-    #   g, your-org:members, role:admin
-    policy.default: role:admin
+    # 정책에 없는 사용자는 아무 권한 없음
+    policy.default: ""
+    policy.csv: |
+      g, authentik Admins, role:admin
+      p, role:ai-agent, applications, sync, */*, allow
+      g, role:ai-agent, role:readonly
+      g, ai-agent, role:ai-agent
     scopes: "[groups]"
   secret:
     githubSecret: $argocd-webhook-github:secret
@@ -103,19 +110,9 @@ controller:
               12 hours which means that the state of this cloud has drifted away from the
               state inside Git.
 
-## Dex
+## Dex (로그인은 Authentik OIDC로 직접)
 dex:
-  enabled: true
-  name: dex-server
-  envFrom:
-    - secretRef:
-        name: github-oauth-app
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
-      additionalLabels:
-        release: prometheus
+  enabled: false
 
 ## Server
 server:

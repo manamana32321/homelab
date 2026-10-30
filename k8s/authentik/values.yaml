@@ -73,6 +73,7 @@ postgresql:
 
 blueprints:
   configMaps:
+    - blueprint-argocd
     - blueprint-forward-auth
     - blueprint-github-source
     - blueprint-kargo
