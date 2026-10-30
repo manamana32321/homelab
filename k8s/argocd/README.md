@@ -54,8 +54,13 @@ Put the token in each worktree's `.envrc.local` (amang, homelab):
 ```bash
 export ARGOCD_SERVER=argocd.json-server.win
 export ARGOCD_AUTH_TOKEN=<token>
-export ARGOCD_OPTS=--grpc-web
+export ARGOCD_OPTS="--grpc-web --config $HOME/.config/argocd/ai-agent.none"
 ```
+
+`--config` must point to a path that does not exist. If `~/.config/argocd/config` exists, the CLI resolves its
+context first and ignores the env token: a stale SSO context fails with `invalid_client` on refresh, and a file without
+a current context fails with `current-context unset`. The path must also be inside a real directory
+(`/dev/null/x` fails with `not a directory`).
 
 ## How to test a change
 
