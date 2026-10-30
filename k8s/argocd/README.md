@@ -33,46 +33,28 @@ and then apply the ingress manifest:
 kubectl apply -f ingress.yaml
 ```
 
-### 4. Enable GitHub Login
+### 4. Login (Authentik OIDC)
 
-To enable GitHub login, type following command to edit the Argo CD config map:
+Login is declared in [values.yaml](values.yaml) (`configs.cm.oidc.config`, `configs.rbac`) and
+[blueprint-argocd.yaml](../authentik/manifests/blueprint-argocd.yaml). Only the `authentik Admins`
+group can log in, and it maps to `role:admin`. Anyone else gets no permissions (`policy.default: ""`).
 
-```
-kubectl -n argocd edit configmap argocd-cm
-```
+Lockout recovery: edit `argocd-rbac-cm` / `argocd-cm` with kubectl after turning off auto-sync of the `argocd` app.
 
-Add the following lines to the `data` section:
+### 5. AI account token
 
-```yaml
-data:
-  dex.config: |
-    connectors:
-      - type: github
-        id: github
-        name: GitHub
-        config:
-          clientID: <your-client-id>
-          clientSecret: <your-client-secret>
-          useLoginAsID: true
-          orgs:
-            - name: skkuding
-```
+`claude` is a local account (`accounts.claude: apiKey`) with `role:readonly` + application sync.
+The account and its permissions are declared, but the token is signed by the Argo CD server, so it is issued once by hand
+(no expiry; re-issue if `argocd-secret`'s `server.secretkey` changes):
+UI → Settings → Accounts → `claude` → Tokens → Generate New.
+There is no OIDC client for `argocd login --sso`, so humans use the UI.
 
-Also edit the `argocd-rbac-cm` config map to allow GitHub users to access Argo CD:
+Put the token in each worktree's `.envrc.local` (amang, homelab):
 
-```
-kubectl -n argocd edit configmap argocd-rbac-cm
-```
-
-Add the following lines to the `data` section:
-
-```yaml
-data:
-  policy.csv: |
-    p, role:admin, applications, *, */*, allow
-    p, role:admin, clusters, *, *, allow
-    p, role:admin, repositories, *, *, allow
-  policy.default: role:admin
+```bash
+export ARGOCD_SERVER=argocd.json-server.win
+export ARGOCD_AUTH_TOKEN=<token>
+export ARGOCD_OPTS=--grpc-web
 ```
 
 ## How to test a change
