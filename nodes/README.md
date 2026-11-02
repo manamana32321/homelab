@@ -198,3 +198,27 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | 함정 | 증상 | 대응 |
 | --- | --- | --- |
 | `DynamicUser=yes` | systemd 수집기 `couldn't get dbus connection: ... broken pipe` | sysusers 고정 사용자 |
+
+## 온습도 수신 (raspi-1)
+
+Raspberry Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25` (5GHz `5G`). 샤오미 LYWSD03MMC(pvvx 펌웨어, BTHome v2 비암호화) 광고를 받아 `:9265/metrics` 로 내보낸다.
+
+| 레포 `nodes/sensor/raspi-1/` | 노드 경로 | 반영 |
+| --- | --- | --- |
+| `sysusers-bthome-exporter.conf` | `/etc/sysusers.d/bthome-exporter.conf` | `systemd-sysusers` (bluez 설치 후, `bluetooth` 그룹 필요) |
+| `sensors` | `/etc/bthome-exporter/sensors` | 한 줄에 `MAC 이름` |
+| `bthome-exporter` | `/usr/local/bin/bthome-exporter` (755) | |
+| `bthome-exporter.service` | `/etc/systemd/system/bthome-exporter.service` | `systemctl daemon-reload && systemctl enable --now bthome-exporter` |
+
+| 레포 밖 | 위치 | 생성 |
+| --- | --- | --- |
+| 패키지 | `bluez` `python3-bleak` `python3-prometheus-client` | `apt-get install` |
+| 센서 펌웨어 | pvvx `ATC_*.bin`, 광고 형식 `BTHome v2`, 암호화 끔 | [TelinkMiFlasher](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html) (Chrome) |
+
+| 신호 | 경로 | 클러스터 쪽 |
+| --- | --- | --- |
+| 메트릭 | `192.168.0.25:9265` | `k8s/observability/prometheus/values.yaml` `job_name: bthome` |
+| 알림 | `BTHomeSensorDown` `BTHomeBatteryLow` `TemperatureFireRisk` (≥50°C) `TemperatureRisingFast` (10분 +8°C) | `alert-rules.yaml` `home-climate` |
+| 대시보드 | Grafana `Home/집 온습도` | `k8s/observability/grafana/home-climate-dashboard.yaml` |
+
+센서 추가: `/etc/bthome-exporter/sensors` 에 줄 추가 → `systemctl restart bthome-exporter`.

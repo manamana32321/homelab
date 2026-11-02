@@ -286,3 +286,37 @@ spec:
           annotations:
             summary: "gbrain-sync 성공 없음"
             description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과."
+
+    - name: home-climate
+      rules:
+        - alert: BTHomeSensorDown
+          expr: bthome_sensor_up == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "온습도 센서 신호 없음"
+            description: "{{ $labels.sensor }} 센서 신호가 10분 넘게 raspi-1 에 안 들어옴."
+        - alert: BTHomeBatteryLow
+          expr: bthome_battery_percent < 15
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "온습도 센서 배터리 부족"
+            description: "{{ $labels.sensor }} 배터리 {{ $value }}%."
+        - alert: TemperatureFireRisk
+          expr: bthome_temperature_celsius >= 50
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "🔥 실내 온도 50°C 이상 — 화재 의심"
+            description: "{{ $labels.sensor }} {{ $value | printf \"%.1f\" }}°C."
+        - alert: TemperatureRisingFast
+          expr: delta(bthome_temperature_celsius[10m]) > 8
+          labels:
+            severity: critical
+          annotations:
+            summary: "🔥 실내 온도 급상승 — 화재 의심"
+            description: "{{ $labels.sensor }} 10분 사이 {{ $value | printf \"%.1f\" }}°C 상승."

@@ -1,0 +1,13 @@
+[Unit]
+Description=BTHome BLE advertisement exporter
+Wants=bluetooth.service
+After=bluetooth.service network-online.target
+
+[Service]
+User=bthome_exporter
+ExecStart=/usr/local/bin/bthome-exporter
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -67,3 +67,8 @@ config host 'raspi1'
 	option mac 'd8:3a:dd:c1:68:25'
 	option ip '192.168.0.37'
 
+config host 'raspi1wlan'
+	option name 'raspi-1-wlan'
+	option mac 'd8:3a:dd:c1:68:26'
+	option ip '192.168.0.25'
+

@@ -1,0 +1,109 @@
+#!/usr/bin/python3
+import asyncio
+import os
+import struct
+import time
+
+from bleak import BleakScanner
+from prometheus_client import start_http_server
+from prometheus_client.core import REGISTRY, GaugeMetricFamily
+
+BTHOME_UUID = "0000fcd2-0000-1000-8000-00805f9b34fb"
+SENSORS_FILE = os.environ.get("BTHOME_SENSORS", "/etc/bthome-exporter/sensors")
+PORT = int(os.environ.get("BTHOME_PORT", "9265"))
+STALE_SECONDS = float(os.environ.get("BTHOME_STALE_SECONDS", "600"))
+
+OBJECTS = {
+    0x00: ("packet_id", "<B", 1),
+    0x01: ("battery_percent", "<B", 1),
+    0x02: ("temperature_celsius", "<h", 0.01),
+    0x03: ("humidity_percent", "<H", 0.01),
+    0x0C: ("battery_voltage_volts", "<H", 0.001),
+    0x10: ("switch", "<B", 1),
+    0x11: ("opened", "<B", 1),
+}
+
+METRICS = {
+    "temperature_celsius": "Temperature",
+    "humidity_percent": "Relative humidity",
+    "battery_percent": "Battery level",
+    "battery_voltage_volts": "Battery voltage",
+    "rssi_dbm": "Signal strength of the last advertisement",
+    "last_seen_timestamp_seconds": "Unix time of the last advertisement",
+}
+
+
+def load_sensors(path):
+    sensors = {}
+    with open(path) as f:
+        for line in f:
+            fields = line.split()
+            if len(fields) == 2:
+                sensors[fields[0].upper()] = fields[1]
+    return sensors
+
+
+def parse(data):
+    if not data or data[0] & 0x01 or data[0] >> 5 != 2:
+        return {}
+    values = {}
+    i = 1
+    while i < len(data):
+        obj = OBJECTS.get(data[i])
+        if obj is None:
+            break
+        name, fmt, factor = obj
+        size = struct.calcsize(fmt)
+        if i + 1 + size > len(data):
+            break
+        values[name] = round(struct.unpack_from(fmt, data, i + 1)[0] * factor, 3)
+        i += 1 + size
+    return values
+
+
+class Collector:
+    def __init__(self, sensors, readings):
+        self.sensors = sensors
+        self.readings = readings
+
+    def collect(self):
+        now = time.time()
+        up = GaugeMetricFamily("bthome_sensor_up", "Advertisement received within the stale window", labels=["sensor"])
+        families = {key: GaugeMetricFamily(f"bthome_{key}", doc, labels=["sensor"]) for key, doc in METRICS.items()}
+        for name in self.sensors.values():
+            entry = dict(self.readings.get(name, {}))
+            seen = entry.get("last_seen_timestamp_seconds")
+            fresh = seen is not None and now - seen < STALE_SECONDS
+            up.add_metric([name], 1 if fresh else 0)
+            for key, family in families.items():
+                if key in entry and (fresh or key == "last_seen_timestamp_seconds"):
+                    family.add_metric([name], entry[key])
+        yield up
+        yield from families.values()
+
+
+async def main():
+    sensors = load_sensors(SENSORS_FILE)
+    readings = {}
+
+    def on_advertisement(device, adv):
+        name = sensors.get(device.address.upper())
+        data = adv.service_data.get(BTHOME_UUID)
+        if name is None or data is None:
+            return
+        values = parse(data)
+        if not values:
+            return
+        entry = readings.setdefault(name, {})
+        entry.update(values)
+        entry["rssi_dbm"] = adv.rssi
+        entry["last_seen_timestamp_seconds"] = time.time()
+
+    REGISTRY.register(Collector(sensors, readings))
+    start_http_server(PORT)
+    async with BleakScanner(on_advertisement):
+        await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
