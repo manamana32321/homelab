@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: essentia-discord-relay
+  name: discord-relay
   labels:
-    app: essentia-discord-relay
+    app: discord-relay
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: essentia-discord-relay
+      app: discord-relay
   template:
     metadata:
       labels:
-        app: essentia-discord-relay
+        app: discord-relay
     spec:
       # 이미지가 amd64 단일 아키텍처다. raspi-1(arm64)에 스케줄되면
       # ImagePullBackOff 또는 exec format error 로 죽는다.
@@ -20,7 +20,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: relay
-          image: ghcr.io/manamana32321/essentia-discord-relay:latest
+          image: ghcr.io/manamana32321/discord-relay:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -30,7 +30,7 @@ spec:
               value: "8080"
           envFrom:
             - secretRef:
-                name: essentia-discord-relay
+                name: discord-relay
           resources:
             requests:
               cpu: 5m

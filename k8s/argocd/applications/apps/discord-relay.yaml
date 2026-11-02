@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: discord-relay
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: relay=ghcr.io/manamana32321/discord-relay:latest
+    argocd-image-updater.argoproj.io/relay.update-strategy: digest
+    argocd-image-updater.argoproj.io/relay.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/discord-relay
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: discord-relay
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
