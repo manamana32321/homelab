@@ -91,6 +91,8 @@ spec:
               value: Asia/Seoul
             - name: DEBUG_PAYLOAD_DIR
               value: /tmp/hc-webhook-payloads
+            - name: PROMETHEUS_URL
+              value: http://prometheus-kube-prometheus-prometheus.observability.svc:9090
           resources:
             requests:
               cpu: 50m
