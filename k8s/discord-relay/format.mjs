@@ -145,6 +145,15 @@ function signed(n, unit, fmt = (v) => String(v)) {
   return `${n > 0 ? '+' : '−'}${fmt(Math.abs(n))}${unit}`;
 }
 
+function minutesDelta(m) {
+  if (Math.abs(m) < 60) return signed(m, 'm');
+  return signed(m, '', (v) => hm(v));
+}
+
+function appName(name) {
+  return name.replace(/\.exe$/i, '');
+}
+
 function delta(text) {
   return text ? ` (${text})` : '';
 }
@@ -166,7 +175,7 @@ export function formatLifehubWeekly(p) {
       lines.push('```');
       for (const r of h.best) lines.push(row(r));
       if (h.best.length > 0 && h.worst.length > 0) lines.push('···');
-      for (const r of h.worst) lines.push(row(r));
+      for (const r of [...h.worst].sort((a, b) => b.o / b.total - a.o / a.total)) lines.push(row(r));
       lines.push('```');
     }
     const tail = [];
@@ -177,7 +186,7 @@ export function formatLifehubWeekly(p) {
 
   if (p.sleep) {
     const s = p.sleep;
-    const d = s.prevAvgMinutes !== null ? delta(signed(Math.round(s.avgMinutes - s.prevAvgMinutes), 'm')) : '';
+    const d = s.prevAvgMinutes !== null ? delta(minutesDelta(Math.round(s.avgMinutes - s.prevAvgMinutes))) : '';
     lines.push(`😴 수면 평균 ${hm(s.avgMinutes)}${d} · 7시간 이상 ${s.nightsOver7h}/${s.nights}일`);
   }
   if (p.steps) {
@@ -188,14 +197,18 @@ export function formatLifehubWeekly(p) {
   }
   if (p.screen) {
     const s = p.screen;
-    const d = s.prevAvgSeconds !== null ? delta(signed(Math.round((s.avgSeconds - s.prevAvgSeconds) / 60), 'm')) : '';
-    const apps = s.topApps.length > 0 ? ` · ${s.topApps.map(escapeMd).join(' · ')}` : '';
+    const d = s.prevAvgSeconds !== null ? delta(minutesDelta(Math.round((s.avgSeconds - s.prevAvgSeconds) / 60))) : '';
+    const apps = s.topApps.length > 0 ? ` · ${s.topApps.map((a) => escapeMd(appName(a))).join(' · ')}` : '';
     lines.push(`📱 스크린타임 하루 평균 ${hm(s.avgSeconds / 60)}${d}${apps}`);
   }
   if (p.weight) {
     const w = p.weight;
-    const diff = Math.round((w.last - w.first) * 10) / 10;
-    lines.push(`⚖️ 체중 ${w.first.toFixed(1)} → ${w.last.toFixed(1)}kg (${signed(diff, '', (v) => v.toFixed(1))})`);
+    if (w.first === w.last) {
+      lines.push(`⚖️ 체중 ${w.last.toFixed(1)}kg`);
+    } else {
+      const diff = Math.round((w.last - w.first) * 10) / 10;
+      lines.push(`⚖️ 체중 ${w.first.toFixed(1)} → ${w.last.toFixed(1)}kg (${signed(diff, '', (v) => v.toFixed(1))})`);
+    }
   }
   lines.push(`→ 통계 보기${link(p.link)}`);
   return lines.join('\n');

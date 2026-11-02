@@ -74,3 +74,18 @@ test('missing previous values drop the delta', () => {
   assert.ok(text.split('\n')[0].endsWith('습관 82%'));
   assert.ok(text.includes('👟 걸음 평균 7,820\n') || text.endsWith('👟 걸음 평균 7,820'));
 });
+
+test('worst bars descend, big minute deltas use h/m, .exe is dropped, single weight has no arrow', () => {
+  const text = formatLifehubWeekly({
+    ...payload,
+    habits: { ...payload.habits, worst: [{ name: 'a', o: 1, total: 7 }, { name: 'b', o: 2, total: 7 }] },
+    screen: { avgSeconds: 17580, prevAvgSeconds: 31980, topApps: ['chrome.exe', 'Code.exe'] },
+    sleep: { avgMinutes: 376, prevAvgMinutes: 308, nightsOver7h: 3, nights: 7 },
+    weight: { first: 75.1, last: 75.1 },
+  });
+  const block = text.split('\n');
+  assert.ok(block.indexOf(block.find((l) => l.startsWith('b '))) < block.indexOf(block.find((l) => l.startsWith('a '))));
+  assert.ok(text.includes('📱 스크린타임 하루 평균 4h 53m (−4h 00m) · chrome · Code'));
+  assert.ok(text.includes('😴 수면 평균 6h 16m (+1h 08m)'));
+  assert.ok(text.includes('⚖️ 체중 75.1kg\n'));
+});
