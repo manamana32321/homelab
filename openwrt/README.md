@@ -15,7 +15,7 @@
 | DDNS | `origin.json-server.win` A 레코드 갱신 (`cloudflare.com-v4`, WAN up 시 + 5분 주기). 나머지 레코드는 이 이름의 CNAME — `cloudflare/dns.tf` |
 | 무선 | `5G` (5GHz, 채널 48) / `2.4G` (2.4GHz, 채널 6), WPA2-PSK + CCMP, 국가 KR |
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
-| DHCP 예약 | `.24` galaxybook2 / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
+| DHCP 예약 | `.24` galaxybook2 / `.25` raspi-1-wlan / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
 | WED 오프로드 | 켜짐 (`openwrt/modules.d/mt7915e-wed`) |
 | IPv6 | 끔 — WAN DHCPv6 없음, LAN RA·DHCPv6 `disabled`, ULA 없음 |

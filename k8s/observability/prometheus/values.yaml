@@ -71,6 +71,11 @@ prometheus:
           - targets: ["192.168.0.44:9100"]
             labels:
               instance: mocha-snail:9100
+      - job_name: bthome
+        static_configs:
+          - targets: ["192.168.0.25:9265"]
+            labels:
+              instance: raspi-1:9265
 
   # Prometheus는 자체 인증 기능이 없어 ingress가 곧 무인증 공개 API가 된다.
   # Alertmanager와 동일하게 외부 노출하지 않고 port-forward로만 접근한다:

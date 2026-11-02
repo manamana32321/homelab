@@ -286,3 +286,38 @@ spec:
           annotations:
             summary: "gbrain-sync 성공 없음"
             description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과."
+
+    - name: home-climate
+      rules:
+        - alert: BTHomeSensorDown
+          expr: bthome_sensor_up == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "온습도 센서 신호 없음"
+            description: "{{ $labels.sensor }} 센서 신호가 10분 넘게 raspi-1 에 안 들어옴."
+        - alert: BTHomeBatteryLow
+          expr: bthome_battery_percent < 15
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "온습도 센서 배터리 부족"
+            description: "{{ $labels.sensor }} 배터리 {{ $value }}%."
+        - alert: HumidityLow
+          expr: bthome_humidity_percent < 30
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "실내 습도 낮음"
+            description: "{{ $labels.sensor }} 습도 {{ $value | printf \"%.0f\" }}% (1시간 넘게 30% 미만)."
+        - alert: HumidityHigh
+          expr: bthome_humidity_percent > 70
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "실내 습도 높음"
+            description: "{{ $labels.sensor }} 습도 {{ $value | printf \"%.0f\" }}% (1시간 넘게 70% 초과)."
