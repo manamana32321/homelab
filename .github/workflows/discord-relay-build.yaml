@@ -5,9 +5,9 @@ on:
     branches: [main]
     paths:
       - k8s/discord-relay/Dockerfile
-      - k8s/discord-relay/relay.mjs
-      - k8s/discord-relay/format.mjs
-      - k8s/discord-relay/format.test.mjs
+      - k8s/discord-relay/*.mjs
+      - k8s/discord-relay/package.json
+      - k8s/discord-relay/package-lock.json
       - .github/workflows/discord-relay-build.yaml
   workflow_dispatch:
 
@@ -21,7 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: node --test k8s/discord-relay/format.test.mjs
+      - run: npm ci --no-audit --no-fund && node --test
+        working-directory: k8s/discord-relay
+        env:
+          CHART_FONT: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
 
       - uses: docker/setup-buildx-action@v3
 

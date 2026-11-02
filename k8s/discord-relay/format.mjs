@@ -83,53 +83,6 @@ export function chunk(text) {
 }
 
 
-const PARTIALS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
-const BAR_CELLS = 10;
-const NAME_MAX = 14;
-
-function isWide(code) {
-  return (
-    (code >= 0x1100 && code <= 0x115f) ||
-    (code >= 0x2e80 && code <= 0xa4cf) ||
-    (code >= 0xac00 && code <= 0xd7a3) ||
-    (code >= 0xf900 && code <= 0xfaff) ||
-    (code >= 0xfe30 && code <= 0xfe4f) ||
-    (code >= 0xff00 && code <= 0xff60) ||
-    (code >= 0xffe0 && code <= 0xffe6)
-  );
-}
-
-export function displayWidth(s) {
-  let w = 0;
-  for (const ch of s) w += isWide(ch.codePointAt(0)) ? 2 : 1;
-  return w;
-}
-
-function fitName(name, width) {
-  let out = '';
-  for (const ch of name) {
-    if (displayWidth(out + ch) > width - 1 && displayWidth(name) > width) return `${out}…`;
-    out += ch;
-  }
-  return out;
-}
-
-function padEnd(s, width) {
-  return s + ' '.repeat(Math.max(0, width - displayWidth(s)));
-}
-
-export function bar(o, total) {
-  const cells = total > 0 ? (o / total) * BAR_CELLS : 0;
-  let full = Math.floor(cells);
-  let part = Math.round((cells - full) * 8);
-  if (part === 8) {
-    full += 1;
-    part = 0;
-  }
-  const s = '█'.repeat(full) + PARTIALS[part];
-  return padEnd(s, BAR_CELLS);
-}
-
 function md(date) {
   const [, m, d] = date.split('-');
   return `${Number(m)}/${Number(d)}`;
@@ -168,16 +121,9 @@ export function formatLifehubWeekly(p) {
   lines.push(header);
 
   if (h) {
-    const rows = [...h.best, ...h.worst];
-    if (rows.length > 0) {
-      const width = Math.min(NAME_MAX, Math.max(...rows.map((r) => displayWidth(r.name))));
-      const row = (r) => `${padEnd(fitName(r.name, width), width)} ${bar(r.o, r.total)} ${r.o}/${r.total}`;
-      lines.push('```');
-      for (const r of h.best) lines.push(row(r));
-      if (h.best.length > 0 && h.worst.length > 0) lines.push('···');
-      for (const r of [...h.worst].sort((a, b) => b.o / b.total - a.o / a.total)) lines.push(row(r));
-      lines.push('```');
-    }
+    const item = (r) => `${escapeMd(r.name)} ${r.o}/${r.total}`;
+    if (h.best.length > 0) lines.push(`잘함: ${h.best.map(item).join(' · ')}`);
+    if (h.worst.length > 0) lines.push(`약함: ${[...h.worst].sort((a, b) => b.o / b.total - a.o / a.total).map(item).join(' · ')}`);
     const tail = [];
     if (h.others > 0) tail.push(`외 ${h.others}개`);
     if (h.weeklyOpen.length > 0) tail.push(`남은 주간 습관: ${h.weeklyOpen.map(escapeMd).join(' · ')}`);
