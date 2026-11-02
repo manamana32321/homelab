@@ -15,3 +15,4 @@ resources:
   - service.yaml
   - ingress.yaml
   - backup-cronjob.yaml
+  - weekly-report-cronjob.yaml

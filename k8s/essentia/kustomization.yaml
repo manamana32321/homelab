@@ -12,9 +12,6 @@ resources:
   - web/deployment.yaml
   - web/ingress.yaml
   - web/service.yaml
-  - discord-relay/deployment.yaml
-  - discord-relay/sealed-secret.yaml
-  - discord-relay/service.yaml
   - ghcr-pull-sealed-secret.yaml
   - canvas-credentials.yaml
 
@@ -25,5 +22,3 @@ resources:
 images:
   - name: ghcr.io/essentia-edu/api
     digest: sha256:1c30ed47e532f84b3a791e23a782baa45878b79a9d32d18b6712a9d39518b67a
-  - name: ghcr.io/manamana32321/essentia-discord-relay
-    newTag: latest

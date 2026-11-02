@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lifehub-weekly-report
+  namespace: health-hub
+  labels:
+    app.kubernetes.io/part-of: lifehub
+    app.kubernetes.io/component: cronjob
+spec:
+  schedule: "0 9 * * 0"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: lifehub
+            app.kubernetes.io/component: cronjob
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: amd64
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: report
+              image: ghcr.io/manamana32321/lifehub-api:latest
+              command: ["node", "dist/cli.js", "report", "weekly"]
+              securityContext:
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+              env:
+                - name: DB_HOST
+                  value: timescaledb
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_USER
+                  value: healthhub
+                - name: DB_NAME
+                  value: healthhub
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: health-hub-secret
+                      key: DB_PASSWORD
+                - name: DEFAULT_TIMEZONE
+                  value: Asia/Seoul
+                - name: REPORT_WEBHOOK_URL
+                  value: http://discord-relay.discord-relay.svc.cluster.local:8080/notify
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
