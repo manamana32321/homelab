@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+rm -rf "$HOME/.config/coral-kiosk/BrowserMetrics"
 google-chrome-stable --ozone-platform=x11 --app="$KIOSK_URL" \
   --user-data-dir="$HOME/.config/coral-kiosk" --remote-debugging-port=9222 \
   --no-first-run --noerrdialogs --hide-crash-restore-bubble &

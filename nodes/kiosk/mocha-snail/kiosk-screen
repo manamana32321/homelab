@@ -11,7 +11,7 @@ mode=${1:-auto}
 if [ "$mode" = auto ]; then
   h=$(date +%-H)
   if [ "$h" -lt 8 ] || [ "$h" -ge 23 ]; then mode=sleep
-  elif home; then mode=on
+  elif grep -qx connected /sys/class/drm/card0-HDMI-A-1/status && home; then mode=on
   else mode=off
   fi
 fi
