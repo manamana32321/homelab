@@ -8,7 +8,10 @@ import http from 'node:http';
 import { weeklyChartSvg, svgToPng } from './chart.mjs';
 import { chunk, formatDigest, formatLifehubWeekly } from './format.mjs';
 
-const FORMATS = { daily_digest: formatDigest, lifehub_weekly: formatLifehubWeekly };
+const FORMATS = {
+  daily_digest: { username: 'Essentia', format: formatDigest },
+  lifehub_weekly: { username: 'lifehub', format: formatLifehubWeekly },
+};
 
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const PORT = parseInt(process.env.PORT ?? '8080', 10);
@@ -18,8 +21,8 @@ if (!WEBHOOK_URL) {
   process.exit(1);
 }
 
-async function post(content, file) {
-  const json = { content, allowed_mentions: { parse: [] } };
+async function post(content, username, file) {
+  const json = { content, username, allowed_mentions: { parse: [] } };
   let init;
   if (file) {
     const form = new FormData();
@@ -36,10 +39,10 @@ async function post(content, file) {
   }
 }
 
-async function sendDiscord(text, file) {
+async function sendDiscord(text, username, file) {
   const parts = chunk(text);
   for (const [i, content] of parts.entries()) {
-    await post(content, i === parts.length - 1 ? file : undefined);
+    await post(content, username, i === parts.length - 1 ? file : undefined);
   }
 }
 
@@ -66,13 +69,13 @@ const server = http.createServer((req, res) => {
     void (async () => {
       try {
         const payload = JSON.parse(body);
-        const format = FORMATS[payload.type];
-        if (!format) {
+        const kind = FORMATS[payload.type];
+        if (!kind) {
           res.writeHead(400);
           res.end(`unsupported type: ${payload.type ?? '(missing)'}`);
           return;
         }
-        await sendDiscord(format(payload), attachmentFor(payload));
+        await sendDiscord(kind.format(payload), kind.username, attachmentFor(payload));
         console.log(`relay ok type=${payload.type}`);
         res.writeHead(204);
         res.end();
