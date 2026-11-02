@@ -305,19 +305,18 @@ spec:
           annotations:
             summary: "온습도 센서 배터리 부족"
             description: "{{ $labels.sensor }} 배터리 {{ $value }}%."
-        - alert: HumidityLow
-          expr: bthome_humidity_percent < 30
-          for: 1h
+        - alert: TemperatureFireRisk
+          expr: bthome_temperature_celsius >= 50
+          for: 1m
           labels:
-            severity: warning
+            severity: critical
           annotations:
-            summary: "실내 습도 낮음"
-            description: "{{ $labels.sensor }} 습도 {{ $value | printf \"%.0f\" }}% (1시간 넘게 30% 미만)."
-        - alert: HumidityHigh
-          expr: bthome_humidity_percent > 70
-          for: 1h
+            summary: "🔥 실내 온도 50°C 이상 — 화재 의심"
+            description: "{{ $labels.sensor }} {{ $value | printf \"%.1f\" }}°C."
+        - alert: TemperatureRisingFast
+          expr: delta(bthome_temperature_celsius[10m]) > 8
           labels:
-            severity: warning
+            severity: critical
           annotations:
-            summary: "실내 습도 높음"
-            description: "{{ $labels.sensor }} 습도 {{ $value | printf \"%.0f\" }}% (1시간 넘게 70% 초과)."
+            summary: "🔥 실내 온도 급상승 — 화재 의심"
+            description: "{{ $labels.sensor }} 10분 사이 {{ $value | printf \"%.1f\" }}°C 상승."
