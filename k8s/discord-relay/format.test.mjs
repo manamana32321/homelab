@@ -47,27 +47,18 @@ const payload = {
   weight: { first: 75.9, last: 75.5 },
 };
 
-test('weekly message is text only: header, best/worst, one-line metrics', () => {
+test('weekly message is short text: header, open weekly habits, one-line metrics', () => {
   const text = formatLifehubWeekly(payload);
   const lines = text.split('\n');
   assert.equal(lines[0], '📊 **지난주 (10/25 ~ 10/31)** · 습관 82% (+4%p)');
   assert.ok(!text.includes('```'));
-  assert.ok(text.includes('잘함: 금주 7/7 · Workout 5/6'));
-  assert.ok(text.includes('약함: 수면 프로토콜 2/7'));
-  assert.ok(text.includes('외 14개 · 남은 주간 습관: 가족 연락 · 베갯잇 빨래'));
+  assert.ok(!text.includes('잘함'));
+  assert.ok(text.includes('\n남은 주간 습관: 가족 연락 · 베갯잇 빨래\n'));
   assert.ok(text.includes('😴 수면 평균 6h 35m (−12m) · 7시간 이상 2/7일'));
   assert.ok(text.includes('👟 걸음 평균 7,820 (+600)'));
-  assert.ok(text.includes('📱 스크린타임 하루 평균 8h 40m (+30m) · chrome · Code · Discord'));
+  assert.ok(text.includes('📱 스크린타임 하루 평균 8h 40m (+30m)\n'));
   assert.ok(text.includes('⚖️ 체중 75.9 → 75.5kg (−0.4)'));
   assert.ok(text.includes('<https://example.test/stats>'));
-});
-
-test('payload without daily arrays still renders without charts', () => {
-  const { daily: _h, ...habits } = payload.habits;
-  const { daily: _s, ...screen } = payload.screen;
-  const text = formatLifehubWeekly({ ...payload, habits, screen });
-  assert.ok(!text.includes('```'));
-  assert.ok(text.includes('잘함: 금주 7/7'));
 });
 
 test('null sections are omitted, no fake zeros', () => {
@@ -88,14 +79,14 @@ test('missing previous values drop the delta', () => {
   assert.ok(text.includes('👟 걸음 평균 7,820\n') || text.endsWith('👟 걸음 평균 7,820'));
 });
 
-test('big minute deltas use h/m, .exe is dropped, single weight has no arrow', () => {
+test('big minute deltas use h/m, single weight has no arrow', () => {
   const text = formatLifehubWeekly({
     ...payload,
     screen: { ...payload.screen, avgSeconds: 17580, prevAvgSeconds: 31980, topApps: ['chrome.exe', 'Code.exe'] },
     sleep: { avgMinutes: 376, prevAvgMinutes: 308, nightsOver7h: 3, nights: 7 },
     weight: { first: 75.1, last: 75.1 },
   });
-  assert.ok(text.includes('📱 스크린타임 하루 평균 4h 53m (−4h 00m) · chrome · Code'));
+  assert.ok(text.includes('📱 스크린타임 하루 평균 4h 53m (−4h 00m)\n'));
   assert.ok(text.includes('😴 수면 평균 6h 16m (+1h 08m)'));
   assert.ok(text.includes('⚖️ 체중 75.1kg\n'));
 });

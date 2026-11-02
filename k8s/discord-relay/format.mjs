@@ -103,10 +103,6 @@ function minutesDelta(m) {
   return signed(m, '', (v) => hm(v));
 }
 
-function appName(name) {
-  return name.replace(/\.exe$/i, '');
-}
-
 function delta(text) {
   return text ? ` (${text})` : '';
 }
@@ -120,15 +116,7 @@ export function formatLifehubWeekly(p) {
   }
   lines.push(header);
 
-  if (h) {
-    const item = (r) => `${escapeMd(r.name)} ${r.o}/${r.total}`;
-    if (h.best.length > 0) lines.push(`잘함: ${h.best.map(item).join(' · ')}`);
-    if (h.worst.length > 0) lines.push(`약함: ${[...h.worst].sort((a, b) => b.o / b.total - a.o / a.total).map(item).join(' · ')}`);
-    const tail = [];
-    if (h.others > 0) tail.push(`외 ${h.others}개`);
-    if (h.weeklyOpen.length > 0) tail.push(`남은 주간 습관: ${h.weeklyOpen.map(escapeMd).join(' · ')}`);
-    if (tail.length > 0) lines.push(tail.join(' · '));
-  }
+  if (h && h.weeklyOpen.length > 0) lines.push(`남은 주간 습관: ${h.weeklyOpen.map(escapeMd).join(' · ')}`);
 
   if (p.sleep) {
     const s = p.sleep;
@@ -144,8 +132,7 @@ export function formatLifehubWeekly(p) {
   if (p.screen) {
     const s = p.screen;
     const d = s.prevAvgSeconds !== null ? delta(minutesDelta(Math.round((s.avgSeconds - s.prevAvgSeconds) / 60))) : '';
-    const apps = s.topApps.length > 0 ? ` · ${s.topApps.map((a) => escapeMd(appName(a))).join(' · ')}` : '';
-    lines.push(`📱 스크린타임 하루 평균 ${hm(s.avgSeconds / 60)}${d}${apps}`);
+    lines.push(`📱 스크린타임 하루 평균 ${hm(s.avgSeconds / 60)}${d}`);
   }
   if (p.weight) {
     const w = p.weight;
