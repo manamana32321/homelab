@@ -5,6 +5,7 @@
 // built-in http + fetch.
 
 import http from 'node:http';
+import { weeklyChartSvg, svgToPng } from './chart.mjs';
 import { chunk, formatDigest, formatLifehubWeekly } from './format.mjs';
 
 const FORMATS = { daily_digest: formatDigest, lifehub_weekly: formatLifehubWeekly };
@@ -17,18 +18,35 @@ if (!WEBHOOK_URL) {
   process.exit(1);
 }
 
-async function sendDiscord(text) {
-  for (const content of chunk(text)) {
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`Discord webhook ${res.status}: ${body}`);
-    }
+async function post(content, file) {
+  const json = { content, allowed_mentions: { parse: [] } };
+  let init;
+  if (file) {
+    const form = new FormData();
+    form.append('payload_json', JSON.stringify({ ...json, attachments: [{ id: 0, filename: file.name }] }));
+    form.append('files[0]', new Blob([file.data], { type: 'image/png' }), file.name);
+    init = { method: 'POST', body: form };
+  } else {
+    init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(json) };
   }
+  const res = await fetch(WEBHOOK_URL, init);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Discord webhook ${res.status}: ${body}`);
+  }
+}
+
+async function sendDiscord(text, file) {
+  const parts = chunk(text);
+  for (const [i, content] of parts.entries()) {
+    await post(content, i === parts.length - 1 ? file : undefined);
+  }
+}
+
+function attachmentFor(payload) {
+  if (payload.type !== 'lifehub_weekly') return undefined;
+  const svg = weeklyChartSvg(payload);
+  return svg ? { name: 'weekly.png', data: svgToPng(svg) } : undefined;
 }
 
 const server = http.createServer((req, res) => {
@@ -54,7 +72,7 @@ const server = http.createServer((req, res) => {
           res.end(`unsupported type: ${payload.type ?? '(missing)'}`);
           return;
         }
-        await sendDiscord(format(payload));
+        await sendDiscord(format(payload), attachmentFor(payload));
         console.log(`relay ok type=${payload.type}`);
         res.writeHead(204);
         res.end();

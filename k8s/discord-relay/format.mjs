@@ -83,30 +83,6 @@ export function chunk(text) {
 }
 
 
-const LOWER = ['', '▁', '▂', '▃', '▄', '▅', '▆', '▇'];
-const CHART_ROWS = 4;
-
-export function columnChart(days, max) {
-  const eighths = days.map((d) =>
-    d.value === null || max <= 0 ? null : Math.round((Math.min(d.value, max) / max) * CHART_ROWS * 8),
-  );
-  const lines = [];
-  for (let row = CHART_ROWS - 1; row >= 0; row -= 1) {
-    const cells = eighths.map((e) => {
-      if (e === null) return row === 0 ? '··' : '  ';
-      const fill = Math.max(0, Math.min(8, e - row * 8));
-      return fill === 8 ? '██' : LOWER[fill].repeat(2) || '  ';
-    });
-    lines.push(cells.join(' ').trimEnd());
-  }
-  lines.push(days.map((d) => d.date.slice(8, 10)).join(' '));
-  return lines;
-}
-
-function fenced(lines) {
-  return ['```', ...lines, '```'];
-}
-
 function md(date) {
   const [, m, d] = date.split('-');
   return `${Number(m)}/${Number(d)}`;
@@ -145,7 +121,6 @@ export function formatLifehubWeekly(p) {
   lines.push(header);
 
   if (h) {
-    if (h.daily && h.daily.length > 0) lines.push(...fenced(columnChart(h.daily, 100)));
     const item = (r) => `${escapeMd(r.name)} ${r.o}/${r.total}`;
     if (h.best.length > 0) lines.push(`잘함: ${h.best.map(item).join(' · ')}`);
     if (h.worst.length > 0) lines.push(`약함: ${[...h.worst].sort((a, b) => b.o / b.total - a.o / a.total).map(item).join(' · ')}`);
@@ -171,10 +146,6 @@ export function formatLifehubWeekly(p) {
     const d = s.prevAvgSeconds !== null ? delta(minutesDelta(Math.round((s.avgSeconds - s.prevAvgSeconds) / 60))) : '';
     const apps = s.topApps.length > 0 ? ` · ${s.topApps.map((a) => escapeMd(appName(a))).join(' · ')}` : '';
     lines.push(`📱 스크린타임 하루 평균 ${hm(s.avgSeconds / 60)}${d}${apps}`);
-    if (s.daily && s.daily.length > 0) {
-      const max = Math.max(0, ...s.daily.map((x) => x.value ?? 0));
-      lines.push(...fenced(columnChart(s.daily, max)));
-    }
   }
   if (p.weight) {
     const w = p.weight;

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { columnChart, formatLifehubWeekly } from './format.mjs';
+import { formatLifehubWeekly } from './format.mjs';
 
 const payload = {
   type: 'lifehub_weekly',
@@ -47,41 +47,17 @@ const payload = {
   weight: { first: 75.9, last: 75.5 },
 };
 
-test('columnChart draws 4-row columns of width 2 with day labels', () => {
-  const lines = columnChart(
-    [
-      { date: '2026-10-25', value: 100 },
-      { date: '2026-10-26', value: 50 },
-      { date: '2026-10-27', value: null },
-      { date: '2026-10-28', value: 0 },
-      { date: '2026-10-31', value: 12.5 },
-    ],
-    100,
-  );
-  assert.deepEqual(lines, [
-    '██             ',
-    '██             ',
-    '██ ██          ',
-    '██ ██ ··    ▄▄ ',
-    '25 26 27 28 31 ',
-  ].map((l) => l.trimEnd()));
-});
-
-test('weekly message has header, habit and screen column charts, text best/worst', () => {
+test('weekly message is text only: header, best/worst, one-line metrics', () => {
   const text = formatLifehubWeekly(payload);
   const lines = text.split('\n');
   assert.equal(lines[0], '📊 **지난주 (10/25 ~ 10/31)** · 습관 82% (+4%p)');
-  const fences = lines.map((l, i) => (l === '```' ? i : -1)).filter((i) => i >= 0);
-  assert.equal(fences.length, 4);
-  assert.equal(lines[fences[1] - 1], '25 26 27 28 29 30 31');
-  assert.equal(lines[fences[3] - 1], '25 26 27 28 29 30 31');
+  assert.ok(!text.includes('```'));
   assert.ok(text.includes('잘함: 금주 7/7 · Workout 5/6'));
   assert.ok(text.includes('약함: 수면 프로토콜 2/7'));
   assert.ok(text.includes('외 14개 · 남은 주간 습관: 가족 연락 · 베갯잇 빨래'));
   assert.ok(text.includes('😴 수면 평균 6h 35m (−12m) · 7시간 이상 2/7일'));
   assert.ok(text.includes('👟 걸음 평균 7,820 (+600)'));
   assert.ok(text.includes('📱 스크린타임 하루 평균 8h 40m (+30m) · chrome · Code · Discord'));
-  assert.ok(lines.findIndex((l) => l.startsWith('📱 스크린타임')) === fences[2] - 1);
   assert.ok(text.includes('⚖️ 체중 75.9 → 75.5kg (−0.4)'));
   assert.ok(text.includes('<https://example.test/stats>'));
 });
