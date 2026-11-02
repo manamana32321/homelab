@@ -2,34 +2,57 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { svgToPng, weeklyChartSvg } from './chart.mjs';
 
-const days = (values) => values.map((value, i) => ({ date: `2026-10-${25 + i}`, value }));
+const range = { start: '2026-10-25', end: '2026-10-31' };
+const habits = {
+  rate: 57,
+  grid: [
+    { name: '금주', cells: ['O', 'O', 'X', 'skip', null, 'O', 'O'] },
+    { name: 'Workout', cells: [null, null, null, null, null, null, null] },
+  ],
+};
+const screen = {
+  apps: [
+    { name: 'chrome.exe', seconds: 7200 },
+    { name: 'Code.exe', seconds: 3600 },
+  ],
+  otherSeconds: 3600,
+};
 
-const habits = { daily: days([100, 50, null, 0, 75, 88, 63]) };
-const screen = { daily: days([36000, 18000, null, 9000, 27000, 36000, 30000]) };
-
-test('one panel per available series with 7 bars, nulls get no bar', () => {
-  const svg = weeklyChartSvg({ habits, screen });
-  assert.equal((svg.match(/class="bar"/g) ?? []).length, 11);
-  assert.ok(svg.includes('Habits (%)'));
-  assert.ok(svg.includes('Screen time (h)'));
+test('heatmap: one row per habit, 7 cells each, colored by status', () => {
+  const svg = weeklyChartSvg({ range, habits, screen: null });
+  assert.equal((svg.match(/class="cell"/g) ?? []).length, 14);
+  assert.equal((svg.match(/class="cell" data-s="O"/g) ?? []).length, 4);
+  assert.equal((svg.match(/class="cell" data-s="X"/g) ?? []).length, 1);
+  assert.equal((svg.match(/class="cell" data-s="skip"/g) ?? []).length, 1);
+  assert.equal((svg.match(/class="cell" data-s="none"/g) ?? []).length, 8);
+  assert.ok(svg.includes('>금주<'));
   assert.ok(svg.includes('>10/25<'));
-  assert.ok(svg.includes('>100<'));
-  assert.ok(svg.includes('>10.0<'));
+  assert.ok(svg.includes('>일<'));
 });
 
-test('bar heights are proportional within a panel', () => {
-  const svg = weeklyChartSvg({ habits: { daily: days([100, 50, 0, 0, 0, 0, 0]) }, screen: null });
-  const heights = [...svg.matchAll(/class="bar"[^>]*height="([\d.]+)"/g)].map((m) => Number(m[1]));
-  assert.equal(heights.length, 2);
-  assert.ok(Math.abs(heights[0] - 2 * heights[1]) < 0.01);
+test('donut: one slice per app plus 기타, legend strips .exe with share', () => {
+  const svg = weeklyChartSvg({ range, habits: null, screen });
+  assert.equal((svg.match(/class="slice"/g) ?? []).length, 3);
+  assert.ok(svg.includes('>chrome<'));
+  assert.ok(svg.includes('>Code<'));
+  assert.ok(svg.includes('>기타<'));
+  assert.ok(svg.includes('50%'));
+  assert.ok(svg.includes('25%'));
+  assert.ok(!svg.includes('.exe'));
+});
+
+test('a single app makes a full ring', () => {
+  const svg = weeklyChartSvg({ range, habits: null, screen: { apps: [{ name: 'a', seconds: 10 }], otherSeconds: 0 } });
+  assert.equal((svg.match(/class="slice"/g) ?? []).length, 1);
+  assert.ok(svg.includes('100%'));
 });
 
 test('returns null when there is nothing to draw', () => {
-  assert.equal(weeklyChartSvg({ habits: null, screen: null }), null);
-  assert.equal(weeklyChartSvg({ habits: { daily: days([null, null, null, null, null, null, null]) }, screen: {} }), null);
+  assert.equal(weeklyChartSvg({ range, habits: null, screen: null }), null);
+  assert.equal(weeklyChartSvg({ range, habits: { grid: [] }, screen: { apps: [], otherSeconds: 0 } }), null);
 });
 
 test('svgToPng produces a PNG', () => {
-  const png = svgToPng(weeklyChartSvg({ habits, screen }));
+  const png = svgToPng(weeklyChartSvg({ range, habits, screen }));
   assert.deepEqual([...png.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 });
