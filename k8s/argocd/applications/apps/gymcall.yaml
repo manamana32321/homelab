@@ -4,8 +4,9 @@ metadata:
   name: gymcall
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/manamana32321/kirothon-team-008:latest
-    argocd-image-updater.argoproj.io/app.update-strategy: digest
+    argocd-image-updater.argoproj.io/image-list: app=ghcr.io/manamana32321/kirothon-team-008
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+    argocd-image-updater.argoproj.io/app.allow-tags: regexp:^[0-9a-f]{40}$
     argocd-image-updater.argoproj.io/app.force-update: "true"
     argocd-image-updater.argoproj.io/write-back-method: argocd
   finalizers:
