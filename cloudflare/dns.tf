@@ -274,13 +274,13 @@ resource "cloudflare_dns_record" "health" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "wake" {
+resource "cloudflare_dns_record" "gymcall" {
   zone_id = cloudflare_zone.main.id
-  name    = "wake"
+  name    = "gymcall"
   type    = "CNAME"
   content = "origin.${var.zone_name}"
   proxied = false
-  comment = "Wake Buddy (KIROTHON 2026 demo, SSE)"
+  comment = "Gymcall (KIROTHON 2026 demo, SSE)"
   ttl     = 1
 }
 
