@@ -16,3 +16,4 @@ resources:
   - ingress.yaml
   - backup-cronjob.yaml
   - weekly-report-cronjob.yaml
+  - habit-judge-cronjob.yaml
