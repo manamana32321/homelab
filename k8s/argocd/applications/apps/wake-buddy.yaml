@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/manamana32321/kirothon-team-008
     targetRevision: main
-    path: deploy/k8s/overlays/prod
+    path: infra/k8s/overlays/prod
   destination:
     server: https://kubernetes.default.svc
     namespace: wake-buddy
