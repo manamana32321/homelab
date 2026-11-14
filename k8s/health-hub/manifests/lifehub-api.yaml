@@ -93,6 +93,8 @@ spec:
               value: /tmp/hc-webhook-payloads
             - name: PROMETHEUS_URL
               value: http://prometheus-kube-prometheus-prometheus.observability.svc:9090
+            - name: PRESENCE_PHONE_MAC
+              value: "BE:4F:43:38:44:31"
           resources:
             requests:
               cpu: 50m
