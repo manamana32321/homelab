@@ -274,6 +274,16 @@ resource "cloudflare_dns_record" "health" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "gymcall" {
+  zone_id = cloudflare_zone.main.id
+  name    = "gymcall"
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
+  proxied = false
+  comment = "Gymcall (KIROTHON 2026 demo, SSE)"
+  ttl     = 1
+}
+
 # Essentia project (rebranded from Saemate, 2026-04-19)
 resource "cloudflare_dns_record" "essentia" {
   zone_id = cloudflare_zone.main.id
