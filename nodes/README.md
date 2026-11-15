@@ -221,6 +221,6 @@ Raspberry Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25` (5GHz `5G`). 샤오미 LYWSD
 | --- | --- | --- |
 | 메트릭 | `192.168.0.25:9265` | `k8s/observability/prometheus/values.yaml` `job_name: bthome` |
 | 알림 | `BTHomeSensorDown` `BTHomeBatteryLow` `TemperatureFireRisk` (≥50°C) `TemperatureRisingFast` (10분 +8°C) | `alert-rules.yaml` `home-climate` |
-| 대시보드 | Grafana `Home/집 온습도` | `k8s/observability/grafana/home-climate-dashboard.yaml` |
+| 화면 | Coral 키오스크 lifehub `/kiosk` 온습도 칸·24시간 그래프 | lifehub `apps/api/src/climate/` |
 
 센서 추가: `/etc/bthome-exporter/sensors` 에 줄 추가 → `systemctl restart bthome-exporter`.
