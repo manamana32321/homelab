@@ -39,6 +39,11 @@ homelab/
 │   ├── versions.tf
 │   ├── variables.tf
 │   └── webhooks.tf              # homelab, skku-amang/main → argocd /api/webhook
+├── grafana/                 # Terraform - Grafana 플레이리스트 (파일 provisioning 미지원 리소스)
+│   ├── versions.tf
+│   ├── variables.tf
+│   ├── playlists.tf             # j2 키오스크 순환 대시보드
+│   └── outputs.tf
 ├── .envrc                   # 공개 환경변수 (TF_VAR_*)
 └── .envrc.local             # 민감한 credentials (gitignored)
 ```
@@ -51,6 +56,7 @@ homelab/
 | `cloudflare/` | 수동 `terraform apply` | - |
 | `betterstack/` | 수동 `terraform apply` | - |
 | `github/` | 수동 `terraform apply` | - |
+| `grafana/` | 수동 `terraform apply` | - |
 
 ## Cloudflare/Terraform
 
@@ -81,7 +87,7 @@ terraform apply
 
 ### Notes
 - Cloudflare Email Routing 레코드 (MX route1/2/3, dkim_cf2024)는 Cloudflare가 관리하므로 Terraform에서 제외
-- Terraform state는 S3 버킷 `homelab-tfstate-361769566809` (ap-northeast-2). 디렉토리별로 key 분리 (`cloudflare/`, `aws/`, `betterstack/`, `github/`, `tailscale/`)
+- Terraform state는 S3 버킷 `homelab-tfstate-361769566809` (ap-northeast-2). 디렉토리별로 key 분리 (`cloudflare/`, `aws/`, `betterstack/`, `github/`, `grafana/`, `tailscale/`)
 
 ## Kubernetes (k8s/)
 
