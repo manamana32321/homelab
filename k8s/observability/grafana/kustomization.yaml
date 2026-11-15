@@ -8,3 +8,5 @@ resources:
   - namespace.yaml
   - crowdsec-dashboard.yaml
   - home-climate-dashboard.yaml
+  - k8s-dashboard.yaml
+  - openwrt-dashboard.yaml

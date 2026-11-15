@@ -57,6 +57,8 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 
 HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafana. RDP 로 같은 화면 공유.
 
+화면은 Grafana 플레이리스트 `kiosk-json-server-2` 순환. 대시보드·간격은 [grafana/playlists.tf](../grafana/playlists.tf), uid 는 `terraform output kiosk_j2_playlist_url` → `config.yaml` `URL`. 시간 범위는 각 대시보드 기본값.
+
 `kiosk-screen auto` 가 1분마다 판단한다. 08~23시 **그리고** 폰이 집 Wi-Fi 에 붙어 있으면 켜짐, 아니면 꺼짐.
 
 | 항목 | 값 |

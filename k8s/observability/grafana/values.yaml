@@ -162,13 +162,6 @@ dashboardProviders:
 
 dashboards:
   infrastructure:
-    # Kubernetes Cluster Overview - https://grafana.com/grafana/dashboards/15661
-    k8s-dashboard:
-      gnetId: 15661
-      revision: 2
-      datasource:
-        - name: DS__VICTORIAMETRICS-PROD-ALL
-          value: Prometheus
     # Node Exporter Full - https://grafana.com/grafana/dashboards/1860
     node-exporter:
       gnetId: 1860
@@ -178,13 +171,6 @@ dashboards:
     smartctl-exporter:
       gnetId: 22604
       revision: 2
-      datasource:
-        - name: DS_PROMETHEUS
-          value: Prometheus
-    # OpenWrt (공유기, prometheus-node-exporter-lua) - https://grafana.com/grafana/dashboards/11147
-    openwrt:
-      gnetId: 11147
-      revision: 1
       datasource:
         - name: DS_PROMETHEUS
           value: Prometheus
