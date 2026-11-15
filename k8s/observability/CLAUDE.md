@@ -124,6 +124,13 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | Grafana | 대시보드 시각화 (알림 미사용) | - |
 | smartctl-exporter | SMART 디스크 건강 | chart + `homelab-alerts` |
 
+### Grafana 대시보드 위치
+
+| 종류 | 위치 |
+|---|---|
+| 커뮤니티 (grafana.com·GitHub) | [grafana/dashboards.tf](../../grafana/dashboards.tf) — 원본은 ID·revision 으로 받고 바꿀 값만 표에 적는다. JSON 저장 금지 |
+| 직접 만든 것 | `grafana/` 하위 sidecar ConfigMap (`grafana_dashboard: "1"` 라벨, `grafana_folder` 어노테이션) |
+
 ### Loki 라벨
 
 | source | 라벨 |

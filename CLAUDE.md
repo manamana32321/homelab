@@ -39,9 +39,10 @@ homelab/
 │   ├── versions.tf
 │   ├── variables.tf
 │   └── webhooks.tf              # homelab, skku-amang/main → argocd /api/webhook
-├── grafana/                 # Terraform - Grafana 플레이리스트 (파일 provisioning 미지원 리소스)
+├── grafana/                 # Terraform - Grafana 커뮤니티 대시보드·폴더·플레이리스트
 │   ├── versions.tf
 │   ├── variables.tf
+│   ├── dashboards.tf            # gnetId/URL 로 받아 바꿀 값만 덮어씀 (JSON 저장 안 함)
 │   ├── playlists.tf             # j2 키오스크 순환 대시보드
 │   └── outputs.tf
 ├── .envrc                   # 공개 환경변수 (TF_VAR_*)
