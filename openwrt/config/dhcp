@@ -72,3 +72,11 @@ config host 'raspi1wlan'
 	option mac 'd8:3a:dd:c1:68:26'
 	option ip '192.168.0.25'
 
+
+config domain
+	option name 'grafana.json-server.win'
+	option ip '192.168.0.27'
+
+config domain
+	option name 'health.json-server.win'
+	option ip '192.168.0.27'
