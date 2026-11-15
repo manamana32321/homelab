@@ -4,7 +4,7 @@ locals {
     { name = "Node Exporter Full", uid = grafana_dashboard.community["node-exporter"].uid },
     { name = "OpenWRT", uid = grafana_dashboard.community["openwrt"].uid },
     { name = "Blackbox Exporter (HTTP prober)", uid = grafana_dashboard.community["blackbox-http-prober"].uid },
-    { name = "Crowdsec Overview", uid = "hjmZdB4nk" },
+    { name = "Crowdsec Overview", uid = grafana_dashboard.community["crowdsec-overview"].uid },
   ]
 }
 

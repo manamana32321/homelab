@@ -3,6 +3,7 @@ locals {
     infrastructure = { title = "Infrastructure", uid = "bfipmlvctzu2od" }
     observability  = { title = "Observability", uid = "cfipmm0pt5fr4e" }
     apps           = { title = "Apps", uid = "dfipmm3rm6qyoa" }
+    security       = { title = "Security", uid = "afipmw4jsrlz4a" }
   }
 
   community_dashboards = {
@@ -14,14 +15,25 @@ locals {
     loki-stack           = { folder = "observability", gnet_id = 14055, revision = 5 }
     argocd               = { folder = "apps", gnet_id = 14584, revision = 1 }
     minecraft            = { folder = "apps", url = "https://raw.githubusercontent.com/sladkoff/minecraft-prometheus-exporter/v3.1.2/dashboards/minecraft-server-dashboard.json", uid = "0bf8d9cd-4848-4701-9e57-03aa528e87a8" }
+    crowdsec-overview = {
+      folder = "security"
+      url    = "https://raw.githubusercontent.com/crowdsecurity/grafana-dashboards/0d34f68/dashboards_v5/Crowdsec%20Overview.json"
+      panel_query = {
+        8 = {
+          expr         = "sum(increase({__name__=~\"cs_.+source_hits_total|cs_cloudwatch_stream_hits_total\"}[$__interval])) by (datasource_type, acquis_type)"
+          legendFormat = "{{datasource_type}}/{{acquis_type}}"
+        }
+      }
+    }
   }
 
   dashboards = { for k, v in local.community_dashboards : k => {
-    folder    = v.folder
-    url       = try(v.url, "https://grafana.com/api/dashboards/${v.gnet_id}/revisions/${v.revision}/download")
-    uid       = try(v.uid, null)
-    time_from = try(v.time_from, null)
-    job       = try(v.job, null)
+    folder      = v.folder
+    url         = try(v.url, "https://grafana.com/api/dashboards/${v.gnet_id}/revisions/${v.revision}/download")
+    uid         = try(v.uid, null)
+    time_from   = try(v.time_from, null)
+    job         = try(v.job, null)
+    panel_query = jsonencode(try(v.panel_query, {}))
   } }
 
   dashboard_json = { for k, v in local.dashboards : k => jsondecode(
@@ -54,6 +66,11 @@ resource "grafana_dashboard" "community" {
   config_json = jsonencode(merge(local.dashboard_json[each.key], {
     uid  = each.value.uid != null ? each.value.uid : local.dashboard_json[each.key].uid
     time = each.value.time_from != null ? merge(local.dashboard_json[each.key].time, { from = each.value.time_from }) : local.dashboard_json[each.key].time
+    panels = [for p in local.dashboard_json[each.key].panels : jsondecode(
+      contains(keys(jsondecode(each.value.panel_query)), tostring(p.id))
+      ? jsonencode(merge(p, { targets = [merge(p.targets[0], jsondecode(each.value.panel_query)[tostring(p.id)])] }))
+      : jsonencode(p)
+    )]
     templating = merge(local.dashboard_json[each.key].templating, {
       list = [for t in local.dashboard_json[each.key].templating.list : jsondecode(
         t.name == "job" && each.value.job != null

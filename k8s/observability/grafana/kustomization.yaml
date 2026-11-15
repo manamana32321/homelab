@@ -6,5 +6,4 @@ resources:
   - admin-user.yaml
   - github-credentials.yaml
   - namespace.yaml
-  - crowdsec-dashboard.yaml
   - home-climate-dashboard.yaml
