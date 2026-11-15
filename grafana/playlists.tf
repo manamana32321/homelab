@@ -1,9 +1,9 @@
 locals {
   kiosk_j2_dashboards = [
-    { name = "K8S Dashboard", uid = "24049b2d-f6e0-484b-88d5-a932d67348db" },
-    { name = "Node Exporter Full", uid = "rYdddlPWk" },
-    { name = "OpenWRT", uid = "fLi0yXAWk" },
-    { name = "Blackbox Exporter (HTTP prober)", uid = "NEzutrbMk" },
+    { name = "K8S Dashboard", uid = grafana_dashboard.community["k8s-dashboard"].uid },
+    { name = "Node Exporter Full", uid = grafana_dashboard.community["node-exporter"].uid },
+    { name = "OpenWRT", uid = grafana_dashboard.community["openwrt"].uid },
+    { name = "Blackbox Exporter (HTTP prober)", uid = grafana_dashboard.community["blackbox-http-prober"].uid },
     { name = "Crowdsec Overview", uid = "hjmZdB4nk" },
   ]
 }
