@@ -53,38 +53,56 @@ DNS 는 **공유기(`192.168.0.1`)를 가리킨다.** ISP 가 주는 DNS 서버 
 | NIC EEE | `udev/70-eee-off.rules` → `/etc/udev/rules.d/`, `udevadm control --reload` | 2026-10-22 | 2026-10-22 |
 | journald 상한 | `journald/size.conf` → `/etc/systemd/journald.conf.d/`, `systemctl restart systemd-journald` | 2026-10-22 | 2026-10-22 |
 
-## 키오스크 (json-server-2)
+## 키오스크 공통 (GNOME)
 
-HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafana. RDP 로 같은 화면 공유.
+json-server-2 · raspi-1. HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면.
 
-화면은 Grafana 플레이리스트 `kiosk-json-server-2` 순환. 대시보드·간격은 [grafana/playlists.tf](../grafana/playlists.tf), uid 는 `terraform output kiosk_j2_playlist_url` → `config.yaml` `URL`. 시간 범위는 각 대시보드 기본값.
-
-`kiosk-screen auto` 가 1분마다 판단한다. 08~23시 **그리고** 폰이 집 Wi-Fi 에 붙어 있으면 켜짐, 아니면 꺼짐.
+`kiosk-screen auto` 가 1분마다 판단한다. 08~23시 **그리고** 폰이 집 Wi-Fi 에 붙어 있으면 켜짐, 아니면 꺼짐. 꺼짐 = 앱 정지 + Mutter `PowerSaveMode`=3 (모니터 대기).
 
 | 항목 | 값 |
 | --- | --- |
 | 재실 신호 | 공유기 `192.168.0.1:9100/metrics` 에 `mac="BE:4F:43:38:44:31"` (Z Flip5, SSID 별 고정 랜덤 MAC) |
 | 외출 판정 | 마지막으로 보인 뒤 3분 (`$XDG_RUNTIME_DIR/kiosk-phone-seen` mtime) |
 | 공유기 응답 실패 | 재실로 간주 (켜짐) |
-| 폰 교체·MAC 변경 | j2·Coral 양쪽 `kiosk-screen` 의 `PHONE` 수정. 현재 값은 Loki `{service_name="openwrt", unit="dnsmasq-dhcp"} \|= "DHCPACK"` 의 호스트명으로 확인 |
+| 폰 교체·MAC 변경 | `gnome/kiosk-screen`·`mocha-snail/kiosk-screen` 의 `PHONE` 수정. 현재 값은 Loki `{service_name="openwrt", unit="dnsmasq-dhcp"} \|= "DHCPACK"` 의 호스트명으로 확인 |
+| 켜고 끌 앱 | 노드별 `kiosk-screen.service` 의 `KIOSK_APP` |
 
-| 레포 `nodes/kiosk/json-server-2/` | 노드 경로 | 반영 |
+| 레포 `nodes/kiosk/gnome/` | 노드 경로 | 반영 |
 | --- | --- | --- |
 | `sysusers-kiosk.conf` | `/etc/sysusers.d/kiosk.conf` | `systemd-sysusers` |
-| `tmpfiles-kiosk.conf` | `/etc/tmpfiles.d/kiosk.conf` | `systemd-tmpfiles --create --remove` |
 | `gdm-custom.conf` | `/etc/gdm3/custom.conf` | |
 | `dconf-profile-user` | `/etc/dconf/profile/user` | `dconf update` |
 | `dconf-00-kiosk` | `/etc/dconf/db/local.d/00-kiosk` | `dconf update` |
-| `config.yaml` | `/etc/grafana-kiosk/config.yaml` | |
-| `grafana-kiosk.service` `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/user/` | |
+| `kiosk-screen.timer` | `/etc/systemd/user/` | |
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
-| `j2-kiosk.rdp` | 클라이언트 (Windows) | |
 
-전부 반영 후 kiosk `systemctl --user daemon-reload` → `systemctl restart gdm`. 최초 1회 `systemctl set-default graphical.target`.
+노드별 파일까지 반영 후 kiosk `systemctl --user daemon-reload` → `systemctl restart gdm`. 최초 1회 `systemctl set-default graphical.target`.
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
 | `google-chrome-stable` | apt `https://dl.google.com/linux/chrome/deb/ stable main` | 키 `linux_signing_key.pub` → `/usr/share/keyrings/google-chrome.gpg` |
+
+```bash
+U="sudo -u kiosk XDG_RUNTIME_DIR=/run/user/1500 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1500/bus"
+```
+
+수동 전환: `$U KIOSK_APP=<앱>.service kiosk-screen on|off|auto` — 다음 1분 타이머가 `auto` 로 덮어쓴다. 오래 유지하려면 `$U systemctl --user stop kiosk-screen.timer`
+
+## 키오스크 (json-server-2)
+
+Grafana 인프라 대시보드. RDP 로 같은 화면 공유.
+
+화면은 Grafana 플레이리스트 `kiosk-json-server-2` 순환. 대시보드·간격은 [grafana/playlists.tf](../grafana/playlists.tf), uid 는 `terraform output kiosk_j2_playlist_url` → `config.yaml` `URL`. 시간 범위는 각 대시보드 기본값.
+
+| 레포 `nodes/kiosk/json-server-2/` | 노드 경로 | 반영 |
+| --- | --- | --- |
+| `tmpfiles-kiosk.conf` | `/etc/tmpfiles.d/kiosk.conf` | `systemd-tmpfiles --create --remove` |
+| `config.yaml` | `/etc/grafana-kiosk/config.yaml` | |
+| `grafana-kiosk.service` `kiosk-screen.service` | `/etc/systemd/user/` | |
+| `j2-kiosk.rdp` | 클라이언트 (Windows) | |
+
+| 레포 밖 | 위치 | 생성 |
+| --- | --- | --- |
 | `grafana-kiosk` v1.0.13 | `/usr/local/bin/grafana-kiosk` | GitHub release `grafana-kiosk.linux.amd64` |
 | Grafana 비밀번호 | `/etc/grafana-kiosk/env` (`KIOSK_LOGIN_PASSWORD=`) | 로컬 사용자 `kiosk-json-server-2` (Viewer). Server Admin → Users → New user |
 | RDP TLS | `/home/kiosk/.local/share/gnome-remote-desktop/rdp-tls.{crt,key}` | 아래 |
@@ -92,7 +110,6 @@ HDMI 모니터에 GNOME 자동 로그인(`kiosk`) → Chrome 전체화면 Grafan
 | RDP 비밀번호 (클라이언트) | WSL `~/.local/share/homelab/j2-rdp.env`, Windows `cmdkey TERMSRV/192.168.0.46` | |
 
 ```bash
-U="sudo -u kiosk XDG_RUNTIME_DIR=/run/user/1500 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1500/bus"
 G=/home/kiosk/.local/share/gnome-remote-desktop
 sudo -u kiosk openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj /CN=json-server-2 -keyout $G/rdp-tls.key -out $G/rdp-tls.crt
 $U grdctl rdp set-tls-cert $G/rdp-tls.crt
@@ -102,7 +119,26 @@ $U grdctl rdp disable-view-only
 $U grdctl rdp enable
 ```
 
-수동 전환: `$U kiosk-screen on|off|auto` — 다음 1분 타이머가 `auto` 로 덮어쓴다. 오래 유지하려면 `$U systemctl --user stop kiosk-screen.timer`
+## 키오스크 (raspi-1)
+
+Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25`. lifehub `/kiosk`. 모니터는 HDMI0 (USB-C 전원 옆 micro-HDMI). Coral(mocha-snail) 후임 — Coral HDMI 드라이버는 모니터 대기 신호를 못 보내 꺼짐 상태에서 모니터가 깜빡였다.
+
+| 레포 `nodes/kiosk/raspi-1/` | 노드 경로 | 반영 |
+| --- | --- | --- |
+| `tmpfiles-kiosk.conf` | `/etc/tmpfiles.d/kiosk.conf` | `systemd-tmpfiles --create --remove` |
+| `lifehub-kiosk.service` `kiosk-screen.service` | `/etc/systemd/user/` | |
+| `env.example` | `/etc/lifehub-kiosk/env` | 키 채워서 생성 ([lifehub 키](#lifehub-키)) |
+
+| 레포 밖 | 위치 | 생성 |
+| --- | --- | --- |
+| 패키지 | `ubuntu-desktop-minimal` `fonts-noto-cjk` `google-chrome-stable` | `apt-get install --no-install-recommends` (recommends 를 빼야 NetworkManager 가 안 들어와 netplan wlan0 유지) |
+| 시간대 | `Asia/Seoul` | `timedatectl set-timezone Asia/Seoul` (기본 UTC 면 08~23시 판단이 9시간 밀림) |
+
+| 함정 | 증상 | 대응 |
+| --- | --- | --- |
+| 모니터 없이 GDM 기동 | Wayland 세션 `Session never registered` 두 번 → Xorg 로 대체 | Chrome `--ozone-platform-hint=auto` 로 어느 쪽이든 동작 |
+
+원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 192.168.0.25` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
 
 ## 키오스크 (mocha-snail)
 
@@ -169,14 +205,14 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 
 ### lifehub 키
 
-`/etc/coral-kiosk/env` = `KIOSK_URL=https://health.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
+raspi-1 `/etc/lifehub-kiosk/env` · Coral `/etc/coral-kiosk/env` = `KIOSK_URL=https://health.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
 
 | 값 | 위치 |
 | --- | --- |
 | `KIOSK_KEY` 원본 | WSL `~/.local/share/homelab/lifehub-kiosk.env` |
 | 클러스터 | `k8s/health-hub/manifests/sealed-secret-kiosk.yaml` → `health-hub-dashboard` env |
 
-키 교체: `KUBECONFIG=~/.kube/config-json kubeseal --raw --namespace health-hub --name lifehub-kiosk --scope strict` 로 봉인 → SealedSecret 갱신·머지 → `/etc/coral-kiosk/env` 수정 → `systemctl restart coral-kiosk`.
+키 교체: `KUBECONFIG=~/.kube/config-json kubeseal --raw --namespace health-hub --name lifehub-kiosk --scope strict` 로 봉인 → SealedSecret 갱신·머지 → 노드 env 수정 → raspi-1 `$U systemctl --user restart lifehub-kiosk` · Coral `systemctl restart coral-kiosk`.
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 mendel@192.168.0.44` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
 

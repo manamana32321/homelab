@@ -1,0 +1,9 @@
+[Unit]
+Description=Kiosk screen schedule
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+Environment=KIOSK_APP=lifehub-kiosk.service
+ExecStart=/usr/local/bin/kiosk-screen

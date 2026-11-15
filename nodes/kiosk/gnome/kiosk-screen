@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+: "${KIOSK_APP:?}"
 PHONE=BE:4F:43:38:44:31
 SEEN=${XDG_RUNTIME_DIR:-/tmp}/kiosk-phone-seen
 home() {
@@ -14,7 +15,7 @@ if [ "$mode" = auto ]; then
 fi
 P="org.gnome.Mutter.DisplayConfig /org/gnome/Mutter/DisplayConfig org.gnome.Mutter.DisplayConfig PowerSaveMode"
 case "$mode" in
-  on)  busctl --user set-property $P i 0; systemctl --user start grafana-kiosk.service ;;
-  off) systemctl --user stop grafana-kiosk.service; busctl --user set-property $P i 3 ;;
+  on)  busctl --user set-property $P i 0; systemctl --user start "$KIOSK_APP" ;;
+  off) systemctl --user stop "$KIOSK_APP"; busctl --user set-property $P i 3 ;;
   *)   echo "usage: kiosk-screen [auto|on|off]" >&2; exit 2 ;;
 esac
