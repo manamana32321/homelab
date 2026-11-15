@@ -22,6 +22,16 @@ config:
           reason: "Headlamp plugin locale 404"
           expression:
             - evt.Meta.target_fqdn == "k8s.json-server.win" && evt.Meta.http_status == "404" && evt.Meta.http_path matches "^/static-plugins/[^/]+/locales/"
+      # Albums whose cover is a hidden live-photo motion asset (no thumbnail)
+      # make the album list fire one 404 per such album at once, which trips
+      # crowdsecurity/http-probing and bans family members off-LAN.
+      immich-thumbnail-404.yaml: |
+        name: homelab/immich-thumbnail-404
+        description: "Ignore Immich asset thumbnail 404s"
+        whitelist:
+          reason: "Immich thumbnail 404"
+          expression:
+            - evt.Meta.target_fqdn == "photos.json-server.win" && evt.Meta.http_status == "404" && evt.Meta.http_path matches "^/api/assets/[0-9a-f-]+/thumbnail"
       # A banned client keeps getting the bouncer's own 403 (OriginStatus 0,
       # never reached a backend); counting those re-bans it via 403-bf right
       # after a manual unban, before the bouncer cache refreshes.
