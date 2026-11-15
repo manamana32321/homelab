@@ -6,4 +6,3 @@ resources:
   - admin-user.yaml
   - github-credentials.yaml
   - namespace.yaml
-  - home-climate-dashboard.yaml
