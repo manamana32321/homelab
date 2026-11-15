@@ -83,7 +83,7 @@ hostapd(접속·인증·DFS), dnsmasq(DHCP·DNS), 커널(mt76·링크 이벤트)
 ## 설정 복원
 
 ```bash
-scp -i ~/.ssh/openwrt_ax3000sm openwrt/config/* root@192.168.0.1:/etc/config/
+scp -O -i ~/.ssh/openwrt_ax3000sm openwrt/config/* root@192.168.0.1:/etc/config/
 ssh -i ~/.ssh/openwrt_ax3000sm root@192.168.0.1 \
   "uci set wireless.default_radio0.key='<무선비밀번호>'; \
    uci set wireless.default_radio1.key='<무선비밀번호>'; \
