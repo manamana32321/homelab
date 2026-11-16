@@ -62,6 +62,37 @@ resource "cloudflare_dns_record" "wildcard_amang_staging" {
   ttl     = 1
 }
 
+# AMANG 메일 발송 (Resend, skku-amang/main#528). 이름이 정확히 있으면 위 *.amang 와일드카드보다 우선한다
+# proxied=false: 메일 인증 레코드는 Cloudflare 프록시를 거치면 확인이 안 된다
+resource "cloudflare_dns_record" "amang_resend_dkim" {
+  zone_id = cloudflare_zone.main.id
+  name    = "resend._domainkey.amang"
+  type    = "TXT"
+  content = "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgzlqJEisQLVJwaqNi7gTD+iA6/z7hV0FW+EH9ApKWdoXUle3WjsJokdpU/UcF3iAI2EYeXN8uB1XQJl5UeFEIy7UHoGO/oUl56kCX3f1YPil4IqnXIAyhs9UAGWBsJGeeXxAlOjN+lj/sIZjgkWddHYBM8nzWoTHAsSWDSTyBSwIDAQAB"
+  comment = "AMANG Resend DKIM"
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amang_resend_send" {
+  zone_id = cloudflare_zone.main.id
+  name    = "send.amang"
+  type    = "CNAME"
+  content = "send.forge.rmta.net"
+  proxied = false
+  comment = "AMANG Resend SPF·반송 (Return-Path)"
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amang_resend_rsend" {
+  zone_id = cloudflare_zone.main.id
+  name    = "rsend.amang"
+  type    = "CNAME"
+  content = "rsend-apne1.forge.rmta.net"
+  proxied = false
+  comment = "AMANG Resend SPF (Tokyo)"
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "argocd" {
   zone_id = cloudflare_zone.main.id
   name    = "argocd"
