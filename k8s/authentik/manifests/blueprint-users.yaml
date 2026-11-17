@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blueprint-users
+  namespace: authentik
+data:
+  users.yaml: |
+    version: 1
+    metadata:
+      name: "Users"
+    entries:
+      - model: authentik_core.user
+        state: present
+        identifiers:
+          username: manamana32321
+        attrs:
+          username: manamana32321
+          name: Jangsu Son
+          type: internal

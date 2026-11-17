@@ -79,3 +79,4 @@ blueprints:
     - blueprint-kargo
     - blueprint-lifehub-mcp
     - blueprint-sessions
+    - blueprint-users
