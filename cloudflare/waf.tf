@@ -19,7 +19,8 @@ data "http" "github_meta" {
 }
 
 locals {
-  github_hooks_cidrs = jsondecode(data.http.github_meta.response_body).hooks
+  github_hooks_cidrs     = jsondecode(data.http.github_meta.response_body).hooks
+  anthropic_egress_cidrs = ["160.79.104.0/21"]
 }
 
 resource "cloudflare_ruleset" "waf_custom" {
@@ -33,6 +34,19 @@ resource "cloudflare_ruleset" "waf_custom" {
       ref         = "github_webhook_argocd"
       description = "GitHub webhook → ArgoCD 허용"
       expression  = "(http.host eq \"argocd.json-server.win\" and http.request.uri.path eq \"/api/webhook\" and http.request.method eq \"POST\" and ip.src in {${join(" ", local.github_hooks_cidrs)}})"
+      action      = "skip"
+      enabled     = true
+      action_parameters = {
+        ruleset = "current"
+      }
+      logging = {
+        enabled = true
+      }
+    },
+    {
+      ref         = "anthropic_mcp_oauth"
+      description = "Claude 커넥터(Anthropic) → lifehub MCP·Authentik OAuth 허용"
+      expression  = "(ip.src in {${join(" ", local.anthropic_egress_cidrs)}} and ((http.host eq \"auth.json-server.win\" and (starts_with(http.request.uri.path, \"/application/o/\") or starts_with(http.request.uri.path, \"/.well-known/\"))) or (http.host eq \"health.json-server.win\" and (starts_with(http.request.uri.path, \"/mcp\") or starts_with(http.request.uri.path, \"/.well-known/oauth-protected-resource\")))))"
       action      = "skip"
       enabled     = true
       action_parameters = {
