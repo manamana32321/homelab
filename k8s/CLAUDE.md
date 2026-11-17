@@ -41,7 +41,7 @@
 - **외부 노출 가능** (public API token): 별도 SealedSecret + Reflector annotation
 
 예: `health-hub-secret` 분리
-- `health-hub-secret` (DB_PASSWORD, MCP_AUTH_TOKEN — internal)
+- `health-hub-secret` (DB_PASSWORD — internal)
 - `health-hub-api-token` (API_TOKEN — reflectable)
 
 ### Reflector 사용
@@ -252,7 +252,7 @@ livenessProbe:
 ### tcpSocket / exec 사용
 
 - **tcpSocket**: DB·메시지 큐·gRPC 등 HTTP 아닌 서비스
-  - 예: health-hub의 `mcp` container (port 8081)
+  - 예: TimescaleDB (port 5432)
 - **exec**: 커스텀 shell 체크 (드물게)
 
 ### Anti-patterns
