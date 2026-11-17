@@ -15,6 +15,24 @@ locals {
     loki-stack           = { folder = "observability", gnet_id = 14055, revision = 5 }
     argocd               = { folder = "apps", gnet_id = 14584, revision = 1 }
     minecraft            = { folder = "apps", url = "https://raw.githubusercontent.com/sladkoff/minecraft-prometheus-exporter/v3.1.2/dashboards/minecraft-server-dashboard.json", uid = "0bf8d9cd-4848-4701-9e57-03aa528e87a8" }
+    claude-code = {
+      folder   = "apps"
+      gnet_id  = 25255
+      revision = 10
+      uid      = "claude-code"
+      panel_query = {
+        24 = {
+          title        = "Top Repos by Cost"
+          expr         = "topk(10, sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (vcs_repository_name))"
+          legendFormat = "{{vcs_repository_name}}"
+        }
+        25 = {
+          title        = "Top Repos by Tokens"
+          expr         = "topk(10, sum(increase(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (vcs_repository_name))"
+          legendFormat = "{{vcs_repository_name}}"
+        }
+      }
+    }
     crowdsec-overview = {
       folder = "security"
       url    = "https://raw.githubusercontent.com/crowdsecurity/grafana-dashboards/0d34f68/dashboards_v5/Crowdsec%20Overview.json"
@@ -68,7 +86,10 @@ resource "grafana_dashboard" "community" {
     time = each.value.time_from != null ? merge(local.dashboard_json[each.key].time, { from = each.value.time_from }) : local.dashboard_json[each.key].time
     panels = [for p in local.dashboard_json[each.key].panels : jsondecode(
       contains(keys(jsondecode(each.value.panel_query)), tostring(p.id))
-      ? jsonencode(merge(p, { targets = [merge(p.targets[0], jsondecode(each.value.panel_query)[tostring(p.id)])] }))
+      ? jsonencode(merge(p, {
+        title   = try(jsondecode(each.value.panel_query)[tostring(p.id)].title, p.title)
+        targets = [merge(p.targets[0], { for k, v in jsondecode(each.value.panel_query)[tostring(p.id)] : k => v if k != "title" })]
+      }))
       : jsonencode(p)
     )]
     templating = merge(local.dashboard_json[each.key].templating, {
