@@ -1,0 +1,92 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  labels:
+    grafana: grafana
+spec:
+  version: 12.3.1
+  # Admin credentials come from grafana-admin-user through the container env below,
+  # matching the password already stored in the existing database.
+  disableDefaultAdminSecret: true
+  config:
+    log:
+      mode: console
+      level: info
+    server:
+      domain: grafana.json-server.win
+      root_url: https://grafana.json-server.win
+    users:
+      allow_sign_up: "false"
+      auto_assign_org_role: Viewer
+      default_language: ko-KR
+      default_locale: ko
+    auth.github:
+      enabled: "true"
+      allow_sign_up: "true"
+      allowed_organizations: skku-amang essentia-edu morton-so
+      auto_login: "true"
+      scopes: user:email,read:org
+      role_attribute_strict: "false"
+      allow_assign_grafana_admin: "false"
+      skip_org_role_sync: "true"
+  ingress:
+    metadata:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-dns01
+    spec:
+      ingressClassName: traefik
+      rules:
+        - host: grafana.json-server.win
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: grafana-service
+                    port:
+                      number: 3000
+      tls:
+        - hosts:
+            - grafana.json-server.win
+          secretName: grafana-tls
+  deployment:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: json-server-1
+          # Files on the existing volume belong to uid/gid 472.
+          securityContext:
+            fsGroup: 472
+          containers:
+            - name: grafana
+              securityContext:
+                runAsUser: 472
+                runAsGroup: 472
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+              envFrom:
+                - secretRef:
+                    name: grafana-github-oauth
+              env:
+                - name: GF_SECURITY_ADMIN_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin-user
+                      key: ADMIN_USER
+                - name: GF_SECURITY_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin-user
+                      key: ADMIN_PASSWORD
+          volumes:
+            - name: grafana-data
+              persistentVolumeClaim:
+                claimName: grafana

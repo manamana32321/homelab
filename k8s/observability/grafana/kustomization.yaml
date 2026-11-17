@@ -7,3 +7,5 @@ resources:
   - github-credentials.yaml
   - namespace.yaml
   - pvc.yaml
+  - grafana.yaml
+  - datasources.yaml
