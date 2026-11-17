@@ -94,6 +94,8 @@ spec:
               value: ":8080"
             - name: DEFAULT_TIMEZONE
               value: Asia/Seoul
+            - name: MCP_PUBLIC_URL
+              value: https://health.json-server.win
             - name: PROMETHEUS_URL
               value: http://prometheus-kube-prometheus-prometheus.observability.svc:9090
             - name: PRESENCE_PHONE_MAC
