@@ -1,4 +1,4 @@
-# API + MCP — Bearer token auth (no Authentik)
+# API (Bearer token) + MCP (Authentik OAuth, lifehub-api 가 검증)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -30,9 +30,16 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: health-hub
+                name: lifehub-api
                 port:
-                  number: 8081
+                  number: 8080
+          - path: /.well-known/oauth-protected-resource
+            pathType: Prefix
+            backend:
+              service:
+                name: lifehub-api
+                port:
+                  number: 8080
   tls:
     - secretName: health-hub-tls
       hosts:
