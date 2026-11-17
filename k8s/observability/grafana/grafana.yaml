@@ -30,6 +30,9 @@ spec:
       role_attribute_strict: "false"
       allow_assign_grafana_admin: "false"
       skip_org_role_sync: "true"
+    # The operator defaults this to 5; 0 keeps every alert rule version.
+    unified_alerting:
+      rule_version_record_limit: "0"
   ingress:
     metadata:
       annotations:
@@ -53,6 +56,10 @@ spec:
           secretName: grafana-tls
   deployment:
     spec:
+      # Stop the old pod before starting the new one so two Grafanas never
+      # open the same SQLite database.
+      strategy:
+        type: Recreate
       template:
         spec:
           nodeSelector:
