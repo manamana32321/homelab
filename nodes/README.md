@@ -131,18 +131,21 @@ Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25`. lifehub `/kiosk`. 모니터는 HDMI0 
 | `lifehub-kiosk.service` `kiosk-screen.service` | `/etc/systemd/user/` | |
 | `env.example` | `/etc/lifehub-kiosk/env` | 키 채워서 생성 ([lifehub 키](#lifehub-키)) |
 | `udev-wifi-powersave-off.rules` | `/etc/udev/rules.d/70-wifi-powersave-off.rules` | `udevadm control --reload`, 즉시 적용은 `iw dev wlan0 set power_save off` |
+| `chrome-policy.json` | `/etc/opt/chrome/policies/managed/kiosk.json` | Chrome 재시작 |
 | `../../netplan/raspi-1/*.yaml` | `/etc/netplan/` | [netplan](#netplan) |
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
 | 패키지 | `ubuntu-desktop-minimal` `fonts-noto-cjk` `google-chrome-stable` | `apt-get install --no-install-recommends` (recommends 를 빼야 NetworkManager 가 안 들어와 netplan wlan0 유지) |
 | 시간대 | `Asia/Seoul` | `timedatectl set-timezone Asia/Seoul` (기본 UTC 면 08~23시 판단이 9시간 밀림) |
+| 로캘 | `ko_KR.UTF-8` (j2 와 같음) | `locale-gen ko_KR.UTF-8 && localectl set-locale LANG=ko_KR.UTF-8`, `systemctl restart gdm` |
 
 | 함정 | 증상 | 대응 |
 | --- | --- | --- |
 | `ubuntu-settings` (GNOME 의존성) | `/lib/netplan/00-network-manager-all.yaml` 이 렌더러를 `NetworkManager` 로 바꿈 → NetworkManager 미설치라 재부팅 후 유선·무선 모두 DHCP 안 함 | `netplan/raspi-1/00-network-manager-all.yaml` |
 | Wi-Fi 절전 (brcmfmac 기본 on) | RTT 평균 14ms, 최대 175ms | udev 로 `power_save off` |
 | Chrome 이 Wi-Fi 연결 전 기동 | `ERR_INTERNET_DISCONNECTED` 페이지에 멈춤 (유선은 즉시 붙어서 안 드러남) | `ExecStartPre` 가 `KIOSK_URL` 응답까지 대기 |
+| Chrome 번역 팝업 | 로캘 `C.UTF-8` 로 첫 실행한 프로필에 `accept_languages` `en-US,en` 저장 → 로캘을 바꿔도 한국어 페이지에 영어 번역 제안 | 정책 `TranslateEnabled: false` |
 | 모니터 없이 GDM 기동 | Wayland 세션 `Session never registered` 두 번 → Xorg 로 대체 | Chrome `--ozone-platform-hint=auto` 로 어느 쪽이든 동작 |
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 192.168.0.25` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.
