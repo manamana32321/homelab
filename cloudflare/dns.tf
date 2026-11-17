@@ -305,6 +305,16 @@ resource "cloudflare_dns_record" "health" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "life" {
+  zone_id = cloudflare_zone.main.id
+  name    = "life"
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
+  proxied = true
+  comment = "lifehub"
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "gymcall" {
   zone_id = cloudflare_zone.main.id
   name    = "gymcall"
