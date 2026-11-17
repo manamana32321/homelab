@@ -295,16 +295,6 @@ resource "cloudflare_dns_record" "vercel_verify" {
   ttl     = 600
 }
 
-resource "cloudflare_dns_record" "health" {
-  zone_id = cloudflare_zone.main.id
-  name    = "health"
-  type    = "CNAME"
-  content = "origin.${var.zone_name}"
-  proxied = true
-  comment = "Health Hub dashboard"
-  ttl     = 1
-}
-
 resource "cloudflare_dns_record" "life" {
   zone_id = cloudflare_zone.main.id
   name    = "life"

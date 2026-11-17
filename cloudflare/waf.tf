@@ -47,7 +47,7 @@ resource "cloudflare_ruleset" "waf_custom" {
     {
       ref         = "anthropic_mcp_oauth"
       description = "Claude(Anthropic) · Gemini(Google) 커넥터 → lifehub MCP·Authentik OAuth 허용"
-      expression  = "((ip.src in {${join(" ", local.anthropic_egress_cidrs)}} or ip.src.asnum eq ${local.google_asn}) and ((http.host eq \"auth.json-server.win\" and (starts_with(http.request.uri.path, \"/application/o/\") or starts_with(http.request.uri.path, \"/.well-known/\"))) or (http.host in {\"health.json-server.win\" \"life.json-server.win\"} and (starts_with(http.request.uri.path, \"/mcp\") or starts_with(http.request.uri.path, \"/.well-known/oauth-protected-resource\")))))"
+      expression  = "((ip.src in {${join(" ", local.anthropic_egress_cidrs)}} or ip.src.asnum eq ${local.google_asn}) and ((http.host eq \"auth.json-server.win\" and (starts_with(http.request.uri.path, \"/application/o/\") or starts_with(http.request.uri.path, \"/.well-known/\"))) or (http.host eq \"life.json-server.win\" and (starts_with(http.request.uri.path, \"/mcp\") or starts_with(http.request.uri.path, \"/.well-known/oauth-protected-resource\")))))"
       action      = "skip"
       enabled     = true
       action_parameters = {

@@ -122,42 +122,14 @@ data:
           failure_result: false
           negate: false
 
-      # Health Hub
-      - model: authentik_providers_proxy.proxyprovider
-        state: present
-        identifiers:
-          name: health-hub-provider
-        attrs:
-          name: health-hub-provider
-          mode: forward_single
-          external_host: https://health.json-server.win
-          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
-          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
-
       - model: authentik_core.application
-        state: present
+        state: absent
         identifiers:
           slug: health-hub
-        attrs:
-          name: Health Hub
-          slug: health-hub
-          meta_launch_url: https://health.json-server.win
-          provider: !Find [authentik_providers_proxy.proxyprovider, [name, health-hub-provider]]
-          policy_engine_mode: any
-
-      # Health Hub: authentik Admins 그룹만 접근 허용
-      - model: authentik_policies.policybinding
-        state: present
+      - model: authentik_providers_proxy.proxyprovider
+        state: absent
         identifiers:
-          order: 0
-          target: !Find [authentik_core.application, [slug, health-hub]]
-          group: !Find [authentik_core.group, [name, authentik Admins]]
-        attrs:
-          enabled: true
-          order: 0
-          timeout: 30
-          failure_result: false
-          negate: false
+          name: health-hub-provider
 
       - model: authentik_providers_proxy.proxyprovider
         state: present
@@ -244,7 +216,6 @@ data:
           providers:
             - !Find [authentik_providers_proxy.proxyprovider, [name, cloudbeaver-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
-            - !Find [authentik_providers_proxy.proxyprovider, [name, health-hub-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, lifehub-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, hermes-provider]]
 

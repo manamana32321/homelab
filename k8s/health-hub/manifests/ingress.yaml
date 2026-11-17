@@ -9,37 +9,6 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: health.json-server.win
-      http:
-        paths:
-          - path: /api/v1
-            pathType: Prefix
-            backend:
-              service:
-                name: lifehub-api
-                port:
-                  number: 8080
-          - path: /healthz
-            pathType: Exact
-            backend:
-              service:
-                name: lifehub-api
-                port:
-                  number: 8080
-          - path: /mcp
-            pathType: Prefix
-            backend:
-              service:
-                name: lifehub-api
-                port:
-                  number: 8080
-          - path: /.well-known/oauth-protected-resource
-            pathType: Prefix
-            backend:
-              service:
-                name: lifehub-api
-                port:
-                  number: 8080
     - host: life.json-server.win
       http:
         paths:
@@ -74,7 +43,6 @@ spec:
   tls:
     - secretName: health-hub-tls
       hosts:
-        - health.json-server.win
         - life.json-server.win
 ---
 # Dashboard — Authentik forward auth
@@ -88,16 +56,6 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: health.json-server.win
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
     - host: life.json-server.win
       http:
         paths:
@@ -111,7 +69,6 @@ spec:
   tls:
     - secretName: health-hub-tls
       hosts:
-        - health.json-server.win
         - life.json-server.win
 ---
 apiVersion: networking.k8s.io/v1
@@ -124,44 +81,6 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: health.json-server.win
-      http:
-        paths:
-          - path: /manifest.webmanifest
-            pathType: Exact
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
-          - path: /icons/192
-            pathType: Exact
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
-          - path: /icons/512
-            pathType: Exact
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
-          - path: /kiosk
-            pathType: Exact
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
-          - path: /_next/static
-            pathType: Prefix
-            backend:
-              service:
-                name: health-hub-dashboard
-                port:
-                  number: 3000
     - host: life.json-server.win
       http:
         paths:
@@ -203,5 +122,4 @@ spec:
   tls:
     - secretName: health-hub-tls
       hosts:
-        - health.json-server.win
         - life.json-server.win
