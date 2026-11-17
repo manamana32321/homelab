@@ -151,7 +151,7 @@ Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25`. lifehub `/kiosk`. 모니터는 HDMI0 
 
 Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xwayland 로 Chrome 전체화면. GPU 미사용.
 
-**2026-11-17 키오스크 중지** — [raspi-1](#키오스크-raspi-1) 로 이전. 기기·SSH·관측성은 유지. `kiosk-screen.timer` `kiosk-screen.service` `coral-kiosk.service` `weston.service` disabled. 재가동: `sudo systemctl enable --now weston.service coral-kiosk.service kiosk-screen.service kiosk-screen.timer` + AlertmanagerConfig `discord` 야간 mute 복원 (git 이력 #436).
+**2026-11-17 키오스크 중지** — [raspi-1](#키오스크-raspi-1) 로 이전. 기기·SSH·관측성은 유지. `kiosk-screen.timer` `kiosk-screen.service` `coral-kiosk.service` `weston.service` disabled. 재가동: `sudo systemctl enable --now weston.service coral-kiosk.service kiosk-screen.service kiosk-screen.timer` + AlertmanagerConfig `discord` 야간 mute 복원 (git 이력 #436) + `systemd-watchdog.conf` 를 `RuntimeWatchdogSec=0` 으로 (#438).
 
 `kiosk-screen auto` 가 1분마다 판단한다. 재실 판정은 j2 와 같다 (`/run/kiosk-phone-seen`).
 
@@ -172,7 +172,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | `kiosk-screen` | `/usr/local/bin/kiosk-screen` (755) | |
 | `kiosk-screen.service` `kiosk-screen.timer` | `/etc/systemd/system/` | `systemctl daemon-reload && systemctl enable kiosk-screen.service kiosk-screen.timer` |
 | `tmpfiles-fan.conf` | `/etc/tmpfiles.d/coral-fan.conf` | `systemd-tmpfiles --create /etc/tmpfiles.d/coral-fan.conf` |
-| `systemd-no-watchdog.conf` | `/etc/systemd/system.conf.d/no-watchdog.conf` | 재부팅 (한 번 켜진 imx2 watchdog 은 리셋 전까지 못 끔) |
+| `systemd-watchdog.conf` | `/etc/systemd/system.conf.d/watchdog.conf` | 재부팅 (한 번 켜진 imx2 watchdog 은 리셋 전까지 못 끔) |
 | `weston.ini` | `/etc/xdg/weston/weston.ini` | `systemctl restart weston` |
 | `weston-restart.conf` | `/etc/systemd/system/weston.service.d/restart.conf` | `systemctl daemon-reload` |
 | `udev-kiosk-hotplug.rules` | `/etc/udev/rules.d/90-coral-kiosk-hotplug.rules` | `udevadm control --reload` |
@@ -197,14 +197,14 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 | Xwayland 지연 기동 | `Failed creating new xdo instance` | `xprop -root` 응답 대기 |
 | 화면 끄기 | `fb0/blank`·`setterm --blank` 는 콘솔이 다시 켬. `card0-HDMI-A-1/status`=`off` 는 `HDMI/DP Cable Plug Out` 분당 ~280회 → 모니터 켜짐/꺼짐 반복 | 야간은 절전 (`rtcwake -m no` + `systemctl suspend`), 낮 외출은 Weston 정지 |
 | 신호 끊기로 모니터 끄기 | Weston 정지 + vtcon unbind + `fb0/blank`=4 → `dpms`=Off 인데 모니터는 콘솔 유지. `status`=`off` (Weston 정지 상태, dmesg 무출력) 와 `i.mx8-hdp` unbind 는 모니터 켜짐/꺼짐 반복 (HDMI 5V 유지 → 입력 탐색 추정) | 소프트웨어로 모니터 대기 진입 불가. DDC 는 HDMI DDC 가 i2c 로 노출 안 됨 |
-| `i.mx8-hdp` unbind → bind | bind 에서 커널 멈춤, SSH·ping 무응답. watchdog 꺼져 있어 자동 복구 없음 | 쓰지 말 것. 전원 재투입 |
+| `i.mx8-hdp` unbind → bind | bind 에서 커널 멈춤, SSH·ping 무응답 (watchdog 꺼져 있던 때) | 쓰지 말 것. 전원 재투입 |
 | 절전 중 지난 `minutely` | 복귀 직후 한 번 실행됨 | 복귀 시각을 08:00 이후로 (07:59 복귀면 즉시 재절전) |
 | 팬 소음 | `gpio-fan` on/off 2단, 기본 65°C (유휴 64°C 경계) | active trip 70°C (hyst 10°C), 야간 절전 |
 | RTC 배터리 없음 | 전원 차단 후 `rtcwake -m off` 복귀 미검증 | `mem` 만 사용 (`snvs_rtc` 알람, deep) |
 | 전원 재투입 후 RTC 1970 | RTC 1970 상태에서 `rtcwake -m mem` → 복귀 안 함 (전원 재투입 필요). NTP 동기화 후 커널 `RTC_SYSTOHC` 가 RTC 를 맞추면 정상 복귀 | NTP 동기화가 전제 |
 | timesyncd 부팅 시 정지 | Wi-Fi 전에 기동 → `Packet count: 0` 으로 재시도 안 함 (NetworkManager 라 networkd 링크 신호 없음) | `wlan0` up 시 dispatcher 가 timesyncd 재시작 |
 | 야간 TargetDown | 절전 중 `up{job="coral"}`=0 | 키오스크 가동 시 AlertmanagerConfig `discord` 하위 route `muteTimeIntervals: coral-night` (중지 중엔 제거) |
-| 하드웨어 watchdog + 절전 | `imx2-wdt` 는 절전 중 최대 128초만 유지 → 128초 넘는 절전은 재부팅 (120초 시험은 통과, 9시간 절전은 2분 뒤 재부팅) | systemd `RuntimeWatchdogSec=0`. 멈춤은 `TargetDown` 으로 감지 |
+| 하드웨어 watchdog + 절전 | `imx2-wdt` 는 절전 중 최대 128초만 유지 → 128초 넘는 절전은 재부팅 (120초 시험은 통과, 9시간 절전은 2분 뒤 재부팅) | 키오스크 가동 시 `RuntimeWatchdogSec=0` (중지 중엔 `30s`) |
 | 모니터 전원 재투입 | HDMI Plug Out/In → Weston 출력 재생성, fullscreen 창 안 보임 | udev `HOTPLUG=1` → 3초 뒤 F11 두 번 (Chrome 재시작 없음) |
 | `card0-HDMI-A-1/status` 로 hotplug 흉내 | Weston `ABRT` | 시험은 실제 모니터 전원으로. Weston `Restart=on-failure` |
 | root 로 `xdotool` | `No protocol specified` (Xwayland 는 `mendel` 만 허용) | `runuser -u mendel` |
