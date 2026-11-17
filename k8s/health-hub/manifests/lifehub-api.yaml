@@ -94,8 +94,6 @@ spec:
               value: ":8080"
             - name: DEFAULT_TIMEZONE
               value: Asia/Seoul
-            - name: DEBUG_PAYLOAD_DIR
-              value: /tmp/hc-webhook-payloads
             - name: PROMETHEUS_URL
               value: http://prometheus-kube-prometheus-prometheus.observability.svc:9090
             - name: PRESENCE_PHONE_MAC
