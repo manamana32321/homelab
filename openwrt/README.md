@@ -17,7 +17,7 @@
 | DHCP 임대 | 24시간, 풀 `.100` ~ `.249` |
 | DHCP 예약 | `.24` galaxybook2 / `.25` raspi-1-wlan / `.27` json-server-1 / `.37` raspi-1 / `.44` mocha-snail / `.46` json-server-2 |
 | 포트포워딩 | TCP 80, 443 → `192.168.0.27` |
-| LAN 내부 DNS | `grafana`, `health` `.json-server.win` → `192.168.0.27` (traefik 직결). 키오스크가 Cloudflare 를 돌아오지 않게 — 요청당 1.1초 → 0.03초 |
+| LAN 내부 DNS | `grafana`, `health` `.json-server.win` → `192.168.0.27` (traefik 직결). 키오스크가 Cloudflare 를 돌아오지 않게 — 요청당 1.1초 → 0.03초. AAAA·HTTPS 는 빈 응답 (Cloudflare ECH 레코드가 새면 Chrome 157 `ECH_FALLBACK_CERTIFICATE_INVALID`) |
 | WED 오프로드 | 켜짐 (`openwrt/modules.d/mt7915e-wed`) |
 | IPv6 | 끔 — WAN DHCPv6 없음, LAN RA·DHCPv6 `disabled`, ULA 없음 |
 

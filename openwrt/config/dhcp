@@ -20,6 +20,10 @@ config dnsmasq
 	option ednspacket_max '1232'
 	option filter_aaaa '0'
 	option filter_a '0'
+	list address '/grafana.json-server.win/192.168.0.27'
+	list address '/health.json-server.win/192.168.0.27'
+	list server '/grafana.json-server.win/'
+	list server '/health.json-server.win/'
 
 config dhcp 'lan'
 	option interface 'lan'
@@ -71,12 +75,3 @@ config host 'raspi1wlan'
 	option name 'raspi-1-wlan'
 	option mac 'd8:3a:dd:c1:68:26'
 	option ip '192.168.0.25'
-
-
-config domain
-	option name 'grafana.json-server.win'
-	option ip '192.168.0.27'
-
-config domain
-	option name 'health.json-server.win'
-	option ip '192.168.0.27'

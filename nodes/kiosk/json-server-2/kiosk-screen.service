@@ -5,4 +5,5 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
+Environment=KIOSK_APP=grafana-kiosk.service
 ExecStart=/usr/local/bin/kiosk-screen
