@@ -217,7 +217,7 @@ Coral Dev Board, Mendel 5.2 (Debian 10), Wi-Fi `192.168.0.44`. Weston 5.0 위 Xw
 
 ### lifehub 키
 
-raspi-1 `/etc/lifehub-kiosk/env` · Coral `/etc/coral-kiosk/env` = `KIOSK_URL=https://health.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
+raspi-1 `/etc/lifehub-kiosk/env` · Coral `/etc/coral-kiosk/env` = `KIOSK_URL=https://life.json-server.win/kiosk?key=<KIOSK_KEY>`. 키는 git 에 없다.
 
 | 값 | 위치 |
 | --- | --- |
