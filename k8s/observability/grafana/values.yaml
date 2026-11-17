@@ -47,6 +47,8 @@ persistence:
   enabled: true
   size: 10Gi
   storageClassName: local-path-hdd-samsung
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
 
 admin:
   existingSecret: grafana-admin-user

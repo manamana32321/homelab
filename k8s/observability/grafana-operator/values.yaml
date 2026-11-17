@@ -1,0 +1,4 @@
+# Watch and hold RBAC only in observability, where the Grafana resource lives.
+namespaceScope: true
+rbac:
+  useClusterRole: false
