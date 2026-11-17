@@ -7,21 +7,10 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  sources:
-    - repoURL: https://grafana.github.io/helm-charts
-      chart: grafana
-      targetRevision: '10.5.8'
-      helm:
-        valueFiles:
-          - $homelab/k8s/observability/grafana/values.yaml
-    - repoURL: https://github.com/manamana32321/homelab
-      targetRevision: main
-      ref: homelab
-    
-    - repoURL: https://github.com/manamana32321/homelab
-      targetRevision: main
-      path: k8s/observability/grafana
-    
+  source:
+    repoURL: https://github.com/manamana32321/homelab
+    targetRevision: main
+    path: k8s/observability/grafana
   destination:
     server: https://kubernetes.default.svc
     namespace: observability

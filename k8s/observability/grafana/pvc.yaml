@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+  finalizers:
+    - kubernetes.io/pvc-protection
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-hdd-samsung
+  volumeName: pvc-558b83f7-b2f4-450e-8a30-428c3569ba33
+  resources:
+    requests:
+      storage: 10Gi
