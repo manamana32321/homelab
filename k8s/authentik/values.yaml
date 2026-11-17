@@ -77,4 +77,5 @@ blueprints:
     - blueprint-forward-auth
     - blueprint-github-source
     - blueprint-kargo
+    - blueprint-lifehub-mcp
     - blueprint-sessions
