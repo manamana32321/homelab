@@ -29,6 +29,8 @@ data:
               url: http://localhost:6274/oauth/callback
             - matching_mode: strict
               url: http://localhost:33418/callback
+            - matching_mode: strict
+              url: https://oauth-redirect.googleusercontent.com/r/user_bound_custom-mcp-26a6597433a82486171b5766
           property_mappings:
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
             - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]

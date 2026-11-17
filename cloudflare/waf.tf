@@ -21,6 +21,7 @@ data "http" "github_meta" {
 locals {
   github_hooks_cidrs     = jsondecode(data.http.github_meta.response_body).hooks
   anthropic_egress_cidrs = ["160.79.104.0/21"]
+  google_asn             = 15169
 }
 
 resource "cloudflare_ruleset" "waf_custom" {
@@ -45,8 +46,8 @@ resource "cloudflare_ruleset" "waf_custom" {
     },
     {
       ref         = "anthropic_mcp_oauth"
-      description = "Claude 커넥터(Anthropic) → lifehub MCP·Authentik OAuth 허용"
-      expression  = "(ip.src in {${join(" ", local.anthropic_egress_cidrs)}} and ((http.host eq \"auth.json-server.win\" and (starts_with(http.request.uri.path, \"/application/o/\") or starts_with(http.request.uri.path, \"/.well-known/\"))) or (http.host in {\"health.json-server.win\" \"life.json-server.win\"} and (starts_with(http.request.uri.path, \"/mcp\") or starts_with(http.request.uri.path, \"/.well-known/oauth-protected-resource\")))))"
+      description = "Claude(Anthropic) · Gemini(Google) 커넥터 → lifehub MCP·Authentik OAuth 허용"
+      expression  = "((ip.src in {${join(" ", local.anthropic_egress_cidrs)}} or ip.src.asnum eq ${local.google_asn}) and ((http.host eq \"auth.json-server.win\" and (starts_with(http.request.uri.path, \"/application/o/\") or starts_with(http.request.uri.path, \"/.well-known/\"))) or (http.host in {\"health.json-server.win\" \"life.json-server.win\"} and (starts_with(http.request.uri.path, \"/mcp\") or starts_with(http.request.uri.path, \"/.well-known/oauth-protected-resource\")))))"
       action      = "skip"
       enabled     = true
       action_parameters = {
