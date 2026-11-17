@@ -1,0 +1,105 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana: grafana
+  datasource:
+    name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki.observability.svc.cluster.local:3100
+    editable: false
+    # 로그 → 트레이스: amang-api pino 로그의 trace_id(JSON 필드)를 Tempo·Sentry 링크로
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherType: regex
+          matcherRegex: '"trace_id":"(\w+)"'
+          datasourceUid: tempo
+          url: "${__value.raw}"
+          urlDisplayLabel: Tempo에서 보기
+        - name: Sentry
+          matcherType: regex
+          matcherRegex: '"trace_id":"(\w+)"'
+          url: "https://amang-23.sentry.io/explore/traces/trace/${__value.raw}/"
+          urlDisplayLabel: Sentry에서 보기
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana: grafana
+  datasource:
+    name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
+    editable: false
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: tempo
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana: grafana
+  datasource:
+    name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo.observability.svc.cluster.local:3200
+    editable: false
+    # 트레이스 → 로그: trace_id가 Loki 라벨이 아닌 JSON 필드라 기본 태그 매핑 대신 custom query
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        customQuery: true
+        query: '{namespace=~"amang-api-.+", app="api"} | json | trace_id="${__trace.traceId}"'
+---
+# AMANG 프로덕션 DB (read-only, grafana_ro 전용 유저)
+# 권한: public 스키마 SELECT만. UPDATE/DELETE/DDL은 DB 레벨 거부됨
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: amang-prod
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana: grafana
+  valuesFrom:
+    - targetPath: secureJsonData.password
+      valueFrom:
+        secretKeyRef:
+          name: grafana-ro-credentials
+          key: GRAFANA_RO_PASSWORD
+  datasource:
+    name: amang-prod
+    uid: amang-prod
+    type: postgres
+    access: proxy
+    url: postgres-svc.amang-db-production.svc.cluster.local:5432
+    user: grafana_ro
+    editable: false
+    jsonData:
+      database: amang_db
+      user: grafana_ro
+      sslmode: disable
+      maxOpenConns: 10
+      maxIdleConns: 2
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+    secureJsonData:
+      password: ${GRAFANA_RO_PASSWORD}
