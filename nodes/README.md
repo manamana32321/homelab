@@ -11,6 +11,7 @@
 | json-server-1 | `99-static.yaml` | `enp3s0` 고정 IP `192.168.0.27/24`, GW·DNS 모두 `192.168.0.1` |
 | json-server-2 | `99-static.yaml` | `eno1` 고정 IP `192.168.0.46/24`, 동일 |
 | raspi-1 | `99-wifi.yaml` | `wlan0` 무선 접속 (비밀번호는 `REPLACE_ME` 플레이스홀더) |
+| raspi-1 | `00-network-manager-all.yaml` | 렌더러 `networkd`. `ubuntu-settings` 의 `/lib/netplan/00-network-manager-all.yaml` (렌더러 `NetworkManager`) 을 같은 이름으로 덮음 |
 
 raspi-1 의 `eth0` 은 고정하지 않는다. 은퇴 노드라 그 IP 를 참조하는 곳이 없고, 공유기 DHCP 예약(`.37`)으로 주소가 이미 안정적이다. `wlan0` 은 메트릭 600 으로 유선 실패 시 예비 경로가 된다.
 
@@ -21,8 +22,9 @@ raspi-1 의 `eth0` 은 고정하지 않는다. 은퇴 노드라 그 IP 를 참�
 ### 적용
 
 ```bash
-scp nodes/netplan/<노드>/99-*.yaml json@<IP>:/tmp/
-ssh json@<IP> 'sudo mv /tmp/99-*.yaml /etc/netplan/ && sudo chmod 600 /etc/netplan/99-*.yaml && sudo netplan generate'
+ssh json@<IP> 'rm -rf /tmp/netplan && mkdir /tmp/netplan'
+scp nodes/netplan/<노드>/*.yaml json@<IP>:/tmp/netplan/
+ssh json@<IP> 'sudo install -m600 /tmp/netplan/*.yaml /etc/netplan/ && sudo netplan generate'
 ```
 
 `netplan apply` 는 네트워크를 재설정하면서 SSH 세션을 끊는다. 명령이 중간에 죽지 않게 떼어내서 실행한다.
@@ -128,6 +130,8 @@ Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25`. lifehub `/kiosk`. 모니터는 HDMI0 
 | `tmpfiles-kiosk.conf` | `/etc/tmpfiles.d/kiosk.conf` | `systemd-tmpfiles --create --remove` |
 | `lifehub-kiosk.service` `kiosk-screen.service` | `/etc/systemd/user/` | |
 | `env.example` | `/etc/lifehub-kiosk/env` | 키 채워서 생성 ([lifehub 키](#lifehub-키)) |
+| `udev-wifi-powersave-off.rules` | `/etc/udev/rules.d/70-wifi-powersave-off.rules` | `udevadm control --reload`, 즉시 적용은 `iw dev wlan0 set power_save off` |
+| `../../netplan/raspi-1/*.yaml` | `/etc/netplan/` | [netplan](#netplan) |
 
 | 레포 밖 | 위치 | 생성 |
 | --- | --- | --- |
@@ -136,6 +140,9 @@ Pi 4B, Ubuntu 24.04, Wi-Fi `192.168.0.25`. lifehub `/kiosk`. 모니터는 HDMI0 
 
 | 함정 | 증상 | 대응 |
 | --- | --- | --- |
+| `ubuntu-settings` (GNOME 의존성) | `/lib/netplan/00-network-manager-all.yaml` 이 렌더러를 `NetworkManager` 로 바꿈 → NetworkManager 미설치라 재부팅 후 유선·무선 모두 DHCP 안 함 | `netplan/raspi-1/00-network-manager-all.yaml` |
+| Wi-Fi 절전 (brcmfmac 기본 on) | RTT 평균 14ms, 최대 175ms | udev 로 `power_save off` |
+| Chrome 이 Wi-Fi 연결 전 기동 | `ERR_INTERNET_DISCONNECTED` 페이지에 멈춤 (유선은 즉시 붙어서 안 드러남) | `ExecStartPre` 가 `KIOSK_URL` 응답까지 대기 |
 | 모니터 없이 GDM 기동 | Wayland 세션 `Session never registered` 두 번 → Xorg 로 대체 | Chrome `--ozone-platform-hint=auto` 로 어느 쪽이든 동작 |
 
 원격 화면: `ssh -fN -L 127.0.0.1:9222:127.0.0.1:9222 192.168.0.25` → Chrome `chrome://inspect` → Configure `127.0.0.1:9222`.

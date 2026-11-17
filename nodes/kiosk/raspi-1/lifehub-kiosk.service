@@ -5,6 +5,7 @@ After=graphical-session.target
 
 [Service]
 EnvironmentFile=/etc/lifehub-kiosk/env
+ExecStartPre=/bin/sh -c 'until curl -fsm 3 -o /dev/null "$$KIOSK_URL"; do sleep 2; done'
 ExecStartPre=/bin/rm -rf %h/.config/lifehub-kiosk/BrowserMetrics
 ExecStart=/usr/bin/google-chrome-stable --kiosk --ozone-platform-hint=auto --password-store=basic --user-data-dir=%h/.config/lifehub-kiosk --remote-debugging-port=9222 --no-first-run --noerrdialogs --hide-crash-restore-bubble ${KIOSK_URL}
 Restart=always
