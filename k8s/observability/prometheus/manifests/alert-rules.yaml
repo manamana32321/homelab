@@ -286,6 +286,14 @@ spec:
           annotations:
             summary: "gbrain-sync 성공 없음"
             description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과."
+        - alert: GbrainEmbedStale
+          expr: (time() - kube_cronjob_status_last_successful_time{cronjob="gbrain-embed"}) > 10800
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "gbrain-embed 성공 없음"
+            description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과. OpenAI 크레딧 소진 여부 먼저 확인."
 
     - name: home-climate
       rules:

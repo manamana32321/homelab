@@ -2,9 +2,9 @@
 # - bun runtime for gbrain CLI
 # - mcp-proxy (Python) wraps stdio MCP → SSE/HTTP
 # - git CLI for brain repo pull at startup + CronJob sync
-FROM oven/bun:1.3.13-alpine
+FROM oven/bun:1.4.4-alpine
 
-ARG GBRAIN_REF=master
+ARG GBRAIN_REF=stable-v0.60.739.0
 
 # System deps (git for repo, python+pip for mcp-proxy, ca-certs for HTTPS)
 RUN apk add --no-cache \

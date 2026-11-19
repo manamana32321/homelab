@@ -1,0 +1,48 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gbrain-embed
+  namespace: gbrain
+spec:
+  schedule: "30 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 0
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 1500
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/arch: amd64
+          containers:
+            - name: embed
+              image: ghcr.io/manamana32321/gbrain-mcp:latest
+              imagePullPolicy: IfNotPresent
+              command: ["gbrain", "embed", "--stale", "--max-usd", "0.2"]
+              env:
+                - name: GBRAIN_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: gbrain-postgres-secrets
+                      key: GBRAIN_DATABASE_URL
+                - name: OPENAI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: llm-api-keys
+                      key: OPENAI_API_KEY
+                - name: GBRAIN_EMBEDDING_MODEL
+                  value: openai:text-embedding-3-large
+                - name: GBRAIN_EMBEDDING_DIMENSIONS
+                  value: "1536"
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: 100m
+                limits:
+                  memory: 1Gi
+                  cpu: 500m
