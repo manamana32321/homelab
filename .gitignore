@@ -1,5 +1,3 @@
-*.code-workspace
-!*.code-workspace.example
 .envrc.local
 .terraform/
 **/node_modules/
