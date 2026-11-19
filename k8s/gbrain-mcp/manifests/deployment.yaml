@@ -73,6 +73,12 @@ spec:
                 secretKeyRef:
                   name: llm-api-keys
                   key: OPENAI_API_KEY
+            - name: GBRAIN_EMBEDDING_MODEL
+              value: openai:text-embedding-3-large
+            - name: GBRAIN_EMBEDDING_DIMENSIONS
+              value: "1536"
+            - name: GBRAIN_SWEEP
+              value: "0"
           ports:
             - containerPort: 8080
               name: sse

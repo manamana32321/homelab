@@ -54,10 +54,14 @@ spec:
                     secretKeyRef:
                       name: llm-api-keys
                       key: OPENAI_API_KEY
+                - name: GBRAIN_EMBEDDING_MODEL
+                  value: openai:text-embedding-3-large
+                - name: GBRAIN_EMBEDDING_DIMENSIONS
+                  value: "1536"
               resources:
                 requests:
                   memory: 256Mi
                   cpu: 100m
                 limits:
-                  memory: 512Mi
+                  memory: 1Gi
                   cpu: 500m

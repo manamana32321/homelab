@@ -8,6 +8,7 @@ resources:
   - sealed-secret-github.yaml
   - service.yaml
   - sync-cronjob.yaml
+  - embed-cronjob.yaml
 images:
   - name: ghcr.io/manamana32321/gbrain-mcp
     newTag: latest
