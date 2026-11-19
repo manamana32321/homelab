@@ -153,8 +153,6 @@ cd ~/essentia-worktrees/essentia/main
 git worktree repair
 ```
 
-`.code-workspace` 경로도 동시 갱신.
-
 ## 10-1. GHCR 구 이미지 정리 (유저 UI)
 
 https://github.com/orgs/essentia-edu/packages → `saemate/api`, `saemate/web` 삭제 (트래픽 0 확인 후).
