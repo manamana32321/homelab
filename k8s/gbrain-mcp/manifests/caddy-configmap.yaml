@@ -19,6 +19,7 @@ data:
       @authorized header Authorization "Bearer {env.MCP_AUTH_TOKEN}"
       handle @authorized {
         reverse_proxy localhost:8080 {
+          header_up Host {upstream_hostport}
           flush_interval -1
           transport http {
             read_timeout 24h
