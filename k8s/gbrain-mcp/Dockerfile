@@ -15,7 +15,7 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Install mcp-proxy (stdio→SSE wrapper)
-RUN pip install --break-system-packages --no-cache-dir mcp-proxy
+RUN pip install --break-system-packages --no-cache-dir mcp-proxy==0.15.0 mcp==1.30.0
 
 # Install gbrain CLI from upstream
 RUN git clone --depth 1 --branch ${GBRAIN_REF} https://github.com/garrytan/gbrain.git /opt/gbrain \
