@@ -8,11 +8,11 @@ metadata:
 spec:
   schedule: "0 18 * * *"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  # 매일 실행 → 마지막 1회만 보관 (예전 jobTemplate TTL 1일과 같은 효과, kube-linter job-ttl-seconds-after-finished)
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 86400
       backoffLimit: 1
       activeDeadlineSeconds: 21600
       template:

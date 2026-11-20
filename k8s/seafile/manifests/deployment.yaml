@@ -20,6 +20,13 @@ spec:
         - name: set-ownership
           image: busybox
           command: ['sh', '-c', 'chown -R root:root /shared']
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 500m
+              memory: 64Mi
           volumeMounts:
             - name: seafile-data
               mountPath: /shared
@@ -37,6 +44,13 @@ spec:
                 cat "$EXTRA" >> "$SETTINGS"
                 printf '# --- end managed ---\n' >> "$SETTINGS"
               fi
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 500m
+              memory: 64Mi
           volumeMounts:
             - name: seafile-data
               mountPath: /shared

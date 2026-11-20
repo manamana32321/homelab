@@ -116,6 +116,13 @@ spec:
                 secretKeyRef:
                   name: seafile-secret
                   key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 500m
+              memory: 64Mi
           volumeMounts:
             - name: generated-config
               mountPath: /config

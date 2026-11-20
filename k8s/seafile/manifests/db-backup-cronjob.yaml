@@ -11,11 +11,11 @@ spec:
   # (2026-07-22 인시던트: 3개 동시 실행 + CI 러너 쏠림 → node_load1 112).
   schedule: "40 17 * * *"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  # 매일 실행 → 마지막 1회만 보관 (예전 jobTemplate TTL 1일과 같은 효과, kube-linter job-ttl-seconds-after-finished)
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 86400
       backoffLimit: 2
       template:
         metadata:

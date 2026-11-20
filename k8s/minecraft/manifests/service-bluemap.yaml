@@ -3,6 +3,8 @@
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    ignore-check.kube-linter.io/dangling-service: "selector가 같은 Application의 Helm chart가 만든 Pod를 가리킴 (이 폴더만 보면 짝이 없어 보이는 오탐)"
   name: minecraft-bluemap
   namespace: minecraft
   labels:
