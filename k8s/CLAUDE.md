@@ -100,7 +100,7 @@ cert는 30일마다 로테이션. 만료 시 VPN 연결 + `kubeseal --fetch-cert
 |---|---|---|
 | OIDC (PKCE만, secret 없음) | public client blueprint | [blueprint-kargo.yaml](authentik/manifests/blueprint-kargo.yaml) |
 | OIDC (서버가 code 교환) | confidential client blueprint. `client_secret: !Env ...`를 `authentik-secret`에 넣고 같은 값을 앱 namespace에도 sealing (strict scope라 두 번) | ArgoCD (homelab#449) |
-| OIDC 없음 | Traefik `authentik-forwardauth` middleware + proxy provider | [blueprint-forward-auth.yaml](authentik/manifests/blueprint-forward-auth.yaml) (CloudBeaver) |
+| OIDC 없음 | Traefik `authentik-forwardauth` middleware + proxy provider | [blueprint-forward-auth.yaml](authentik/manifests/blueprint-forward-auth.yaml) (Longhorn) |
 
 - **로그인 제한은 Authentik에서**: `authentik_policies.policybinding`으로 앱에 그룹(관리자 도구는 `authentik Admins`)을 묶는다. 앱 쪽 RBAC 기본값은 권한 없음, 같은 그룹만 admin 매핑
 - 새 blueprint는 [authentik/values.yaml](authentik/values.yaml) `blueprints.configMaps`에 등록

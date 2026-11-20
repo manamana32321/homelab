@@ -122,16 +122,6 @@ resource "cloudflare_dns_record" "auth" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "db" {
-  zone_id = cloudflare_zone.main.id
-  name    = "db"
-  type    = "CNAME"
-  content = "origin.${var.zone_name}"
-  proxied = true
-  comment = "CloudBeaver DB admin"
-  ttl     = 1
-}
-
 resource "cloudflare_dns_record" "hermes" {
   zone_id = cloudflare_zone.main.id
   name    = "hermes"
