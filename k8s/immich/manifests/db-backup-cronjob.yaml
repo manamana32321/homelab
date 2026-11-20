@@ -10,11 +10,11 @@ spec:
   # apiserver 가 밀린다 (2026-07-22 인시던트). 20분 간격으로 분산.
   schedule: "0 17 * * *"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  # 매일 실행 → 마지막 1회만 보관 (예전 jobTemplate TTL 1일과 같은 효과, kube-linter job-ttl-seconds-after-finished)
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 86400
       backoffLimit: 2
       template:
         metadata:

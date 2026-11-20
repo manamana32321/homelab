@@ -47,6 +47,23 @@ jobs:
           done < <(find k8s -name 'kustomization.yaml' | sort)
           echo "Rendered $(ls /tmp/rendered/ | wc -l) Kustomize roots."
 
+      # ArgoCD Application의 `path: k8s/...` 중 kustomization.yaml이 없는 곳은
+      # plain directory source라 위 단계에 안 잡힌다. 그대로 lint 대상에 추가.
+      # 템플릿 경로(`{{env}}` 등)는 kustomize overlay라 위 단계가 이미 렌더함.
+      # Kubernetes 리소스가 아닌 yaml(Helm values.yaml 등)은 kube-linter가 건너뜀.
+      - name: Collect plain-directory sources
+        run: |
+          set -euo pipefail
+          grep -rhE '^\s*path:\s*["'"'"']?k8s/' k8s/argocd/applications \
+            | sed -E 's/^\s*path:\s*//; s/["'"'"']//g; s/\s+$//' \
+            | grep -v '{' | sort -u \
+            | while IFS= read -r dir; do
+                [ -f "$dir/kustomization.yaml" ] || echo "$dir"
+              done > /tmp/plain-dirs.txt
+          echo "Plain-directory sources: $(wc -l < /tmp/plain-dirs.txt)"
+          cat /tmp/plain-dirs.txt
+
       - name: Run kube-linter (strict)
         run: |
-          kube-linter lint --config=.kube-linter.yaml /tmp/rendered/
+          mapfile -t plain < /tmp/plain-dirs.txt
+          kube-linter lint --config=.kube-linter.yaml /tmp/rendered/ "${plain[@]}"

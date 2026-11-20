@@ -54,6 +54,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    ignore-check.kube-linter.io/non-existent-service-account: "local-path-provisioner-service-account는 k3s 내장 local-path-provisioner가 만든 SA를 재사용 (이 레포 밖)"
   name: hdd-samsung-local-path-provisioner
   namespace: kube-system
 spec:
@@ -85,6 +87,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config/
