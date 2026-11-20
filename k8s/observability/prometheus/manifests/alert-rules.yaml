@@ -276,24 +276,36 @@ spec:
     # 대신 "마지막 성공 이후 경과 시간"으로 지속 장애만 잡고 성공 시 자동 해소.
     # 정상 cadence 주의: sync ~17분 + concurrencyPolicy=Forbid → 성공 완료 간격이
     # ~20분으로 벌어지므로 임계를 넉넉히(1h) 잡아 false positive를 피한다.
+    # 한 번도 성공 못 한 CronJob은 last_successful_time 시리즈 자체가 없어 식이 비고
+    # 영원히 안 울린다 → kube_cronjob_created로 폴백(생성 이후 경과).
+    # embed는 --max-usd 상한 도달도 실패(exit≠0)로 끝나므로, 밀린 양이 시간당 상한을
+    # 넘는 동안에도 발화한다.
     - name: gbrain
       rules:
         - alert: GbrainSyncStale
-          expr: (time() - kube_cronjob_status_last_successful_time{cronjob="gbrain-sync"}) > 3600
+          expr: |
+            time() - (
+              kube_cronjob_status_last_successful_time{cronjob="gbrain-sync"}
+              or kube_cronjob_created{cronjob="gbrain-sync"}
+            ) > 3600
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: "gbrain-sync 성공 없음"
-            description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과."
+            description: "마지막 성공(없으면 CronJob 생성) 이후 {{ $value | humanizeDuration }} 경과."
         - alert: GbrainEmbedStale
-          expr: (time() - kube_cronjob_status_last_successful_time{cronjob="gbrain-embed"}) > 10800
+          expr: |
+            time() - (
+              kube_cronjob_status_last_successful_time{cronjob="gbrain-embed"}
+              or kube_cronjob_created{cronjob="gbrain-embed"}
+            ) > 10800
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: "gbrain-embed 성공 없음"
-            description: "마지막 성공 이후 {{ $value | humanizeDuration }} 경과. OpenAI 크레딧 소진 여부 먼저 확인."
+            description: "마지막 성공(없으면 CronJob 생성) 이후 {{ $value | humanizeDuration }} 경과. OpenAI 크레딧 소진 여부 먼저 확인."
 
     - name: home-climate
       rules:
