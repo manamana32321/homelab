@@ -12,6 +12,11 @@ metadata:
 spec:
   name: json-server-1
   allowScheduling: true
+  # instance-manager CPU request (millicpu). 전역 기본 12%(8 core → 960m) 대신 노드별 지정.
+  # Longhorn 공식: (노드 engine+replica 수) × 0.1 core → 2026-11 기준 6개 → 600m.
+  # server-2는 instance 32개라 공식상 더 필요 → 전역 기본(12% = 720m) 유지.
+  # 변경은 이 노드 instance-manager에 실행 중인 instance가 없을 때(drain/재부팅) 반영됨.
+  instanceManagerCPURequest: 600
   disks:
     default-disk:
       allowScheduling: true
