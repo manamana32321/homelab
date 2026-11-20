@@ -214,7 +214,6 @@ alloy:
           {name = "immich", address = "http://immich-server.immich.svc.cluster.local:2283/api/server/ping", module = "http_2xx_no_tls"},
           {name = "seafile", address = "http://seafile.seafile.svc.cluster.local", module = "http_2xx_no_tls"},
           {name = "k8s-dashboard", address = "http://headlamp.headlamp.svc.cluster.local", module = "http_2xx_no_tls"},
-          {name = "cloudbeaver", address = "http://cloudbeaver.cloudbeaver.svc.cluster.local:8978", module = "http_2xx_no_tls"},
           {name = "amang-api", address = "http://api-server.amang-api-production.svc.cluster.local:8000/health", module = "http_2xx_no_tls"},
           {name = "amang-api-staging", address = "http://api-server.amang-api-staging.svc.cluster.local:8000/health", module = "http_2xx_no_tls"},
           {name = "amang-umami", address = "http://umami.amang-umami.svc.cluster.local:3000/api/heartbeat", module = "http_2xx_no_tls"},
