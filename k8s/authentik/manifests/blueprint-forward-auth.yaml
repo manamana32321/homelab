@@ -46,15 +46,6 @@ data:
           failure_result: false
           negate: false
 
-      - model: authentik_core.application
-        state: absent
-        identifiers:
-          slug: health-hub
-      - model: authentik_providers_proxy.proxyprovider
-        state: absent
-        identifiers:
-          name: health-hub-provider
-
       - model: authentik_providers_proxy.proxyprovider
         state: present
         identifiers:
@@ -141,34 +132,3 @@ data:
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, lifehub-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, hermes-provider]]
-
-      - model: authentik_core.application
-        state: absent
-        identifiers:
-          slug: loop
-      - model: authentik_core.application
-        state: absent
-        identifiers:
-          slug: windmill
-      - model: authentik_providers_proxy.proxyprovider
-        state: absent
-        identifiers:
-          name: loop-provider
-      - model: authentik_providers_proxy.proxyprovider
-        state: absent
-        identifiers:
-          name: windmill-provider
-
-      # CloudBeaver 제거 (2026-11): Authentik 안의 객체 삭제. 다음 정리 때 이 블록째 지워도 됨
-      - model: authentik_core.application
-        state: absent
-        identifiers:
-          slug: cloudbeaver
-      - model: authentik_providers_proxy.proxyprovider
-        state: absent
-        identifiers:
-          name: cloudbeaver-provider
-      - model: authentik_policies_expression.expressionpolicy
-        state: absent
-        identifiers:
-          name: cloudbeaver-require-skku-amang-org
