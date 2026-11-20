@@ -39,13 +39,16 @@ worker:
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 30
+  # 평소 working set ~950-990Mi (2026-11 기준 7일). 1Gi limit에선 여유 5%라
+  # 같은 컨테이너에 `ak shell` 하나만 더 떠도 OOMKilled → request를 실사용에 맞추고
+  # limit에 여유를 둠.
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
+      memory: 1Gi
     limits:
       cpu: "1"
-      memory: 1Gi
+      memory: 1536Mi
 
 postgresql:
   enabled: true
