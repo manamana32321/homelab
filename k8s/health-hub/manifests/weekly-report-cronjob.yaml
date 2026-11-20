@@ -16,6 +16,10 @@ spec:
     spec:
       backoffLimit: 2
       activeDeadlineSeconds: 300
+      # 끝난 Job/Pod가 옛 이미지 digest를 들고 남아 있으면 Image Updater가
+      # 그걸 현재 이미지로 읽어 매 주기 no-op 업데이트를 반복함 (k8s/CLAUDE.md
+      # "Image Updater" 참고). 로그는 Loki에 남으므로 1시간 뒤 정리.
+      ttlSecondsAfterFinished: 3600
       template:
         metadata:
           labels:

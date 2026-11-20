@@ -385,6 +385,18 @@ metadata:
 
 **관련 이슈**: Image Updater가 private GHCR pullSecret을 읽으려면 RBAC 필요 — [homelab#139](https://github.com/manamana32321/homelab/pull/139)에서 해결됨.
 
+### 함정: 2분마다 no-op `ImagesUpdated` 반복
+
+증상: 앱 spec·Pod는 이미 새 digest인데 `ImagesUpdated` 이벤트와 "Setting new image ... from <옛 digest>" 로그가 매 poll마다 찍힘.
+
+원인: Image Updater(v0.15)는 write-back 방식과 상관없이 **현재 이미지를 `Application.status.summary.images`에서 읽고**, 이름이 같은 항목 중 **첫 번째**(알파벳순)를 집는다. summary는 앱 트리의 **Pod** spec 이미지에서만 모인다(ReplicaSet은 무관). 옛 digest를 든 Pod가 트리에 남아 있고 그 digest가 알파벳순으로 앞이면 루프.
+
+옛 digest Pod가 남는 두 경로:
+1. **끝난 CronJob Job/Pod** (같은 이미지를 쓰는 CronJob의 history) → `ttlSecondsAfterFinished`로 정리. git write-back으로 바꿔도 해결 안 됨(같은 summary를 읽음)
+2. **ArgoCD 캐시의 유령 리소스** — 클러스터에선 지워졌는데(`kubectl get` NotFound) ArgoCD 트리에 남은 Job/Pod. upstream 미해결 버그 [argo-cd#10759](https://github.com/argoproj/argo-cd/issues/10759). 확인: `argocd app get <app> --core -o tree=detailed`와 `kubectl get` 대조. 복구: `kubectl -n argocd rollout restart sts/argocd-application-controller`
+
+배포에는 영향 없음(같은 digest로 덮어씀). Application 쓰기·이벤트 노이즈만 생김.
+
 ---
 
 ## Storage 노드 배치
