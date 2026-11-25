@@ -208,7 +208,7 @@ alloy:
         targets = [
           {name = "argocd", address = "http://argocd-server.argocd.svc.cluster.local", module = "http_2xx_no_tls"},
           {name = "kargo", address = "http://kargo-api.kargo.svc.cluster.local", module = "http_2xx_no_tls"},
-          {name = "grafana", address = "http://grafana-service.observability.svc.cluster.local:3000/login", module = "http_2xx_no_tls"},
+          {name = "grafana", address = "http://grafana-service.observability.svc.cluster.local:3000/api/health", module = "http_2xx_no_tls"},
           {name = "prometheus", address = "http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/-/ready", module = "http_2xx_no_tls"},
           {name = "authentik", address = "http://authentik-server.authentik.svc.cluster.local/-/health/live/", module = "http_2xx_no_tls"},
           {name = "immich", address = "http://immich-server.immich.svc.cluster.local:2283/api/server/ping", module = "http_2xx_no_tls"},
