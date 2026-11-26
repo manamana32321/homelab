@@ -21,6 +21,35 @@ tempo:
       wal:
         path: /var/tempo/wal
 
+  # 서버 스팬으로 엔드포인트별 요청 수·응답시간 지표(traces_spanmetrics_*)를 만들어 Prometheus로 보낸다
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/write
+    processor:
+      span_metrics:
+        intrinsic_dimensions:
+          # amang-api 스팬 이름엔 실제 ID가 들어간다 (GET /teams/91). 라우트는 http.route로 묶는다
+          span_name: false
+        dimensions:
+          - http.method
+          - http.route
+          # OTel status는 4xx도 error라 HTTP 상태코드를 따로 남긴다
+          - http.status_code
+          - deployment.environment.name
+        filter_policies:
+          - include:
+              match_type: strict
+              attributes:
+                - key: kind
+                  value: SPAN_KIND_SERVER
+    storage:
+      path: /var/tempo/generator
+  overrides:
+    defaults:
+      metrics_generator:
+        processors:
+          - span-metrics
+
 persistence:
   enabled: true
   size: 10Gi

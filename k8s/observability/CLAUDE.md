@@ -120,7 +120,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | alloy-gateway (Deployment) | OTLP 수신, syslog (OpenWrt `:5514`, Coral `:5515` — LAN LoadBalancer `alloy-gateway-syslog-lan`), blackbox 프로브, k8s Event → Loki | `homelab-alerts` (blackbox) |
 | Prometheus (kube-prometheus-stack) | 메트릭 저장 + Alertmanager + 기본 알림 룰 | chart |
 | Loki | 로그 저장 | (없음) |
-| Tempo | 트레이스 저장 | (없음) |
+| Tempo | 트레이스 저장, 서버 스팬 → 엔드포인트별 요청 수·응답시간 지표 (`traces_spanmetrics_*`, 라벨 `http_route` `http_method` `http_status_code` `deployment_environment_name`) | (없음) |
 | Grafana | 대시보드 시각화 (알림 미사용) | - |
 | smartctl-exporter | SMART 디스크 건강 | chart + `homelab-alerts` |
 
