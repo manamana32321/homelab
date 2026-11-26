@@ -369,3 +369,15 @@ resource "cloudflare_dns_record" "learningx" {
   comment = "LearningX MCP landing — essentia-web ingress (Next host rewrite)"
   ttl     = 1
 }
+
+# 설비 모니터링 데모 (equipment-monitoring-demo). Authentik forward-auth 게이트,
+# cert-manager DNS01. 임시 데모 — 종료 시 이 레코드 + scrubber-demo 앱 제거.
+resource "cloudflare_dns_record" "scrubber_demo" {
+  zone_id = cloudflare_zone.main.id
+  name    = "scrubber-demo"
+  type    = "CNAME"
+  content = "origin.${var.zone_name}"
+  proxied = true
+  comment = "Equipment monitoring demo (Grafana, Authentik forward-auth)"
+  ttl     = 1
+}
