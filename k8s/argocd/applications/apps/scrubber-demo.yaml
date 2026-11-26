@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scrubber-demo
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: simulator=ghcr.io/manamana32321/equipment-monitoring-demo:latest
+    argocd-image-updater.argoproj.io/simulator.update-strategy: digest
+    argocd-image-updater.argoproj.io/simulator.force-update: "true"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/manamana32321/equipment-monitoring-demo
+    targetRevision: main
+    path: .
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: scrubber-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

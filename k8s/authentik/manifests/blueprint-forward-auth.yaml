@@ -118,6 +118,50 @@ data:
           failure_result: false
           negate: false
 
+      # scrubber-demo (용수 설비 모니터링 데모). 임시 — 종료 시 이 블록 제거.
+      - model: authentik_core.group
+        state: present
+        identifiers:
+          name: scrubber-demo
+        attrs:
+          name: scrubber-demo
+
+      - model: authentik_providers_proxy.proxyprovider
+        state: present
+        identifiers:
+          name: scrubber-demo-provider
+        attrs:
+          name: scrubber-demo-provider
+          mode: forward_single
+          external_host: https://scrubber-demo.json-server.win
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        state: present
+        identifiers:
+          slug: scrubber-demo
+        attrs:
+          name: Scrubber Demo
+          slug: scrubber-demo
+          meta_launch_url: https://scrubber-demo.json-server.win
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, scrubber-demo-provider]]
+          policy_engine_mode: any
+
+      # scrubber-demo: scrubber-demo 그룹만 접근 허용 (용수)
+      - model: authentik_policies.policybinding
+        state: present
+        identifiers:
+          order: 0
+          target: !Find [authentik_core.application, [slug, scrubber-demo]]
+          group: !Find [authentik_core.group, [name, scrubber-demo]]
+        attrs:
+          enabled: true
+          order: 0
+          timeout: 30
+          failure_result: false
+          negate: false
+
       # Embedded Outpost (모든 forward auth provider를 포함)
       - model: authentik_outposts.outpost
         state: present
@@ -132,3 +176,4 @@ data:
             - !Find [authentik_providers_proxy.proxyprovider, [name, longhorn-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, lifehub-provider]]
             - !Find [authentik_providers_proxy.proxyprovider, [name, hermes-provider]]
+            - !Find [authentik_providers_proxy.proxyprovider, [name, scrubber-demo-provider]]
