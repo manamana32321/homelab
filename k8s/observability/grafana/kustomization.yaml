@@ -9,3 +9,12 @@ resources:
   - pvc.yaml
   - grafana.yaml
   - datasources.yaml
+  - dashboards.yaml
+
+# GrafanaDashboard configMapRef는 kustomize가 이름 해시를 따라 고치지 못한다
+configMapGenerator:
+  - name: grafana-dashboards
+    files:
+      - dashboards/amang-api-endpoints.json
+    options:
+      disableNameSuffixHash: true

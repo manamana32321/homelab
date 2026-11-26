@@ -129,7 +129,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | 종류 | 위치 |
 |---|---|
 | 커뮤니티 (grafana.com·GitHub) | [grafana/dashboards.tf](../../grafana/dashboards.tf) — 원본은 ID·revision 으로 받고 바꿀 값만 표에 적는다. JSON 저장 금지 |
-| 직접 만든 것 | `grafana/` 하위 sidecar ConfigMap (`grafana_dashboard: "1"` 라벨, `grafana_folder` 어노테이션) |
+| 직접 만든 것 | JSON은 [grafana/dashboards/](grafana/dashboards/), [grafana/dashboards.yaml](grafana/dashboards.yaml)의 `GrafanaDashboard`가 `configMapRef`로 가리킨다 (grafana-operator, 폴더는 `folderUID`) |
 
 ### Loki 라벨
 

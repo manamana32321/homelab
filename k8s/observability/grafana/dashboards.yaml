@@ -1,0 +1,14 @@
+# 직접 만든 대시보드. JSON 원본은 dashboards/, kustomization의 configMapGenerator가 ConfigMap으로 묶는다
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: amang-api-endpoints
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana: grafana
+  folderUID: dfipmm3rm6qyoa # Apps (grafana/dashboards.tf)
+  resyncPeriod: 5m
+  configMapRef:
+    name: grafana-dashboards
+    key: amang-api-endpoints.json
