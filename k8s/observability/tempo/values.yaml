@@ -27,8 +27,10 @@ tempo:
     remoteWriteUrl: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/write
     processor:
       span_metrics:
+        # 요청 100~500ms 구간을 촘촘히 세서 엔드포인트 개선 전후 p95 차이가 보이게 한다 (기본값은 256~512ms가 한 칸)
+        histogram_buckets: [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.75, 1, 2.5, 5, 10]
         intrinsic_dimensions:
-          # amang-api 스팬 이름엔 실제 ID가 들어간다 (GET /teams/91). 라우트는 http.route로 묶는다
+          # 서버 스팬 이름은 "메서드 라우트"라 http.method·http.route와 겹친다. 라우트 없는 앱은 이름에 실제 ID가 들어간다
           span_name: false
         dimensions:
           - http.method
@@ -36,6 +38,8 @@ tempo:
           # OTel status는 4xx도 error라 HTTP 상태코드를 따로 남긴다
           - http.status_code
           - deployment.environment.name
+          # 배포 버전 (amang-api: 이미지 태그 <커밋시각>-<짧은 SHA>). Sentry가 service.version을 SDK 버전으로 덮어써서 따로 둔다
+          - app.version
         filter_policies:
           - include:
               match_type: strict
