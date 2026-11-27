@@ -120,7 +120,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | alloy-gateway (Deployment) | OTLP 수신, syslog (OpenWrt `:5514`, Coral `:5515` — LAN LoadBalancer `alloy-gateway-syslog-lan`), blackbox 프로브, k8s Event → Loki | `homelab-alerts` (blackbox) |
 | Prometheus (kube-prometheus-stack) | 메트릭 저장 + Alertmanager + 기본 알림 룰 | chart |
 | Loki | 로그 저장 | (없음) |
-| Tempo | 트레이스 저장 | (없음) |
+| Tempo | 트레이스 저장, 서버 스팬 → 엔드포인트별 요청 수·응답시간 지표 (`traces_spanmetrics_*`, 라벨 `http_route` `http_method` `http_status_code` `deployment_environment_name`) | (없음) |
 | Grafana | 대시보드 시각화 (알림 미사용) | - |
 | smartctl-exporter | SMART 디스크 건강 | chart + `homelab-alerts` |
 
@@ -129,7 +129,7 @@ kubectl exec prometheus-prometheus-kube-prometheus-prometheus-0 -c prometheus -n
 | 종류 | 위치 |
 |---|---|
 | 커뮤니티 (grafana.com·GitHub) | [grafana/dashboards.tf](../../grafana/dashboards.tf) — 원본은 ID·revision 으로 받고 바꿀 값만 표에 적는다. JSON 저장 금지 |
-| 직접 만든 것 | `grafana/` 하위 sidecar ConfigMap (`grafana_dashboard: "1"` 라벨, `grafana_folder` 어노테이션) |
+| 직접 만든 것 | JSON은 [grafana/dashboards/](grafana/dashboards/), [grafana/dashboards.yaml](grafana/dashboards.yaml)의 `GrafanaDashboard`가 `configMapRef`로 가리킨다 (grafana-operator, 폴더는 `folderUID`) |
 
 ### Loki 라벨
 
